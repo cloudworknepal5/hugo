@@ -1,4 +1,4 @@
-baseURL = 'https://news.neelamb.com.np/'
+baseURL = 'https://hugo-5c3.pages.dev/
 locale = 'en-us'
-title = 'My New Hugo Project'
-theme = "mainroad" 
+title = 'Nepal 24 News Portal'
+theme = "mainroad"
