@@ -2,7 +2,7 @@ backend:
   name: github
   repo: cloudworknepal5/hugo
   branch: main
-  base_url: https://news.neelamb.com.np
+  base_url: https://hugo-5c3.pages.dev
   auth_endpoint: /api/auth
 
 media_folder: "static/img"
