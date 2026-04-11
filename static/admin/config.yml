@@ -4,7 +4,6 @@ backend:
 
 media_folder: "static/img"
 public_folder: "/img"
-site_url: https://news.neelamb.com.np
 
 collections:
   - name: "posts"
