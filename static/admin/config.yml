@@ -1,8 +1,7 @@
 backend:
   name: git-gateway
-  repo: cloudworknepal5/hugo
   branch: main
-
+  
 # ड्यासबोर्डमा देखिने मुख्य ठेगाना
 site_url: https://news.neelamb.com.np
 # मिडिया सेटिङ
