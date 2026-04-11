@@ -1,0 +1,16 @@
+<meta property="og:site_name" content="SubhLabh News">
+<meta property="og:title" content="{{ if .IsPage }}{{ .Title }}{{ else }}SubhLabh News - समाचार पोर्टल{{ end }}">
+<meta property="og:description" content="{{ if .IsPage }}{{ .Summary }}{{ else }}बिरगन्ज र नेपालभरका ताजा समाचारको आधिकारिक पोर्टल।{{ end }}">
+<meta property="og:type" content="{{ if .IsPage }}article{{ else }}website{{ end }}">
+<meta property="og:url" content="{{ .Permalink }}">
+
+{{ if .Params.image }}
+    <meta property="og:image" content="{{ .Params.image | absURL }}">
+{{ else if .Params.featured_image }}
+    <meta property="og:image" content="{{ .Params.featured_image | absURL }}">
+{{ else }}
+    <meta property="og:image" content="https://news.neelamb.com.np/images/default-news-banner.jpg">
+{{ end }}
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="{{ if .Params.image }}{{ .Params.image | absURL }}{{ else }}https://news.neelamb.com.np/images/default-news-banner.jpg{{ end }}">
