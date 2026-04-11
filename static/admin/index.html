@@ -10,9 +10,10 @@
   <script src="https://unpkg.com/decap-cms@^3.11.0/dist/decap-cms.js"></script>
 
   <script>
-    // Cloudflare र Custom Domain को लागि Netlify URL Bridge
+    // १. क्लाउडफ्लेयर ब्रिज: नेटलिफाइको साँचो जबरजस्ती सेट गर्ने
     localStorage.setItem("netlifySiteURL", "https://musical-klepon-d9603a.netlify.app");
 
+    // २. लगइन भएपछि रिडाइरेक्ट गर्ने लजिक
     if (window.netlifyIdentity) {
       window.netlifyIdentity.on("init", user => {
         if (!user) {
