@@ -1,22 +1,3 @@
 backend:
   name: git-gateway
   branch: main
-  
-# ड्यासबोर्डमा देखिने मुख्य ठेगाना
-site_url: https://news.neelamb.com.np
-# मिडिया सेटिङ
-media_folder: "static/img"
-public_folder: "/img"
-
-collections:
-  - name: "posts"
-    label: "News Posts"
-    folder: "content/posts"
-    create: true
-    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
-    fields:
-      - {label: "Title", name: "title", widget: "string"}
-      - {label: "Publish Date", name: "date", widget: "datetime"}
-      - {label: "Featured Image", name: "thumbnail", widget: "image", required: false}
-      - {label: "Draft", name: "draft", widget: "boolean", default: false}
-      - {label: "Body", name: "body", widget: "markdown"}
