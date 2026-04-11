@@ -2,8 +2,9 @@ backend:
   name: github
   repo: cloudworknepal5/hugo
   branch: main
-  base_url: https://musical-klepon-d9603a.netlify.app # तपाईँको Netlify URL यहाँ हाल्नुहोस्
-  auth_endpoint: /api/auth
+  # यो लिङ्कले सिधै Netlify को Identity सँग कुरा गर्छ
+  base_url: https://musical-klepon-d9603a.netlify.app
+  auth_endpoint: /.netlify/identity/auth
 
 media_folder: "static/img"
 public_folder: "/img"
