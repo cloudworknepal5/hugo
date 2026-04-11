@@ -1,4 +1,8 @@
-baseURL = "https://news.neelamb.com.np/"
-languageCode = "en-us"
-title = "Nepal 24 News"
-theme = "mainroad"
+baseURL = 'https://news.neelamb.com.np/'
+languageCode = 'ne-np'
+title = 'News'
+theme = 'your-theme-name'
+
+[params]
+  description = "ताजा समाचार र अपडेटहरू"
+  author = "Mukesh"
