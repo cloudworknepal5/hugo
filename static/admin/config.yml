@@ -1,3 +1,21 @@
 backend:
   name: git-gateway
   branch: main
+
+# यी लाइनहरू बायाँपट्टि टाँसिएका (Zero Indentation) हुनुपर्छ
+media_folder: "static/img"
+public_folder: "/img"
+site_url: https://news.neelamb.com.np
+
+collections:
+  - name: "posts"
+    label: "News Posts"
+    folder: "content/posts"
+    create: true
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    fields:
+      - {label: "Title", name: "title", widget: "string"}
+      - {label: "Publish Date", name: "date", widget: "datetime"}
+      - {label: "Featured Image", name: "thumbnail", widget: "image", required: false}
+      - {label: "Draft", name: "draft", widget: "boolean", default: false}
+      - {label: "Body", name: "body", widget: "markdown"}
