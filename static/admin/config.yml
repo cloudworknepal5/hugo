@@ -1,10 +1,11 @@
 backend:
-  name: github
+  name: git-gateway
   repo: cloudworknepal5/hugo
   branch: main
-  base_url: https://musical-klepon-d9603a.netlify.app
-  proxy_url: https://musical-klepon-d9603a.netlify.app/.netlify/identity
 
+# ड्यासबोर्डमा देखिने मुख्य ठेगाना
+site_url: https://news.neelamb.com.np
+# मिडिया सेटिङ
 media_folder: "static/img"
 public_folder: "/img"
 
