@@ -9,10 +9,9 @@
 <body>
   <script src="https://unpkg.com/decap-cms@^3.11.0/dist/decap-cms.js"></script>
   <script>
-    // १. यो लाइनले क्लाउडफ्लेयरको 404 समस्या १००% समाधान गर्छ
+    // क्लाउडफ्लेयर ब्रिज: यसले ४०४ एरर हटाउँछ
     localStorage.setItem("netlifySiteURL", "https://musical-klepon-d9603a.netlify.app");
 
-    // २. नेटलिफाइ विजेट कन्फिगरेसन
     if (window.netlifyIdentity) {
       window.netlifyIdentity.on("init", user => {
         if (!user) {
