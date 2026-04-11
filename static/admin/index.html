@@ -3,18 +3,19 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Content Manager</title>
+  <title>News Portal Admin | Neelamb Art & Design</title>
   <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 </head>
 <body>
   <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
 
   <script>
-    // यो स्क्रिप्टले ड्यासबोर्ड र नेटलिफाइलाई जोड्छ
+    // Netlify Identity सँग लगइन र रिडाइरेक्ट मिलाउने स्क्रिप्ट
     if (window.netlifyIdentity) {
       window.netlifyIdentity.on("init", user => {
         if (!user) {
           window.netlifyIdentity.on("login", () => {
+            // लगइन भएपछि एडमिन पेज रिफ्रेस गर्ने
             document.location.href = "/admin/";
           });
         }
