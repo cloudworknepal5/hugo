@@ -1,82 +1,96 @@
-<div class="news-container" style="max-width: 1200px; margin: auto; padding: 20px;">
-    <h2 style="border-left: 5px solid #fbbc04; padding-left: 15px; font-family: 'Mukta', sans-serif;">ताजा समाचार (अटो-अपडेट)</h2>
+<style>
+    :root { --primary: #fbbc04; --text: #333; --gray: #666; }
+    .news-container { max-width: 1200px; margin: 40px auto; padding: 0 20px; font-family: 'Mukta', sans-serif; }
+    .section-title { border-left: 6px solid var(--primary); padding-left: 15px; margin-bottom: 30px; font-size: 28px; color: var(--text); }
+    
+    /* ग्रिड लेआउट */
+    .news-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; }
+    
+    /* समाचार कार्ड स्टाइल */
+    .news-card { background: #fff; border-radius: 15px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.08); transition: 0.4s; border: 1px solid #eee; display: flex; flex-direction: column; }
+    .news-card:hover { transform: translateY(-8px); box-shadow: 0 12px 25px rgba(0,0,0,0.15); }
+    
+    .news-img-box { position: relative; width: 100%; height: 210px; overflow: hidden; }
+    .news-img-box img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
+    .news-card:hover .news-img-box img { scale: 1.1; }
+    
+    .news-content { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
+    .news-date { font-size: 12px; color: var(--gray); margin-bottom: 8px; font-weight: 600; }
+    .news-content h3 { font-size: 20px; margin: 10px 0; line-height: 1.4; height: 56px; overflow: hidden; }
+    .news-content h3 a { text-decoration: none; color: var(--text); transition: 0.3s; }
+    .news-content h3 a:hover { color: #1a73e8; }
+    .news-content p { font-size: 15px; color: #555; line-height: 1.6; margin-bottom: 15px; }
+    
+    .read-more { margin-top: auto; color: #1a73e8; font-weight: bold; text-decoration: none; font-size: 14px; border-top: 1px solid #eee; padding-top: 15px; display: block; }
+    
+    /* लोड हुँदाको एनिमेसन (Skeleton Loader) */
+    .loading-pulse { background: #eee; height: 200px; width: 100%; border-radius: 10px; position: relative; overflow: hidden; }
+    .loading-pulse::after { content: ""; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent); animation: loading 1.5s infinite; }
+    @keyframes loading { 100% { left: 100%; } }
+</style>
+
+<div class="news-container">
+    <h2 class="section-title">ताजा समाचार (अटो-अपडेट)</h2>
     <div id="rss-news-container" class="news-grid">
-        <p>समाचार लोड हुँदैछ, कृपया पर्खनुहोस्...</p>
+        <div class="loading-pulse"></div>
+        <div class="loading-pulse"></div>
+        <div class="loading-pulse"></div>
     </div>
 </div>
 
 <script>
-    // RSS Feed URL - RSS लाई JSON मा बदल्न rss2json API प्रयोग गरिएको छ
     const RSS_URL = "https://dev-webdesignnepal.pantheonsite.io/feed";
-    const API_URL = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(RSS_URL)}`;
+    const API_URL = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(RSS_URL)}&api_key=your_api_key_if_any`;
 
     async function fetchRSSNews() {
+        const container = document.getElementById('rss-news-container');
         try {
             const response = await fetch(API_URL);
             const data = await response.json();
             
-            if (data.status === 'ok') {
+            if (data.status === 'ok' && data.items.length > 0) {
                 let html = '';
                 data.items.forEach(item => {
-                    // इमेज निकाल्ने: पहिले फिडको thumbnail चेक गर्ने, नभए कन्टेन्ट भित्र खोज्ने
+                    // १. इमेज निकाल्ने: फिडको थम्बनेल वा कन्टेन्टबाट
                     let imgSrc = item.thumbnail || "";
-                    if (!imgSrc) {
+                    if (!imgSrc || imgSrc.includes('data:image')) {
                         const div = document.createElement('div');
                         div.innerHTML = item.content || item.description;
                         const firstImg = div.querySelector('img');
-                        imgSrc = firstImg ? firstImg.src : "https://via.placeholder.com/400x250?text=Neelamb+News";
+                        imgSrc = firstImg ? firstImg.src : "https://via.placeholder.com/600x400?text=Neelamb+News";
                     }
 
-                    // मिति फम्र्याट गर्ने
-                    const pubDate = new Date(item.pubDate).toLocaleDateString('ne-NP');
+                    // २. डेट फर्म्याट (नेपालीमा)
+                    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                    const pubDate = new Date(item.pubDate).toLocaleDateString('ne-NP', options);
+
+                    // ३. सफा टेक्स्ट बनाउने
+                    const cleanDesc = item.description.replace(/<[^>]*>?/gm, '').substring(0, 110);
 
                     html += `
                         <div class="news-card">
                             <div class="news-img-box">
-                                <img src="${imgSrc}" alt="${item.title}">
+                                <img src="${imgSrc}" alt="${item.title}" loading="lazy">
                             </div>
                             <div class="news-content">
-                                <span class="news-date">📅 ${pubDate}</span>
+                                <span class="news-date">📅 प्रकाशित: ${pubDate}</span>
                                 <h3><a href="${item.link}" target="_blank">${item.title}</a></h3>
-                                <p>${item.description.substring(0, 100).replace(/<[^>]*>?/gm, '')}...</p>
+                                <p>${cleanDesc}...</p>
                                 <a href="${item.link}" target="_blank" class="read-more">थप पढ्नुहोस् »</a>
                             </div>
                         </div>
                     `;
                 });
-                document.getElementById('rss-news-container').innerHTML = html;
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = "<p style='grid-column: 1/-1; text-align:center;'>अहिले समाचार उपलब्ध छैनन्। कृपया पछि प्रयास गर्नुहोस्।</p>";
             }
         } catch (error) {
-            console.error("Error:", error);
-            document.getElementById('rss-news-container').innerHTML = "<p>समाचार लोड गर्न सकिएन। फिड लिङ्क चेक गर्नुहोस्।</p>";
+            console.error("RSS Fetch Error:", error);
+            container.innerHTML = "<p style='grid-column: 1/-1; text-align:center; color:red;'>नेटवर्क समस्या! समाचार लोड हुन सकेन।</p>";
         }
     }
 
-    fetchRSSNews();
+    // पेज लोड भएपछि चलाउने
+    window.onload = fetchRSSNews;
 </script>
-
-<style>
-    .news-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 25px;
-        margin-top: 20px;
-    }
-    .news-card {
-        background: #fff;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-        transition: 0.3s;
-        border: 1px solid #eee;
-    }
-    .news-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
-    .news-img-box img { width: 100%; height: 200px; object-fit: cover; }
-    .news-content { padding: 15px; }
-    .news-date { font-size: 11px; color: #888; display: block; margin-bottom: 5px; }
-    .news-content h3 { font-size: 18px; margin: 10px 0; line-height: 1.4; }
-    .news-content h3 a { text-decoration: none; color: #222; transition: 0.2s; }
-    .news-content h3 a:hover { color: #1a73e8; }
-    .news-content p { font-size: 14px; color: #666; line-height: 1.6; }
-    .read-more { display: inline-block; margin-top: 10px; color: #1a73e8; font-weight: bold; text-decoration: none; font-size: 14px; }
-</style>
