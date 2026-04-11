@@ -1,94 +1,294 @@
-<div class="news-container" style="max-width: 1200px; margin: 40px auto; padding: 0 20px; font-family: 'Mukta', sans-serif;">
-    <h2 style="border-left: 6px solid #fbbc04; padding-left: 15px; margin-bottom: 30px; font-size: 28px;">ताजा समाचार (Live Update)</h2>
-    <div id="rss-news-container" class="news-grid">
-        <p id="status-msg" style="text-align:center; grid-column: 1/-1;">सर्भरबाट समाचार खोज्दैछ...</p>
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SubhLabh News - समाचार पोर्टल</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css' rel='stylesheet'/>
+    <link rel='stylesheet' href='https://cdn.jsdelivr.net/gh/designers2077/code/header-2.css'/>
+
+    <style>
+        :root { --primary: #e31e24; --dark: #1a1a1a; --gray: #666; --bg: #f4f7f6; --white: #ffffff; }
+        body { font-family: 'Mukta', sans-serif; background: var(--bg); margin: 0; color: var(--dark); display: flex; flex-direction: column; min-height: 100vh; }
+        .container { max-width: 1200px; margin: auto; padding: 0 15px; width: 100%; box-sizing: border-box; }
+        
+        #main-content { margin-top: 20px; flex: 1; padding-bottom: 50px; }
+        
+        .news-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
+        .card { background: var(--white); border-radius: 4px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer; transition: 0.3s; height: 100%; display: flex; flex-direction: column; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .card img { width: 100%; height: 200px; object-fit: cover; background: #eee; }
+        .card-body { padding: 15px; flex-grow: 1; }
+        .card-title { font-size: 19px; font-weight: 700; margin: 10px 0; line-height: 1.4; color: #111; }
+        .post-date { color: var(--gray); font-size: 13px; }
+
+        .post-layout { display: grid; grid-template-columns: 1fr 350px; gap: 30px; }
+        .post-header h1 { font-size: clamp(24px, 5vw, 36px); line-height: 1.3; margin-bottom: 20px; font-weight: 700; color: #000; }
+        .post-meta-wrapper { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #eee; border-bottom: 1px solid #eee; padding: 15px 0; margin-bottom: 25px; }
+        .author-info { display: flex; align-items: center; gap: 12px; }
+        .author-img { width: 45px; height: 45px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .share-icons { display: flex; gap: 8px; }
+        .share-btn { width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; text-decoration: none; font-size: 15px; }
+        .bg-fb { background: #3b5998; } .bg-wa { background: #25d366; }
+
+        .featured-image { width: 100%; max-height: 550px; object-fit: cover; border-radius: 8px; margin-bottom: 25px; }
+        .post-content-text { font-size: 19px; line-height: 1.9; color: #222; }
+        .sidebar { background: var(--white); padding: 20px; border-radius: 8px; height: fit-content; position: sticky; top: 120px; border: 1px solid #eee; }
+
+        footer { background: var(--dark); color: #bbb; padding: 50px 0 20px; margin-top: 50px; }
+        .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px; margin-bottom: 40px; }
+        .footer-logo h2 { color: var(--white); margin-bottom: 15px; }
+        .footer-title { color: var(--white); font-size: 18px; font-weight: 700; margin-bottom: 20px; position: relative; padding-bottom: 10px; }
+        .footer-title::after { content: ''; position: absolute; left: 0; bottom: 0; width: 40px; height: 2px; background: var(--primary); }
+        .footer-links { list-style: none; padding: 0; }
+        .footer-links li { margin-bottom: 10px; }
+        .footer-links a { color: #bbb; text-decoration: none; transition: 0.3s; }
+        .footer-links a:hover { color: var(--primary); padding-left: 5px; }
+        .footer-social { display: flex; gap: 15px; margin-top: 20px; }
+        .footer-social a { width: 40px; height: 40px; background: #333; color: var(--white); display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: 0.3s; }
+        .footer-social a:hover { background: var(--primary); transform: translateY(-3px); }
+        .footer-bottom { border-top: 1px solid #333; padding-top: 20px; text-align: center; font-size: 14px; }
+
+        .loader { text-align: center; padding: 100px; font-size: 1.2rem; }
+        .error-msg { text-align: center; padding: 50px; color: var(--primary); font-weight: bold; }
+        .cat-title { font-size: 24px; font-weight: 700; margin-bottom: 20px; border-left: 5px solid var(--primary); padding-left: 15px; }
+
+        @media (max-width: 950px) { .post-layout { grid-template-columns: 1fr; } .sidebar { position: static; margin-top: 30px; } }
+    </style>
+</head>
+<body>
+
+<header class='header-2-wrapper'>
+    <div class='h2-top-mini'>
+        <div class='h2-container h2-top-mini-flex'>
+            <span><i class='fa-solid fa-gamepad'></i> Games</span>
+            <span><i class='fa-solid fa-keyboard'></i> युनिकोड</span>
+            <span><i class='fa-solid fa-calendar-alt'></i> मिति रूपान्तरण</span>
+        </div>
     </div>
-</div>
+
+    <div class='h2-branding'>
+        <div class='h2-container h2-brand-flex'>
+            <div class='h2-brand-left'>
+                <i class='fa-solid fa-bars h2-menu-icon'></i>
+                <div class='h2-date-box'>
+                    <div id='h2-nepali-date'>मिति लोड हुँदै...</div>
+                    <small>शुभ समाचारको साथमा</small>
+                </div>
+            </div>
+            <div class='h2-logo'>
+                <a href='#' onclick="App.goHome(); return false;">
+                    <h2 style="color:#e31e24; margin:0; font-weight:bold; letter-spacing:-1px;">SUBHLABH</h2>
+                </a>
+            </div>
+            <div class='h2-brand-right'>
+                <i class='fa-regular fa-user-circle'></i>
+                <span class='h2-lang'>EN</span>
+                <i class='fa-solid fa-magnifying-glass'></i>
+            </div>
+        </div>
+    </div>
+
+    <nav class='h2-nav-bar'>
+        <div class='h2-container h2-nav-flex'>
+            <ul class='h2-main-menu'>
+                <li><a href='#' onclick="App.goHome(); return false;" class='h2-home-icon'><i class='fa-solid fa-house'></i></a></li>
+                <li><a href='#' onclick="App.filterByCategory('समाचार'); return false;">समाचार</a></li>
+                <li><a href='#' onclick="App.filterByCategory('विशेष'); return false;">विशेष</a></li>
+                <li><a href='#' onclick="App.filterByCategory('अर्थतन्त्र'); return false;">अर्थतन्त्र</a></li>
+                <li><a href='#' onclick="App.filterByCategory('विचार'); return false;">विचार</a></li>
+                <li><a href='#' onclick="App.filterByCategory('खेलकुद'); return false;">खेलकुद</a></li>
+                <li><a href='#' onclick="App.filterByCategory('मनोरञ्जन'); return false;">मनोरञ्जन</a></li>
+            </ul>
+        </div>
+    </nav>
+</header>
+
+<main class="container" id="main-content">
+    <div class="loader"><i class="fas fa-spinner fa-spin"></i> लोड हुँदैछ...</div>
+</main>
+
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-logo">
+                <h2 style="color:var(--primary);">SUBHLABH</h2>
+                <p>हामी निष्पक्ष र सत्य समाचारका लागि प्रतिवद्ध छौं। नेपाल र विश्वभरका ताजा अपडेटका लागि हामीलाई पछ्याउनुहोस्।</p>
+                <div class="footer-social">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-youtube"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+            <div>
+                <h3 class="footer-title">मुख्य लिङ्कहरू</h3>
+                <ul class="footer-links">
+                    <li><a href="#" onclick="App.goHome(); return false;">गृहपृष्ठ</a></li>
+                    <li><a href="#">हाम्रो बारेमा</a></li>
+                    <li><a href="#">सम्पर्क</a></li>
+                    <li><a href="#">विज्ञापन</a></li>
+                    <li><a href="#">गोपनीयता नीति</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="footer-title">सम्पर्क ठेगाना</h3>
+                <ul class="footer-links">
+                    <li><i class="fas fa-map-marker-alt" style="color:var(--primary); margin-right:10px;"></i> काठमाडौं, नेपाल</li>
+                    <li><i class="fas fa-phone" style="color:var(--primary); margin-right:10px;"></i> +९७७-०१-xxxxxxx</li>
+                    <li><i class="fas fa-envelope" style="color:var(--primary); margin-right:10px;"></i> info@subhlabh.com</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 SubhLabh News. सर्वाधिकार सुरक्षित।</p>
+        </div>
+    </div>
+</footer>
+
+<script src='https://cdn.jsdelivr.net/gh/designers2077/code/header-2.js' type='text/javascript'></script>
 
 <script>
-    const RSS_URL = "https://dev-webdesignnepal.pantheonsite.io/feed";
-    
-    async function fetchNews() {
-        const container = document.getElementById('rss-news-container');
-        const statusMsg = document.getElementById('status-msg');
+    const App = {
+        CONFIG: {
+            BLOG_ID: '4810240129416724295',
+            API_KEY: 'AIzaSyDFoCQMjO-uLxIEAKdqCpLCzGt1AIviqEw',
+            BASE_URL: 'https://www.googleapis.com/blogger/v3/blogs/',
+            PLACEHOLDER: 'https://via.placeholder.com/600x400?text=SubhLabh+News'
+        },
 
-        // विधि १: rss2json API (Cache हटाउन random string थपिएको)
-        const primaryApi = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(RSS_URL)}&nocache=${Math.random()}`;
-        
-        // विधि २: Backup Proxy (यदि पहिलो फेल भएमा)
-        const backupApi = `https://api.allorigins.win/get?url=${encodeURIComponent(RSS_URL)}`;
+        init() {
+            window.onpopstate = () => this.handleRouting();
+            this.handleRouting();
+        },
 
-        try {
-            let response = await fetch(primaryApi);
-            let data = await response.json();
-
-            if (data.status === 'ok' && data.items.length > 0) {
-                renderNews(data.items);
-            } else {
-                throw new Error("No items in primary API");
+        utils: {
+            getThumbnail(content) {
+                const match = content.match(/<img[^>]+src="([^">]+)"/);
+                return match ? match[1].replace('/s1600/', '/s600/') : App.CONFIG.PLACEHOLDER;
+            },
+            formatDate(dateStr) {
+                return new Date(dateStr).toLocaleDateString('ne-NP', { year: 'numeric', month: 'long', day: 'numeric' });
+            },
+            getShortDate(dateStr) {
+                return new Date(dateStr).toISOString().split('T')[0];
             }
-        } catch (e) {
-            console.log("Switching to Backup Method...");
-            try {
-                // ब्याकअप विधिबाट XML तान्ने
-                const backupRes = await fetch(backupApi);
-                const backupData = await backupRes.json();
-                const parser = new DOMParser();
-                const xmlDoc = parser.parseFromString(backupData.contents, "text/xml");
-                const items = Array.from(xmlDoc.querySelectorAll("item")).map(item => ({
-                    title: item.querySelector("title").textContent,
-                    link: item.querySelector("link").textContent,
-                    pubDate: item.querySelector("pubDate").textContent,
-                    description: item.querySelector("description").textContent
-                }));
-                
-                if (items.length > 0) renderNews(items);
-                else showNoNews();
-            } catch (err) {
-                showError();
-            }
-        }
-    }
+        },
 
-    function renderNews(items) {
-        const container = document.getElementById('rss-news-container');
-        let html = '';
-        items.forEach(item => {
-            const cleanDesc = item.description.replace(/<[^>]*>?/gm, '').substring(0, 100);
-            const pubDate = new Date(item.pubDate).toLocaleDateString('ne-NP');
+        async handleRouting() {
+            const params = new URLSearchParams(window.location.search);
+            const postId = params.get('post');
+            const category = params.get('label');
             
-            // इमेज खोज्ने लजिक
-            let imgSrc = "https://via.placeholder.com/600x400?text=Neelamb+News";
-            const imgMatch = item.description.match(/<img[^>]+src="([^">]+)"/);
-            if (imgMatch) imgSrc = imgMatch[1];
-            if (item.thumbnail) imgSrc = item.thumbnail;
+            if (postId) {
+                this.loadSinglePost(postId);
+            } else if (category) {
+                this.loadNewsList(category);
+            } else {
+                this.loadNewsList();
+            }
+        },
 
-            html += `
-                <div class="news-card" style="border:1px solid #eee; border-radius:12px; overflow:hidden; background:#fff; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-                    <img src="${imgSrc}" style="width:100%; height:180px; object-fit:cover;">
-                    <div style="padding:15px;">
-                        <small style="color:#888;">📅 ${pubDate}</small>
-                        <h3 style="font-size:18px; margin:10px 0;"><a href="${item.link}" target="_blank" style="text-decoration:none; color:#222;">${item.title}</a></h3>
-                        <p style="font-size:14px; color:#666;">${cleanDesc}...</p>
-                        <a href="${item.link}" target="_blank" style="color:#1a73e8; font-weight:bold; text-decoration:none; font-size:13px; display:inline-block; margin-top:10px;">थप पढ्नुहोस् »</a>
-                    </div>
-                </div>`;
-        });
-        container.innerHTML = html;
-    }
+        async loadNewsList(label = '') {
+            const contentArea = document.getElementById('main-content');
+            contentArea.innerHTML = '<div class="loader">लोड हुँदैछ...</div>';
+            
+            // Blogger API URL for Labels
+            let url = `${this.CONFIG.BASE_URL}${this.CONFIG.BLOG_ID}/posts?key=${this.CONFIG.API_KEY}&maxResults=15`;
+            if (label) url += `&labels=${encodeURIComponent(label)}`;
 
-    function showNoNews() {
-        document.getElementById('rss-news-container').innerHTML = "<p style='grid-column:1/-1; text-align:center;'>अहिले कुनै समाचार फेला परेन। कृपया वर्डप्रेसमा 'Public' पोस्ट छ कि छैन जाँच गर्नुहोस्।</p>";
-    }
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                
+                let html = label ? `<div class="cat-title">${label}</div>` : '';
+                html += '<div class="news-grid">';
+                
+                if (!data.items || data.items.length === 0) {
+                    contentArea.innerHTML = '<div class="error-msg">यो क्याटगरीमा कुनै समाचार भेटिएन।</div>';
+                    return;
+                }
 
-    function showError() {
-        document.getElementById('rss-news-container').innerHTML = "<p style='grid-column:1/-1; text-align:center; color:red;'>डाटा कनेक्सनमा समस्या आयो।</p>";
-    }
+                data.items.forEach(post => {
+                    const img = this.utils.getThumbnail(post.content);
+                    const shortDate = this.utils.getShortDate(post.published);
+                    html += `
+                        <article class="card" onclick="App.openPost('${post.id}', '${shortDate}')">
+                            <img src="${img}" alt="${post.title}" loading="lazy">
+                            <div class="card-body">
+                                <div class="post-date"><i class="far fa-calendar-alt"></i> ${this.utils.formatDate(post.published)}</div>
+                                <h3 class="card-title">${post.title}</h3>
+                            </div>
+                        </article>`;
+                });
+                contentArea.innerHTML = html + '</div>';
+                document.title = label ? `${label} - SubhLabh News` : "SubhLabh News - समाचार पोर्टल";
+            } catch (e) {
+                contentArea.innerHTML = '<div class="error-msg">डाटा लोड गर्न सकिएन।</div>';
+            }
+        },
 
-    // CSS Grid Injection
-    const style = document.createElement('style');
-    style.innerHTML = `.news-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }`;
-    document.head.appendChild(style);
+        async loadSinglePost(id) {
+            const contentArea = document.getElementById('main-content');
+            contentArea.innerHTML = '<div class="loader">समाचार खुल्दैछ...</div>';
+            try {
+                const res = await fetch(`${this.CONFIG.BASE_URL}${this.CONFIG.BLOG_ID}/posts/${id}?key=${this.CONFIG.API_KEY}`);
+                const post = await res.json();
+                const featuredImg = post.content.match(/<img[^>]+src="([^">]+)"/)?.[1] || '';
+                const bodyCleaned = post.content.replace(/<img[^>]+>/i, '');
+                document.title = `${post.title} - SubhLabh News`;
+                contentArea.innerHTML = `
+                    <div class="post-layout">
+                        <article class="post-main">
+                            <header class="post-header">
+                                <h1>${post.title}</h1>
+                                <div class="post-meta-wrapper">
+                                    <div class="author-info"><div class="author-img">SL</div>
+                                        <div><div class="author-name">सुभलाभ ब्युरो</div><div class="post-date">${this.utils.formatDate(post.published)}</div></div>
+                                    </div>
+                                    <div class="share-icons">
+                                        <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}" target="_blank" class="share-btn bg-fb"><i class="fab fa-facebook-f"></i></a>
+                                        <a href="https://api.whatsapp.com/send?text=${encodeURIComponent(window.location.href)}" target="_blank" class="share-btn bg-wa"><i class="fab fa-whatsapp"></i></a>
+                                    </div>
+                                </div>
+                            </header>
+                            ${featuredImg ? `<img src="${featuredImg}" class="featured-image">` : ''}
+                            <div class="post-content-text">${bodyCleaned}</div>
+                        </article>
+                        <aside class="sidebar">
+                            <h3 style="margin-top:0;">विज्ञापन</h3>
+                            <div style="background:#eee; height:250px; display:flex; align-items:center; justify-content:center; color:#999;">३००x२५०</div>
+                        </aside>
+                    </div>`;
+                window.scrollTo(0, 0);
+            } catch (e) { contentArea.innerHTML = '<div class="error-msg">समाचार फेला परेन।</div>'; }
+        },
 
-    window.onload = fetchNews;
+        // Click on category
+        filterByCategory(label) {
+            const newUrl = `${window.location.pathname}?label=${encodeURIComponent(label)}`;
+            window.history.pushState({label: label}, '', newUrl);
+            this.loadNewsList(label);
+            window.scrollTo(0,0);
+        },
+
+        openPost(id, date) {
+            const newUrl = `${window.location.pathname}?post=${id}&date=${date}`;
+            window.history.pushState({id: id}, '', newUrl);
+            this.loadSinglePost(id);
+        },
+
+        goHome() {
+            window.history.pushState({}, '', window.location.pathname);
+            this.loadNewsList();
+            window.scrollTo(0,0);
+        }
+    };
+
+    App.init();
 </script>
+
+</body>
+</html>
