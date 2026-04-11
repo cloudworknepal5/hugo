@@ -1,0 +1,82 @@
+<div class="news-container" style="max-width: 1200px; margin: auto; padding: 20px;">
+    <h2 style="border-left: 5px solid #fbbc04; padding-left: 15px; font-family: 'Mukta', sans-serif;">ताजा समाचार (अटो-अपडेट)</h2>
+    <div id="rss-news-container" class="news-grid">
+        <p>समाचार लोड हुँदैछ, कृपया पर्खनुहोस्...</p>
+    </div>
+</div>
+
+<script>
+    // RSS Feed URL - RSS लाई JSON मा बदल्न rss2json API प्रयोग गरिएको छ
+    const RSS_URL = "https://dev-webdesignnepal.pantheonsite.io/feed";
+    const API_URL = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(RSS_URL)}`;
+
+    async function fetchRSSNews() {
+        try {
+            const response = await fetch(API_URL);
+            const data = await response.json();
+            
+            if (data.status === 'ok') {
+                let html = '';
+                data.items.forEach(item => {
+                    // इमेज निकाल्ने: पहिले फिडको thumbnail चेक गर्ने, नभए कन्टेन्ट भित्र खोज्ने
+                    let imgSrc = item.thumbnail || "";
+                    if (!imgSrc) {
+                        const div = document.createElement('div');
+                        div.innerHTML = item.content || item.description;
+                        const firstImg = div.querySelector('img');
+                        imgSrc = firstImg ? firstImg.src : "https://via.placeholder.com/400x250?text=Neelamb+News";
+                    }
+
+                    // मिति फम्र्याट गर्ने
+                    const pubDate = new Date(item.pubDate).toLocaleDateString('ne-NP');
+
+                    html += `
+                        <div class="news-card">
+                            <div class="news-img-box">
+                                <img src="${imgSrc}" alt="${item.title}">
+                            </div>
+                            <div class="news-content">
+                                <span class="news-date">📅 ${pubDate}</span>
+                                <h3><a href="${item.link}" target="_blank">${item.title}</a></h3>
+                                <p>${item.description.substring(0, 100).replace(/<[^>]*>?/gm, '')}...</p>
+                                <a href="${item.link}" target="_blank" class="read-more">थप पढ्नुहोस् »</a>
+                            </div>
+                        </div>
+                    `;
+                });
+                document.getElementById('rss-news-container').innerHTML = html;
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            document.getElementById('rss-news-container').innerHTML = "<p>समाचार लोड गर्न सकिएन। फिड लिङ्क चेक गर्नुहोस्।</p>";
+        }
+    }
+
+    fetchRSSNews();
+</script>
+
+<style>
+    .news-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 25px;
+        margin-top: 20px;
+    }
+    .news-card {
+        background: #fff;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        transition: 0.3s;
+        border: 1px solid #eee;
+    }
+    .news-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+    .news-img-box img { width: 100%; height: 200px; object-fit: cover; }
+    .news-content { padding: 15px; }
+    .news-date { font-size: 11px; color: #888; display: block; margin-bottom: 5px; }
+    .news-content h3 { font-size: 18px; margin: 10px 0; line-height: 1.4; }
+    .news-content h3 a { text-decoration: none; color: #222; transition: 0.2s; }
+    .news-content h3 a:hover { color: #1a73e8; }
+    .news-content p { font-size: 14px; color: #666; line-height: 1.6; }
+    .read-more { display: inline-block; margin-top: 10px; color: #1a73e8; font-weight: bold; text-decoration: none; font-size: 14px; }
+</style>
