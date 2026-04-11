@@ -1,8 +1,8 @@
 baseURL = 'https://news.neelamb.com.np/'
-languageCode = 'ne-np'
-title = 'News'
-theme = 'your-theme-name'
+languageCode = 'En-en'
+title = 'SubhLabh News'
+theme = 'mainroad'
 
 [params]
-  description = "ताजा समाचार र अपडेटहरू"
-  author = "Mukesh"
+  subtitle = "ताजा र निष्पक्ष समाचार"
+  description = "सबैभन्दा छिटो समाचार पोर्टल"
