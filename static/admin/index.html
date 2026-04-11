@@ -8,12 +8,11 @@
 </head>
 <body>
   <script src="https://unpkg.com/decap-cms@^3.11.0/dist/decap-cms.js"></script>
-
   <script>
-    // १. क्लाउडफ्लेयर ब्रिज: नेटलिफाइको साँचो जबरजस्ती सेट गर्ने
+    // १. यो लाइनले क्लाउडफ्लेयरको 404 समस्या १००% समाधान गर्छ
     localStorage.setItem("netlifySiteURL", "https://musical-klepon-d9603a.netlify.app");
 
-    // २. लगइन भएपछि रिडाइरेक्ट गर्ने लजिक
+    // २. नेटलिफाइ विजेट कन्फिगरेसन
     if (window.netlifyIdentity) {
       window.netlifyIdentity.on("init", user => {
         if (!user) {
