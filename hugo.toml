@@ -2,7 +2,3 @@ baseURL = "https://news.neelamb.com.np/"
 languageCode = "en-us"
 title = "Nepal 24 News"
 theme = "mainroad"
-
-[params]
-  subtitle = "नेपालको समाचार पोर्टल"
-  description = "ताजा र निष्पक्ष समाचार"
