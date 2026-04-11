@@ -2,7 +2,6 @@ backend:
   name: git-gateway
   branch: main
 
-# यी लाइनहरू बायाँपट्टि टाँसिएका (Zero Indentation) हुनुपर्छ
 media_folder: "static/img"
 public_folder: "/img"
 site_url: https://news.neelamb.com.np
