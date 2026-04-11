@@ -1,71 +1,94 @@
 <div class="news-container" style="max-width: 1200px; margin: 40px auto; padding: 0 20px; font-family: 'Mukta', sans-serif;">
     <h2 style="border-left: 6px solid #fbbc04; padding-left: 15px; margin-bottom: 30px; font-size: 28px;">ताजा समाचार (Live Update)</h2>
     <div id="rss-news-container" class="news-grid">
-        <p style="text-align:center; grid-column: 1/-1;">फिडबाट समाचार तान्दैछ, कृपया एकछिन पर्खनुहोस्...</p>
+        <p id="status-msg" style="text-align:center; grid-column: 1/-1;">सर्भरबाट समाचार खोज्दैछ...</p>
     </div>
 </div>
 
 <script>
-    // १. फिड ठेगाना (यसलाई ब्राउजरमा खोलेर चेक गर्नुहोस्)
-    const RSS_FEED = "https://dev-webdesignnepal.pantheonsite.io/feed";
+    const RSS_URL = "https://dev-webdesignnepal.pantheonsite.io/feed";
     
-    // २. केही समयको अन्तरालमा डाटा फ्रेस बनाउन 'cache buster' थपिएको छ
-    const API_URL = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(RSS_FEED)}&t=${Date.now()}`;
-
-    async function fetchRSSNews() {
+    async function fetchNews() {
         const container = document.getElementById('rss-news-container');
+        const statusMsg = document.getElementById('status-msg');
+
+        // विधि १: rss2json API (Cache हटाउन random string थपिएको)
+        const primaryApi = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(RSS_URL)}&nocache=${Math.random()}`;
+        
+        // विधि २: Backup Proxy (यदि पहिलो फेल भएमा)
+        const backupApi = `https://api.allorigins.win/get?url=${encodeURIComponent(RSS_URL)}`;
+
         try {
-            const response = await fetch(API_URL);
-            const data = await response.json();
-            
-            // डेटा 'ok' छ कि छैन र त्यसमा आइटमहरू छन् कि छैनन् चेक गर्ने
-            if (data.status === 'ok' && data.items && data.items.length > 0) {
-                let html = '';
-                data.items.forEach(item => {
-                    // इमेज निकाल्ने धेरै तरिकाहरू (Thumbnail > Content > Description)
-                    let imgSrc = item.thumbnail || "";
-                    
-                    if (!imgSrc) {
-                        const content = item.content || item.description || "";
-                        const imgMatch = content.match(/<img[^>]+src="([^">]+)"/);
-                        imgSrc = imgMatch ? imgMatch[1] : "https://via.placeholder.com/600x400?text=Neelamb+News";
-                    }
+            let response = await fetch(primaryApi);
+            let data = await response.json();
 
-                    // मिति मिलाउने
-                    const pubDate = new Date(item.pubDate).toLocaleDateString('ne-NP', { year: 'numeric', month: 'long', day: 'numeric' });
-                    // ट्यागहरू हटाएर सफा टेक्स्ट बनाउने
-                    const cleanDesc = (item.description || "").replace(/<[^>]*>?/gm, '').substring(0, 100);
-
-                    html += `
-                        <div class="news-card" style="border:1px solid #eee; border-radius:12px; overflow:hidden; background:#fff; transition: 0.3s; display:flex; flex-direction:column;">
-                            <img src="${imgSrc}" style="width:100%; height:200px; object-fit:cover;">
-                            <div style="padding:15px; flex-grow:1;">
-                                <small style="color:#888;">📅 ${pubDate}</small>
-                                <h3 style="font-size:18px; margin:10px 0;"><a href="${item.link}" target="_blank" style="text-decoration:none; color:#222;">${item.title}</a></h3>
-                                <p style="font-size:14px; color:#666;">${cleanDesc}...</p>
-                                <a href="${item.link}" target="_blank" style="color:#1a73e8; font-weight:bold; text-decoration:none; font-size:13px; display:block; margin-top:10px;">थप पढ्नुहोस् »</a>
-                            </div>
-                        </div>
-                    `;
-                });
-                container.innerHTML = html;
+            if (data.status === 'ok' && data.items.length > 0) {
+                renderNews(data.items);
             } else {
-                // यदि फिड रित्तो छ भने
-                container.innerHTML = "<p style='grid-column:1/-1; text-align:center;'>अहिले कुनै नयाँ समाचार फेला परेन। कृपया आफ्नो वर्डप्रेसमा एउटा नयाँ पोस्ट पब्लिश गरेर हेर्नुहोस्।</p>";
+                throw new Error("No items in primary API");
             }
-        } catch (error) {
-            console.error("Error Fetching RSS:", error);
-            container.innerHTML = "<p style='grid-column:1/-1; text-align:center; color:red;'>डाटा लोड हुन सकेन। इन्टरनेट वा फिड लिङ्क चेक गर्नुहोस्।</p>";
+        } catch (e) {
+            console.log("Switching to Backup Method...");
+            try {
+                // ब्याकअप विधिबाट XML तान्ने
+                const backupRes = await fetch(backupApi);
+                const backupData = await backupRes.json();
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(backupData.contents, "text/xml");
+                const items = Array.from(xmlDoc.querySelectorAll("item")).map(item => ({
+                    title: item.querySelector("title").textContent,
+                    link: item.querySelector("link").textContent,
+                    pubDate: item.querySelector("pubDate").textContent,
+                    description: item.querySelector("description").textContent
+                }));
+                
+                if (items.length > 0) renderNews(items);
+                else showNoNews();
+            } catch (err) {
+                showError();
+            }
         }
     }
 
-    // CSS Grid
+    function renderNews(items) {
+        const container = document.getElementById('rss-news-container');
+        let html = '';
+        items.forEach(item => {
+            const cleanDesc = item.description.replace(/<[^>]*>?/gm, '').substring(0, 100);
+            const pubDate = new Date(item.pubDate).toLocaleDateString('ne-NP');
+            
+            // इमेज खोज्ने लजिक
+            let imgSrc = "https://via.placeholder.com/600x400?text=Neelamb+News";
+            const imgMatch = item.description.match(/<img[^>]+src="([^">]+)"/);
+            if (imgMatch) imgSrc = imgMatch[1];
+            if (item.thumbnail) imgSrc = item.thumbnail;
+
+            html += `
+                <div class="news-card" style="border:1px solid #eee; border-radius:12px; overflow:hidden; background:#fff; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                    <img src="${imgSrc}" style="width:100%; height:180px; object-fit:cover;">
+                    <div style="padding:15px;">
+                        <small style="color:#888;">📅 ${pubDate}</small>
+                        <h3 style="font-size:18px; margin:10px 0;"><a href="${item.link}" target="_blank" style="text-decoration:none; color:#222;">${item.title}</a></h3>
+                        <p style="font-size:14px; color:#666;">${cleanDesc}...</p>
+                        <a href="${item.link}" target="_blank" style="color:#1a73e8; font-weight:bold; text-decoration:none; font-size:13px; display:inline-block; margin-top:10px;">थप पढ्नुहोस् »</a>
+                    </div>
+                </div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    function showNoNews() {
+        document.getElementById('rss-news-container').innerHTML = "<p style='grid-column:1/-1; text-align:center;'>अहिले कुनै समाचार फेला परेन। कृपया वर्डप्रेसमा 'Public' पोस्ट छ कि छैन जाँच गर्नुहोस्।</p>";
+    }
+
+    function showError() {
+        document.getElementById('rss-news-container').innerHTML = "<p style='grid-column:1/-1; text-align:center; color:red;'>डाटा कनेक्सनमा समस्या आयो।</p>";
+    }
+
+    // CSS Grid Injection
     const style = document.createElement('style');
-    style.innerHTML = `
-        .news-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
-        .news-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-    `;
+    style.innerHTML = `.news-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }`;
     document.head.appendChild(style);
 
-    fetchRSSNews();
+    window.onload = fetchNews;
 </script>
