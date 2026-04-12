@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blogger Label Feed Grid</title>
+    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="news-grid" class="news-container">
+        Loading news...
+    </div>
+
+    <script>
+        // १. यहाँ आफ्नो ब्लगको URL र लेबल राख्नुहोस्
+        var blogURL = "https://www.jagatsamachar.com"; // यहाँ आफ्नो ब्लग लिंक राख्नुहोस्
+        var labelName = "अर्थतन्त्र"; // यहाँ आफूले चाहेको Label राख्नुहोस्
+        var maxPosts = 12; // ४ वटा पोस्ट मात्र देखाउन
+
+        function loadBloggerFeed(json) {
+            var container = document.getElementById('news-grid');
+            container.innerHTML = ''; // लोड हुनुअघिको टेक्स्ट हटाउने
+
+            for (var i = 0; i < json.feed.entry.length; i++) {
+                var entry = json.feed.entry[i];
+                var postTitle = entry.title.$t;
+                var postUrl = "";
+                
+                // पोस्टको लिंक खोज्ने
+                for (var j = 0; j < entry.link.length; j++) {
+                    if (entry.link[j].rel == 'alternate') {
+                        postUrl = entry.link[j].href;
+                        break;
+                    }
+                }
+
+                // थम्बनेल इमेज खोज्ने
+                var thumbUrl = entry.media$thumbnail ? entry.media$thumbnail.url.replace('s72-c', 'w400-h250-c') : 'https://via.placeholder.com/400x250?text=No+Image';
+
+                // HTML कार्ड बनाउने
+                var cardHtml = `
+                    <div class="news-card">
+                        <a href="${postUrl}" target="_blank">
+                            <img src="${thumbUrl}" alt="${postTitle}">
+                            <h2 class="headline">${postTitle}</h2>
+                        </a>
+                    </div>
+                `;
+                container.innerHTML += cardHtml;
+            }
+        }
+
+        // ब्लगरबाट डेटा तान्ने स्क्रिप्ट लोड गर्ने
+        var script = document.createElement('script');
+        script.src = `${blogURL}/feeds/posts/default/-/${labelName}?alt=json-in-script&callback=loadBloggerFeed&max-results=${maxPosts}`;
+        document.body.appendChild(script);
+    </script>
+
+</body>
+</html>

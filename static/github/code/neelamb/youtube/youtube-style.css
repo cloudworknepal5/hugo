@@ -1,0 +1,29 @@
+/* ३-कलम ग्रिड डिजाइन */
+.yt-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    padding: 10px 0;
+}
+
+.yt-video-item {
+    width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #000;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+.yt-video-item iframe {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border: none;
+    display: block;
+}
+
+/* मोबाइलको लागि १ कोलम बनाउने */
+@media (max-width: 768px) {
+    .yt-grid {
+        grid-template-columns: 1fr;
+    }
+}

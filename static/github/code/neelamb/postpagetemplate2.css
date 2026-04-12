@@ -1,0 +1,85 @@
+/**
+ * Name: postpagetemplate2.css
+ * Version: 2.0
+ * Feature: Clean Typography, Responsive Author Box, Reading Time UI
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;800&display=swap');
+
+.post-page-wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+    font-family: 'Mukta', sans-serif;
+    padding: 20px;
+}
+
+/* हेडलाइन स्टाइल */
+.post-title-main {
+    font-size: 42px;
+    font-weight: 800;
+    line-height: 1.2;
+    color: #1a1a1a;
+    margin-bottom: 15px;
+}
+
+/* लेखक र जानकारी बक्स */
+.post-meta-v2 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 2px solid #ce1212;
+    border-bottom: 1px solid #eee;
+    padding: 12px 0;
+    margin-bottom: 5px;
+}
+
+.author-info {
+    display: flex;
+    align-items: center;
+}
+
+.author-thumb {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    margin-right: 12px;
+}
+
+.author-name {
+    font-weight: 700;
+    color: #ce1212;
+    font-size: 17px;
+}
+
+.location-date {
+    font-family: 'Mukta', sans-serif;
+    font-weight: 600;
+    color: #ce1212; /* रातोपाटीको जस्तै रातो रङ */
+    background: #fdf2f2;
+    padding: 2px 8px;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+/* Reading Time Badge */
+.reading-time {
+    background: #f1f1f1;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #444;
+}
+
+/* मुख्य सामग्री */
+.rp-body-style {
+    font-size: 20px;
+    line-height: 1.9;
+    color: #333;
+    letter-spacing: 0.2px;
+}
+
+/* Responsive */
+@media screen and (max-width: 600px) {
+    .post-title-main { font-size: 30px; }
+    .post-meta-v2 { flex-direction: column; align-items: flex-start; gap: 10px; }
+}

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html>
+<html b:css='false' b:defaultwidgetversion='2' b:layoutsversion='3' xmlns='http://www.w3.org/1999/xhtml' xmlns:b='http://www.google.com/schemas/google/b/2013' xmlns:data='http://www.google.com/schemas/blogger/data/2008' xmlns:expr='http://www.google.com/schemas/blogger/widgets/expression'>
+  <head>
+    <title><data:view.title.escaped/></title>
+    <meta content='width=device-width, initial-scale=1' name='viewport'/>
+    <b:include data='blog' name='all-head-content'/>
+    
+    <b:skin><![CDATA[
+      /* आधारभूत CSS संरचना */
+      body { font-family: 'Mukta', sans-serif; margin: 0; padding: 0; background: #f4f4f4; color: #333; }
+      .container { max-width: 1200px; margin: 0 auto; padding: 0 15px; }
+      header, footer { background: #fff; padding: 20px 0; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+      
+      /* ग्रिड संरचना */
+      .section-row { display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 20px; }
+      .col-1 { flex: 1; width: 100%; }
+      .col-2 { flex: 1; min-width: 300px; }
+      .col-3 { flex: 1; min-width: 250px; }
+      .col-4 { flex: 1; min-width: 200px; }
+      .sidebar { flex: 0 0 300px; }
+      .main-content { flex: 1; min-width: 300px; }
+
+      /* विजेट ट्यागहरू */
+      .widget { margin-bottom: 20px; background: #fff; padding: 15px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+      
+      /* मोबाइल रेस्पोन्सिभ */
+      @media screen and (max-width: 768px) {
+        .col-2, .col-3, .col-4, .sidebar, .main-content { flex: 0 0 100%; }
+      }
+    ]]></b:skin>
+  </head>
+  
+  <body>
+    <header>
+      <div class='container'>
+        <b:section id='header-logo' showaddelement='yes'>
+          <b:widget id='Header1' locked='true' title='Blog Header' type='Header' visible='yes'/>
+        </b:section>
+      </div>
+    </header>
+
+    <div class='container'>
+      
+      <div class='section-row'>
+        <b:section class='col-1' id='one-col-top' showaddelement='yes'/>
+      </div>
+
+      <div class='section-row'>
+        <div class='main-content'>
+          <div class='section-row'>
+            <b:section class='col-2' id='two-col-left' showaddelement='yes'/>
+            <b:section class='col-2' id='two-col-right' showaddelement='yes'/>
+          </div>
+          
+          <b:section id='main-post-body' showaddelement='no'>
+            <b:widget id='Blog1' locked='true' title='Blog Posts' type='Blog' visible='yes'>
+              <b:includable id='main'>
+                <b:if cond='data:view.isError'>
+                  <div class='widget'><h1>४०४: पेज फेला परेन!</h1><p>तपाईंले खोज्नुभएको सामग्री उपलब्ध छैन।</p></div>
+                <b:else/>
+                  <b:if cond='data:view.isSearch'>
+                     <h2 class='widget'>खोजिएको नतिजा: <data:view.search.query/></h2>
+                  </b:if>
+                  <data:defaultAdStart/>
+                  <b:loop values='data:posts' var='post'>
+                    <div class='widget'>
+                      <b:include data='post' name='post'/>
+                    </div>
+                  </b:loop>
+                  <data:defaultAdEnd/>
+                </b:if>
+              </b:includable>
+            </b:widget>
+          </b:section>
+        </div>
+        
+        <aside class='sidebar'>
+          <b:section id='sidebar-right' showaddelement='yes'/>
+        </aside>
+      </div>
+
+      <div class='section-row'>
+        <b:section class='col-3' id='three-col-1' showaddelement='yes'/>
+        <b:section class='col-3' id='three-col-2' showaddelement='yes'/>
+        <b:section class='col-3' id='three-col-3' showaddelement='yes'/>
+      </div>
+
+      <div class='section-row'>
+        <b:section class='col-4' id='four-col-1' showaddelement='yes'/>
+        <b:section class='col-4' id='four-col-2' showaddelement='yes'/>
+        <b:section class='col-4' id='four-col-3' showaddelement='yes'/>
+        <b:section class='col-4' id='four-col-4' showaddelement='yes'/>
+      </div>
+
+      <div class='section-row'>
+        <b:section class='col-1' id='one-col-bottom' showaddelement='yes'/>
+      </div>
+
+    </div> <footer>
+      <div class='container'>
+        <b:section id='footer-section' showaddelement='yes'>
+          <b:widget id='Text1' locked='false' title='Copyright' type='Text' visible='yes'/>
+        </b:section>
+      </div>
+    </footer>
+
+  </body>
+</html>

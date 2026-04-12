@@ -1,0 +1,50 @@
+/* Blogger Responsive Loop Style */
+#image-loop-container { 
+    font-family: 'Mukta', sans-serif; 
+    max-width: 1200px; 
+    margin: 0 auto; 
+    padding: 15px;
+    box-sizing: border-box;
+    color: #222;
+}
+
+.featured-loop-item { margin-bottom: 60px; text-align: center; }
+
+.tag-label { 
+    background: #d32f2f; color: #fff; padding: 4px 14px; 
+    font-size: 14px; display: inline-block; margin-bottom: 12px; font-weight: 700;
+    border-radius: 2px;
+}
+
+.featured-title { font-weight: 700; margin: 15px 0; line-height: 1.2; }
+.featured-title a { color: #111; text-decoration: none; transition: 0.3s; }
+.featured-title a:hover { color: #d32f2f; }
+
+/* Responsive Font Sizes */
+@media (max-width: 600px) {
+    .featured-title { font-size: 40px; }
+    .featured-meta { font-size: 18px; flex-wrap: wrap; }
+}
+@media (min-width: 601px) and (max-width: 1024px) {
+    .featured-title { font-size: 45px; }
+}
+@media (min-width: 1025px) {
+    .featured-title { font-size: 60px; }
+}
+
+.featured-meta { 
+    display: flex; align-items: center; justify-content: center; 
+    gap: 10px; margin-bottom: 25px; color: #666;
+}
+
+.author-thumb { 
+    width: 36px; height: 36px; border-radius: 50%; object-fit: cover;
+    border: 1px solid #eee;
+}
+
+.featured-img-wrap { overflow: hidden; border-radius: 8px; }
+.featured-img-wrap img { 
+    width: 100%; height: auto; display: block; 
+    transition: transform 0.5s ease;
+}
+.featured-img-wrap:hover img { transform: scale(1.02); }

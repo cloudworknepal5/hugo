@@ -1,0 +1,117 @@
+/* Mukta Font Import */
+@import url('https://fonts.googleapis.com/css2?family=Mukta:wght@400;700;800&display=swap');
+
+.vertical-recent-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    font-family: 'Mukta', sans-serif;
+    padding: 10px;
+    text-align: center;
+}
+
+/* Post Wrapper with 5px RED Border */
+.vr-post {
+    margin-bottom: 40px; 
+    padding-bottom: 40px;
+    border-bottom: 5px solid #ff0000; /* 5px मोटो रातो बोर्डर */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* अन्तिम पोस्टमा बोर्डर हटाउन */
+.vr-post:last-child { 
+    border-bottom: none; 
+}
+
+/* Headline - 60px Center Desktop, 40px Mobile */
+.vr-title {
+    font-size: 60px;
+    font-weight: 800;
+    line-height: 1.1;
+    margin: 0 0 15px 0;
+    color: #111;
+}
+
+.vr-title a { text-decoration: none; color: inherit; }
+
+/* Meta Info Inline */
+.vr-meta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 25px;
+}
+
+.vr-author-img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.vr-meta-info {
+    font-size: 16px;
+    color: #555;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.vr-date {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #888;
+}
+
+/* Featured Image (1200px) */
+.vr-image {
+    width: 100%;
+    max-width: 1200px;
+    margin-bottom: 25px;
+}
+
+.vr-image img {
+    width: 100%;
+    height: auto;
+    max-height: 600px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+/* Snippet Styling (Tight Gaps) */
+.vr-snippet {
+    font-size: 19px;
+    line-height: 1.6;
+    color: #444;
+    max-width: 1100px;
+    margin: 0 auto 25px auto; 
+}
+
+/* Attractive Red Button */
+.vr-btn {
+    display: inline-block;
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: #ffffff;
+    padding: 14px 40px;
+    font-size: 18px;
+    font-weight: 700;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: 0.3s ease;
+    box-shadow: 0 4px 10px rgba(255, 0, 0, 0.2);
+}
+
+.vr-btn:hover {
+    background: #000;
+    color: #fff;
+    transform: translateY(-2px);
+}
+
+/* Mobile Responsiveness */
+@media screen and (max-width: 768px) {
+    .vr-title { font-size: 40px; }
+    .vr-snippet { font-size: 16px; padding: 0 10px; }
+}

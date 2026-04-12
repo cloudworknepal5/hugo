@@ -1,0 +1,16 @@
+
+<div id="recent-vertical-box">लोड हुँदैछ...</div>
+
+<link rel="stylesheet" href="https://educationnepal.eu.org/code/billing/style.css"/>
+<script src="https://educationnepal.eu.org/code/billing/script.js"></script>
+
+<script src="/feeds/posts/default?alt=json-in-script&callback=renderRecentVerticalPosts&max-results=3"></script>
+
+
+
+
+
+<div id="featured-container">तपाईंलाई वेबसाइटमा स्वागत छ</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/cloudworknepal5/magone/blogger/featured-style1.css?v=50.0" />
+<script src="https://cdn.jsdelivr.net/gh/cloudworknepal5/magone/blogger/featured-script1.js?v=50.0"></script>

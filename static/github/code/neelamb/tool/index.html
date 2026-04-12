@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nepali Mega Dashboard - 2026</title>
+    
+    <script src="./index_files/common.download"></script>
+    <script src="./index_files/convert.download"></script>
+    <script src="./index_files/jquery.download"></script>
+    <script src="./index_files/jquery_002.download"></script>
+    <script src="./index_files/kantipur.js.download"></script>
+
+    <style>
+        :root {
+            --nav-bg: #1a1c23;
+            --bg-color: #f0f2f5;
+            --accent: #4e73df;
+            --card-bg: #ffffff;
+            --text-color: #333;
+        }
+
+        body.dark-mode {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #e0e0e0;
+            --nav-bg: #000;
+        }
+
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color); color: var(--text-color); transition: 0.3s; }
+
+        /* Navbar */
+        .top-nav { background: var(--nav-bg); padding: 10px; display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; position: sticky; top: 0; z-index: 1000; }
+        .top-nav a, .ctrl-btn { color: #adb5bd; text-decoration: none; font-size: 11px; padding: 6px 12px; border-radius: 4px; background: rgba(255,255,255,0.1); cursor: pointer; border: 1px solid transparent; }
+        .top-nav a:hover, .ctrl-btn:hover { background: var(--accent); color: white; }
+
+        .container { padding: 15px; }
+
+        /* Sections Grid */
+        .top-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
+        .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+        .card { background: var(--card-bg); padding: 15px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; margin-bottom: 15px; }
+        .card h2, .card h3 { font-size: 0.95rem; margin: 0 0 10px 0; color: var(--accent); border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+
+        textarea { width: 100%; height: 220px; border: 1px solid #ccc; border-radius: 5px; padding: 10px; font-size: 18px; resize: none; margin-bottom: 10px; }
+        
+        /* Multi-function Buttons */
+        .btn-group { display: flex; gap: 5px; margin-bottom: 5px; }
+        button, input[type="button"] { cursor: pointer; padding: 10px; border: none; border-radius: 5px; background: var(--accent); color: white; font-weight: bold; font-size: 12px; flex: 1; }
+        .btn-success { background: #1cc88a !important; }
+        .btn-danger { background: #e74a3b !important; }
+        .btn-save { background: #36b9cc !important; }
+
+        .embed-container { width: 100%; height: 450px; border: 1px solid #eee; border-radius: 8px; overflow: hidden; background: #fff; }
+
+        @media (max-width: 1024px) { .top-grid, .bottom-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <nav class="top-nav">
+        <div id="np_widget_wiz1" widget="day-sm" style="width: 300px;"></div>
+<script async="async" src="https://educationnepal.eu.org/nepalipatro.js" id="wiz1"></script>
+
+        <link rel="stylesheet" href="https://educationnepal.eu.org/weather.css" />
+<div id="weather-widget">
+  <div class="weather-icon" id="icon"></div>
+  <div class="weather-info">
+    <span class="city">Birgunj</span>
+    <span class="temp" id="temp">--°C</span>
+    <span class="desc" id="description">Loading...</span>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/gh/designers2077/code/weather.js"></script>
+                </div>
+            </div>
+        <a href="https://firebasestorage.googleapis.com/v0/b/birgunj-debba.appspot.com/o/HIMALB.htm?alt=media&token=5892a863-f8de-46e1-80f7-391ae0f6fcce" target="_blank">Himalb Converter</a>
+        <a href="https://designers2077.github.io/PreetiToUnicodeAuto/" target="_blank">Preeti Auto</a>
+        <a href="https://designers2077.github.io/newseditor/" target="_blank">News Editor</a>
+        <a href="https://designers2077.github.io/pagemakeredit/" target="_blank">Pagemaker Edit</a>
+        <a href="https://designers2077.github.io/rssnewsedit" target="_blank">Rss News Edit</a>
+        <a href="https://drive.google.com/drive/folders/1P6dWo4xcB0YuLnND6Nom-PyauySe_4UQ" target="_blank">Uploads</a>
+        <a href="https://mail.google.com/mail/u/0/?ui=2&fs=1&tf=cm" target="_blank">Gmail campos</a>
+        <a href="https://neelamb.com.np/files/Unicode-to-krutidev010%20converter05.htm" target="_blank">Unicode to Krutidev</a>
+        <a href="https://panel4.serv00.com/file_manager/" target="_blank">MyDrive</a>
+        <div class="ctrl-btn" onclick="toggleDarkMode()">🌓 Dark Mode</div>
+        <div class="ctrl-btn" onclick="clearAllFields()" style="background:rgba(231,74,59,0.2)">Reset All</div>
+    </nav>
+
+    <div class="container">
+        <div class="top-grid">
+            <div class="card">
+                <h3>१. Unicode Input</h3>
+                <textarea id="unicode_text" placeholder="Unicode यहाँ राख्नुहोस्..."></textarea>
+                <div class="btn-group">
+                    <input type="button" onclick="do_convert_to_preeti();" value="Unicode to Preeti >>">
+                    <button class="btn-success" onclick="copyText('unicode_text')">Copy</button>
+                    <button class="btn-save" onclick="saveFile('unicode_text', 'unicode.txt')">Save TXT</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>२. Preeti Input</h3>
+                <textarea id="legacy_text" style="font-family: 'preeti';" placeholder="Preeti यहाँ आउनेछ..."></textarea>
+                <div class="btn-group">
+                    <input type="button" onclick="do_convert_to_himalb();" value="Preeti to Himalb >>">
+                    <button class="btn-success" onclick="copyText('legacy_text')">Copy</button>
+                    <button class="btn-save" onclick="saveFile('legacy_text', 'preeti.doc')">Save Word</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>३. Himalb Font</h3>
+                <textarea id="himalb_output" style="font-family: 'himalb';" placeholder="Himalb नतिजा..."></textarea>
+                <div class="btn-group">
+                    <button class="btn-save" onclick="saveFile('himalb_output', 'himalb.doc')">Save Word</button>
+                    <button class="btn-danger" onclick="clearAllFields()">Clear</button>
+                </div>
+                <div class="btn-group" style="margin-top: 5px;">
+                    <button onclick="share('whatsapp')" style="background:#25D366">WhatsApp</button>
+                    <button onclick="share('facebook')" style="background:#4267B2">Facebook</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="bottom-grid">
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                <div class="card">
+                    <h2>Himalb Converter</h2>
+                    <div class="embed-container">
+                        <embed src="https://firebasestorage.googleapis.com/v0/b/birgunj-debba.appspot.com/o/HIMALB.htm?alt=media&token=5892a863-f8de-46e1-80f7-391ae0f6fcce" width="100%" height="100%">
+                    </div>
+                </div>
+                <div class="card">
+                    <h2>News Editor</h2>
+                    <div class="embed-container" style="height: 400px;">
+                        <embed src="https://designers2077.github.io/newseditor/" width="100%" height="100%">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Preeti to Unicode Auto</h2>
+                <div class="embed-container" style="height: 870px;"> <embed src="https://designers2077.github.io/PreetiToUnicodeAuto/" width="100%" height="100%">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function do_convert_to_preeti() { if (typeof convert_to_Preeti === "function") convert_to_Preeti(); }
+        function do_convert_to_himalb() {
+            let preeti = document.getElementById('legacy_text').value;
+            if (typeof kantipurConfigToUnicode === "function") {
+                document.getElementById('himalb_output').value = kantipurConfigToUnicode(preeti);
+            }
+        }
+        function saveFile(id, name) {
+            let t = document.getElementById(id).value;
+            if(!t) return alert("Empty!");
+            let b = new Blob([t], {type: "text/plain;charset=utf-8"});
+            let a = document.createElement("a");
+            a.href = URL.createObjectURL(b); a.download = name; a.click();
+        }
+        function copyText(id) { document.getElementById(id).select(); document.execCommand('copy'); }
+        function clearAllFields() { if(confirm("Clear all?")) { document.querySelectorAll('textarea').forEach(el => el.value=""); } }
+        function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
+        function share(p) {
+            let t = encodeURIComponent(document.getElementById('himalb_output').value);
+            let u = (p=='whatsapp') ? "https://api.whatsapp.com/send?text="+t : "https://www.facebook.com/sharer/sharer.php?u="+window.location.href;
+            window.open(u, '_blank');
+        }
+    </script>
+</body>
+</html>

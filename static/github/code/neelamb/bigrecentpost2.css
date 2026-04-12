@@ -1,0 +1,114 @@
+/* 1. Typography & Global Reset */
+@import url('https://fonts.googleapis.com/css2?family=Mukta:wght@400;700;800&display=swap');
+
+/* 2. Container Utility: Handling Alignment & Spacing */
+.vertical-recent-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    font-family: 'Mukta', sans-serif;
+    padding: 20px 10px;
+    text-align: center;
+}
+
+/* 3. Post Wrapper: Multi-function Structure */
+.vr-post {
+    margin-bottom: 50px; 
+    padding-bottom: 40px;
+    border-bottom: 5px solid #ff0000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.vr-post:last-child { border-bottom: none; }
+
+/* 4. Headline: Smart Responsive Scaling */
+.vr-title {
+    font-size: clamp(32px, 5vw, 60px); /* Multi-function: Fluid scaling for all devices */
+    font-weight: 800;
+    line-height: 1.1;
+    margin: 0 0 20px 0;
+    color: #111;
+    letter-spacing: -0.5px;
+}
+.vr-title a { text-decoration: none; color: inherit; transition: color 0.3s; }
+.vr-title a:hover { color: #e74c3c; }
+
+/* 5. Meta Section: Author & Date Integration */
+.vr-meta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+.vr-author-img { 
+    width: 48px; 
+    height: 48px; 
+    border-radius: 50%; 
+    object-fit: cover;
+    border: 2px solid #ff0000;
+}
+.vr-meta-info { 
+    font-size: 18px; 
+    color: #666; 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+}
+
+/* 6. Image Function: Maximum Clarity Logic */
+.vr-image {
+    width: 100%;
+    max-width: 1100px;
+    margin-bottom: 30px;
+    overflow: hidden;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    background: #f0f0f0;
+}
+
+.vr-image img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9; /* Maintains clear cinematic proportion */
+    display: block;
+    object-fit: cover; 
+    /* Rendering function: Ensures s1600 images stay sharp */
+    image-rendering: -webkit-optimize-contrast; 
+    transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.vr-image:hover img {
+    transform: scale(1.04); /* Interactive zoom functionality */
+}
+
+/* 7. Snippet & Call to Action */
+.vr-snippet {
+    font-size: 21px;
+    line-height: 1.7;
+    color: #333;
+    max-width: 850px;
+    margin: 0 auto 30px auto;
+    text-align: center;
+}
+
+.vr-btn {
+    display: inline-block;
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: #ffffff !important;
+    padding: 18px 45px;
+    font-size: 20px;
+    font-weight: 700;
+    text-decoration: none;
+    border-radius: 50px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 5px 20px rgba(231, 76, 60, 0.4);
+}
+
+.vr-btn:hover { 
+    background: #111; 
+    transform: translateY(-5px) scale(1.05); 
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}

@@ -1,0 +1,64 @@
+$show=home
+
+
+
+<div id="recent-vertical-box">लोड हुँदैछ...</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/designers2077/code/bigposts.css"/>
+<script src="https://cdn.jsdelivr.net/gh/designers2077/code/bigposts.js"></script>
+
+<script src="/feeds/posts/default?alt=json-in-script&callback=renderRecentVerticalPosts&max-results=3"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div id="recent-vertical-box">लोड हुँदैछ...</div>
+
+<link rel="stylesheet" href="https://educationnepal.eu.org/code/billing/style.css"/>
+<script src="https://educationnepal.eu.org/code/billing/script.js"></script>
+
+<script src="/feeds/posts/default?alt=json-in-script&callback=renderRecentVerticalPosts&max-results=3"></script>
+
+
+
+
+
+
+
+
+
+<div id="recent-vertical-box">लोड हुँदैछ...</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/cloudworknepal5/magone/blogger/bigpost.css"/>
+<script src="https://cdn.jsdelivr.net/gh/cloudworknepal5/magone/blogger/bigpost.js"></script>
+
+<script src="/feeds/posts/default?alt=json-in-script&callback=renderRecentVerticalPosts&max-results=3"></script>

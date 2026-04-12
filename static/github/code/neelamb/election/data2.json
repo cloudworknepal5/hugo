@@ -1,0 +1,47 @@
+[
+  {
+    "name": "विमल श्रीवास्तव",
+    "party": "लोकतान्त्रिक समाजवादी पार्टी",
+    "fptp": 12500,
+    "pr": 1500,
+    "area": 1,
+    "photo": "https://via.placeholder.com/50/FFC107/ffffff?text=BS",
+    "symbol": "https://via.placeholder.com/30/ffffff/000000?text=Cycle"
+  },
+  {
+    "name": "अजय कुमार चौरसिया",
+    "party": "नेपाली कांग्रेस",
+    "fptp": 25000,
+    "pr": 3200,
+    "area": 2,
+    "photo": "https://via.placeholder.com/50/0078FF/ffffff?text=AC",
+    "symbol": "https://via.placeholder.com/30/ffffff/000000?text=Tree"
+  },
+  {
+    "name": "राजकुमार गुप्ता",
+    "party": "नेकपा (एमाले)",
+    "fptp": 22000,
+    "pr": 2800,
+    "area": 3,
+    "photo": "https://via.placeholder.com/50/DE211C/ffffff?text=RG",
+    "symbol": "https://via.placeholder.com/30/ffffff/000000?text=Sun"
+  },
+  {
+    "name": "रमेश रिजाल",
+    "party": "नेपाली कांग्रेस",
+    "fptp": 18000,
+    "pr": 2100,
+    "area": 4,
+    "photo": "https://via.placeholder.com/50/0078FF/ffffff?text=RR",
+    "symbol": "https://via.placeholder.com/30/ffffff/000000?text=Tree"
+  },
+  {
+    "name": "प्रदिप यादव",
+    "party": "जनता समाजवादी पार्टी",
+    "fptp": 11000,
+    "pr": 1200,
+    "area": 1,
+    "photo": "https://via.placeholder.com/50/689F38/ffffff?text=PY",
+    "symbol": "https://via.placeholder.com/30/ffffff/000000?text=Umbrella"
+  }
+]

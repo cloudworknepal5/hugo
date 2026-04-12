@@ -1,0 +1,53 @@
+/* Multi-function Micro Styling */
+#weather-widget {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  padding: 4px 8px; /* Reduced for 10px scale */
+  border-radius: 6px;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+  font-family: 'Segoe UI', sans-serif;
+  max-width: 90px; /* Compact width */
+  border: 1px solid #eee;
+  transition: transform 0.2s ease; /* Function: Hover Scale */
+}
+
+#weather-widget:hover {
+  transform: scale(1.1); /* Interaction function */
+}
+
+.weather-icon img {
+  width: 20px; /* Scaled down from 50px */
+  height: 20px;
+}
+
+.weather-info {
+  display: flex;
+  flex-direction: column;
+  margin-left: 5px;
+}
+
+.city {
+  font-size: 10px; /* Target size */
+  font-weight: bold;
+  color: #333;
+  line-height: 1;
+}
+
+.temp {
+  font-size: 10px; /* Target size */
+  color: #ff5722;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.desc {
+  font-size: 8px; /* Sub-text scaled smaller */
+  color: #777;
+  text-transform: capitalize;
+  display: none; /* Function: Hide detail until hover */
+}
+
+#weather-widget:hover .desc {
+  display: block; /* Reveal detail function */
+}
