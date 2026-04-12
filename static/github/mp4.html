@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Easy Reel Maker</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 20px; background: #f0f2f5; }
+        .box { background: white; padding: 20px; border-radius: 15px; display: inline-block; width: 100%; max-width: 350px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        h3 { color: #1877f2; }
+        input { width: 100%; margin: 10px 0; border: 1px solid #ddd; padding: 8px; border-radius: 5px; box-sizing: border-box; }
+        .controls { background: #f9f9f9; padding: 10px; margin: 10px 0; border-radius: 10px; text-align: left; font-size: 13px; }
+        button { background: #1877f2; color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        button:disabled { background: #ccc; }
+        #status { margin-top: 15px; color: #555; font-size: 13px; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h3>फेसबुक रिल मेकर</h3>
+    
+    <input type="file" id="imgInp" accept="image/*">
+    <p style="font-size: 11px; margin: 0;">१. फोटो छान्नुहोस्</p>
+
+    <input type="file" id="mainInp" accept="audio/*">
+    <p style="font-size: 11px; margin: 0;">२. मुख्य गीत</p>
+
+    <input type="file" id="bgInp" accept="audio/*">
+    <p style="font-size: 11px; margin: 0;">३. ब्याकग्राउन्ड म्युजिक</p>
+
+    <div class="controls">
+        ब्याकग्राउन्ड भोल्युम (मधुरो):
+        <input type="range" id="bgVol" min="0" max="0.3" step="0.01" value="0.06">
+    </div>
+
+    <button id="btn">भिडियो बनाउनुहोस्</button>
+    <div id="status">सबै फाइल छानेपछि बटन थिच्नुहोस्।</div>
+</div>
+
+<canvas id="canvas" width="720" height="1280" style="display:none;"></canvas>
+
+<script>
+document.getElementById('btn').onclick = async () => {
+    const img = document.getElementById('imgInp').files[0];
+    const main = document.getElementById('mainInp').files[0];
+    const bg = document.getElementById('bgInp').files[0];
+    const btn = document.getElementById('btn');
+    const status = document.getElementById('status');
+
+    if (!img || !main || !bg) { alert("कृपया ३ वटै फाइल छान्नुहोस्!"); return; }
+
+    btn.disabled = true;
+    status.innerText = "तयारी हुँदैछ...";
+
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const dest = audioCtx.createMediaStreamDestination();
+
+        // अडियो मिक्सिङ
+        const mainBuf = await audioCtx.decodeAudioData(await main.arrayBuffer());
+        const bgBuf = await audioCtx.decodeAudioData(await bg.arrayBuffer());
+
+        const mainSrc = audioCtx.createBufferSource();
+        const bgSrc = audioCtx.createBufferSource();
+        mainSrc.buffer = mainBuf;
+        bgSrc.buffer = bgBuf;
+        bgSrc.loop = true;
+
+        const mGain = audioCtx.createGain();
+        const bGain = audioCtx.createGain();
+        mGain.gain.value = 1.0;
+        bGain.gain.value = document.getElementById('bgVol').value;
+
+        mainSrc.connect(mGain).connect(dest);
+        bgSrc.connect(bGain).connect(dest);
+
+        // इमेज ड्रइङ (७२०x१२८० - मोबाइलको लागि हलुका साइज)
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const image = new Image();
+        image.src = URL.createObjectURL(img);
+        await new Promise(r => image.onload = r);
+
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, 0, 720, 1280);
+        const ratio = Math.min(720/image.width, 1280/image.height);
+        const w = image.width * ratio, h = image.height * ratio;
+        ctx.drawImage(image, (720-w)/2, (1280-h)/2, w, h);
+
+        // रेकर्डिङ (Mobile Compatible Settings)
+        const stream = canvas.captureStream(25);
+        const tracks = [...stream.getVideoTracks(), ...dest.stream.getAudioTracks()];
+        const combined = new MediaStream(tracks);
+
+        // कोडेक चेक: धेरैजसो मोबाइलमा चल्ने VP8/OPUS प्रयोग गरौं
+        let recorder = new MediaRecorder(combined, { mimeType: 'video/webm' });
+        const chunks = [];
+
+        recorder.ondataavailable = e => chunks.push(e.data);
+        recorder.onstop = () => {
+            const blob = new Blob(chunks, { type: 'video/mp4' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'Reel_Video.mp4';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            status.innerText = "सफल भयो! यदि ग्यालेरीमा चलेन भने फेसबुकमा सिधै अपलोड गर्नुहोस्, त्यहाँ चल्छ।";
+            btn.disabled = false;
+        };
+
+        mainSrc.start(0);
+        bgSrc.start(0);
+        recorder.start();
+
+        status.innerText = "मिक्सिङ हुँदैछ: " + Math.round(mainBuf.duration) + " सेकेन्ड...";
+
+        setTimeout(() => {
+            recorder.stop();
+            mainSrc.stop();
+            bgSrc.stop();
+            audioCtx.close();
+        }, mainBuf.duration * 1000);
+
+    } catch (e) {
+        alert("त्रुटि: " + e.message);
+        btn.disabled = false;
+    }
+};
+</script>
+
+</body>
+</html>

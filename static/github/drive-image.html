@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>फेमस नेपाल - प्रिमियम ग्यालरी</title>
+    <style>
+        :root { --primary: #007bff; --success: #28a745; --danger: #dc3545; --bg: #f4f7f6; --card: #ffffff; --border: #ddd; }
+        body { background-color: var(--bg); margin: 0; padding: 10px; font-family: 'Segoe UI', sans-serif; }
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        /* मोबाइलमा १ कोलम, डेस्कटपमा ३ कोलम */
+        .drive-grid { 
+            display: grid; 
+            gap: 20px; 
+            grid-template-columns: 1fr; 
+            justify-items: center; 
+        }
+        @media (min-width: 768px) { 
+            .drive-grid { grid-template-columns: repeat(3, 1fr); } 
+        }
+        
+        .file-card { 
+            background: var(--card); border-radius: 12px; overflow: hidden; 
+            border: 1px solid var(--border); width: 100%; max-width: 413px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+        }
+        .thumb { 
+            width: 100%; aspect-ratio: 413 / 364; background: #eee; overflow: hidden; 
+            position: relative;
+        }
+        .thumb img { 
+            width: 100%; height: 100%; object-fit: cover; display: block; 
+        }
+        .info { padding: 15px; text-align: center; }
+        .btn-group { display: flex; gap: 10px; }
+        .action-btn { 
+            padding: 10px; border-radius: 6px; color: white !important; 
+            font-size: 13px; font-weight: bold; border: none; cursor: pointer; 
+            flex: 1; text-decoration: none; text-align: center;
+        }
+
+        #load-more-btn { 
+            padding: 12px 40px; background: var(--primary); color: white; 
+            border: none; border-radius: 30px; cursor: pointer; font-weight: bold; 
+            display: none; margin: 30px auto; 
+        }
+
+        .upload-section { 
+            background: var(--card); padding: 30px; border-radius: 15px; 
+            margin-top: 50px; border: 2px dashed var(--border); text-align: center; 
+        }
+        .input-field { 
+            width: 100%; max-width: 320px; padding: 12px; margin: 8px 0; 
+            border: 1px solid var(--border); border-radius: 8px; 
+        }
+        .btn-main { 
+            padding: 14px 40px; background: var(--primary); color: white; 
+            border: none; border-radius: 10px; cursor: pointer; font-weight: bold; 
+            width: 100%; max-width: 320px; font-size: 16px;
+        }
+        #status-msg { text-align: center; padding: 40px; font-weight: bold; color: #777; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="display-container" class="drive-grid"></div>
+    
+    <div style="text-align:center;">
+        <button id="load-more-btn" onclick="renderBatch()">थप हेर्नुहोस् (Load More)</button>
+    </div>
+    
+    <div id="status-msg">फोटोहरू लोड हुँदैछन्...</div>
+
+    <div class="upload-section">
+        <h3 style="margin-top:0;">नयाँ फोटो थप्नुहोस्</h3>
+        <input type="file" id="file-input" accept="image/*" class="input-field"><br>
+        <input type="password" id="upload-pass" placeholder="पासवर्ड हाल्नुहोस्" class="input-field"><br>
+        <button class="btn-main" onclick="handleUpload()">सर्भरमा अपलोड गर्नुहोस्</button>
+        <div id="up-status" style="margin-top: 15px; font-weight: bold;"></div>
+    </div>
+</div>
+
+<script>
+// तपाईंको नयाँ Deployment URL यहाँ हाल्नुहोस्
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyrPPrq3PPqatYotrgDYomh-3V8F7HYteiVmcQh1Vt2lzpHRy2Z5vsXVseAcQq2sDRS/exec";
+let allFiles = [], currentIndex = 0;
+const BATCH_SIZE = 6; 
+
+async function init() {
+    try {
+        const res = await fetch(SCRIPT_URL);
+        allFiles = await res.json();
+        document.getElementById('status-msg').style.display = 'none';
+        renderBatch();
+    } catch (e) { 
+        document.getElementById('status-msg').innerHTML = "डाटा लोड भएन। पर्मिसन र URL चेक गर्नुहोस्।"; 
+    }
+}
+
+function renderBatch() {
+    const container = document.getElementById('display-container');
+    const items = allFiles.slice(currentIndex, currentIndex + BATCH_SIZE);
+    
+    items.forEach(file => {
+        const div = document.createElement('div');
+        div.className = 'file-card';
+        // फोटो नदेखिने समस्या समाधान गर्न 'uc' र 'thumbnail' दुवै प्रयोग
+        const imgUrl = `https://drive.google.com/uc?export=view&id=${file.id}`;
+        const thumbUrl = `https://drive.google.com/thumbnail?id=${file.id}&sz=w1000`;
+
+        div.innerHTML = `
+            <div class="thumb">
+                <img src="${imgUrl}" onerror="this.src='${thumbUrl}'" loading="lazy">
+            </div>
+            <div class="info">
+                <div class="btn-group">
+                    <a href="${imgUrl}" target="_blank" class="action-btn" style="background:var(--success)">हेर्नुहोस्</a>
+                    <button onclick="deleteFile('${file.id}', this)" class="action-btn" style="background:var(--danger)">डिलेट</button>
+                </div>
+            </div>`;
+        container.appendChild(div);
+    });
+
+    currentIndex += BATCH_SIZE;
+    document.getElementById('load-more-btn').style.display = currentIndex < allFiles.length ? 'inline-block' : 'none';
+}
+
+async function handleUpload() {
+    const fileEl = document.getElementById('file-input');
+    const passEl = document.getElementById('upload-pass');
+    const status = document.getElementById('up-status');
+
+    if (!fileEl.files[0] || !passEl.value) return alert("फाइल र पासवर्ड अनिवार्य छ!");
+
+    const reader = new FileReader();
+    status.innerHTML = "⏳ अपलोड हुँदैछ... कृपया पर्खनुहोस्।";
+    status.style.color = "blue";
+
+    reader.onload = async function(e) {
+        const base64 = e.target.result.split(',')[1];
+        try {
+            await fetch(SCRIPT_URL, { 
+                method: "POST", 
+                mode: "no-cors", 
+                body: JSON.stringify({ 
+                    base64: base64, 
+                    type: fileEl.files[0].type, 
+                    name: fileEl.files[0].name, 
+                    password: passEl.value 
+                }) 
+            });
+            status.innerHTML = "✅ सफल भयो! नयाँ फाइल माथि आउनेछ।";
+            status.style.color = "green";
+            setTimeout(() => location.reload(), 1500);
+        } catch (err) {
+            status.innerHTML = "❌ त्रुटि भयो!";
+            status.style.color = "red";
+        }
+    };
+    reader.readAsDataURL(fileEl.files[0]);
+}
+
+async function deleteFile(id, btn) {
+    const pass = prompt("डिलेट गर्न पासवर्ड हाल्नुहोस्:");
+    if (!pass) return;
+    btn.innerText = "...";
+    await fetch(SCRIPT_URL, { 
+        method: "POST", 
+        mode: "no-cors", 
+        body: JSON.stringify({ action: "delete", id: id, password: pass }) 
+    });
+    btn.closest('.file-card').remove();
+}
+
+window.onload = init;
+</script>
+</body>
+</html>

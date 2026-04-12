@@ -1,0 +1,180 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700;800&display=swap');
+    
+    .sidebar-wrapper { font-family: 'Mukta', sans-serif; max-width: 100%; background: #ffffff; padding: 15px; border-radius: 12px; box-sizing: border-box; margin: 10px auto; border: 1px solid #ddd; }
+
+    /* टप कन्ट्रोल */
+    .sb-controls { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 20px; }
+    #sb-search-input { flex: 1; padding: 10px 20px; border-radius: 30px; border: 2px solid #cc0000; outline: none; font-size: 16px; }
+    #sb-download-btn { background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 30px; font-weight: 700; cursor: pointer; }
+
+    .sb-logo-area { text-align: center; margin-bottom: 10px; }
+    .sb-main-logo { width: 280px; max-width: 85%; }
+
+    /* एरिया हेडलाइन - स्पष्ट विभाजनका लागि */
+    .sb-area-header { display: flex; align-items: center; text-align: center; margin: 40px 0 20px; position: relative; }
+    .sb-area-header::before, .sb-area-header::after { content: ""; flex: 1; border-bottom: 3px solid #cc0000; }
+    .sb-area-name { background: #cc0000; color: #fff; padding: 8px 35px; font-size: 22px; font-weight: 800; border-radius: 50px; margin: 0 15px; white-space: nowrap; box-shadow: 0 4px 10px rgba(204,0,0,0.2); }
+
+    /* उम्मेदवार ग्रिड */
+    .sb-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; width: 100%; margin-bottom: 30px; }
+    .sb-card { background: #fff; border: 1.5px solid #cc0000; border-radius: 10px; overflow: hidden; position: relative; display: flex; flex-direction: column; transition: transform 0.2s; }
+    
+    .sb-img-box { position: relative; width: 100%; height: 380px; overflow: hidden; background: #f0f0f0; }
+    .sb-img { width: 100%; height: 100%; object-fit: cover; }
+    
+    .sb-lead-tag { position: absolute; top: 10px; left: 10px; background: #27ae60; color: #fff; padding: 2px 12px; font-size: 13px; font-weight: 800; border-radius: 4px; z-index: 5; }
+    .sb-badge { position: absolute; right: 10px; bottom: 10px; width: 50px; height: 50px; background: #fff; border: 2px solid #cc0000; border-radius: 50%; padding: 4px; display: flex; align-items: center; justify-content: center; z-index: 5; }
+    .sb-badge img { width: 90%; height: 90%; object-fit: contain; }
+
+    .sb-info { padding: 12px 5px; text-align: center; }
+    .sb-name { font-size: 20px; font-weight: 800; color: #1a1a1a; margin-bottom: 2px; }
+    .sb-party { font-size: 15px; font-weight: 700; color: #cc0000; margin-bottom: 8px; }
+    
+    .sb-votes-box { background: #2c3e50; color: #fff; font-size: 14px; font-weight: 700; padding: 6px; border-radius: 6px; width: 90%; margin: 0 auto; }
+
+    @media (max-width: 768px) {
+        .sb-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .sb-img-box { height: 260px; }
+        .sb-area-name { font-size: 18px; padding: 6px 20px; }
+    }
+    #sb-load-btn { background: #2c3e50; color: #fff; border: none; padding: 12px; width: 100%; border-radius: 30px; font-weight: 800; cursor: pointer; margin-top: 20px; }
+</style>
+
+<div class="sidebar-wrapper" id="capture-area">
+    <div class="sb-controls">
+        <input type="text" id="sb-search-input" placeholder="खोज्नुहोस्..." oninput="sbMultiHandler('filter')">
+        <button id="sb-download-btn" onclick="downloadPNG()">Download PNG</button>
+    </div>
+    <div class="sb-logo-area" id="logo-container"></div>
+    <div id="sb-portal">डाटा लोड हुँदैछ...</div>
+    <button id="sb-load-btn" onclick="sbMultiHandler('more')">थप निर्वाचन क्षेत्रहरू</button>
+</div>
+
+<script>
+let sbRaw = []; let sbActive = []; let sbLimit = 1;
+
+function parseVotes(str) {
+    if(!str) return 0;
+    let clean = str.split('|')[0].replace(/[^0-9]/g, '');
+    return parseInt(clean) || 0;
+}
+
+function getProxyUrl(url) { return url ? "https://images.weserv.nl/?url=" + encodeURIComponent(url.replace(/https?:\/\//, "")) : ""; }
+
+const logoUrl = getProxyUrl("https://ghantaghartv.com/wp-content/uploads/2022/10/Ghantaghar-TV-banner-png-300.png");
+document.getElementById('logo-container').innerHTML = `<img src="${logoUrl}" class="sb-main-logo" crossorigin="anonymous">`;
+
+function downloadPNG() {
+    const btn = document.getElementById('sb-download-btn');
+    btn.style.display = "none";
+    html2canvas(document.querySelector("#capture-area"), { scale: 3, useCORS: true, backgroundColor: "#ffffff" }).then(canvas => {
+        const link = document.createElement('a'); link.download = 'Election_Result.png'; link.href = canvas.toDataURL("image/png"); link.click();
+        btn.style.display = "block";
+    });
+}
+
+function sbSync() {
+    const s = document.createElement('script');
+    // Location र Label दुवै डाटा तान्न 'v=2' र टाइमस्ट्याम्प थपिएको छ
+    s.src = "https://www.election.neelamb.com/feeds/posts/default?alt=json-in-script&callback=sbBuild&max-results=150&v=2&t=" + new Date().getTime();
+    document.body.appendChild(s);
+}
+
+function sbBuild(json) {
+    const entries = json.feed.entry || [];
+    const processed = entries.map(e => {
+        const labels = e.category ? e.category.map(cat => cat.term) : [];
+        
+        // १. स्मार्ट एरिया लोजिक (Location छ भने त्यो, छैन भने पहिलो लेबल)
+        let area = "अन्य क्षेत्र";
+        if (e.gd$where && e.gd$where[0] && e.gd$where[0].valueString) {
+            area = e.gd$where[0].valueString;
+        } else if (labels.length > 0) {
+            area = labels[0]; // पहिलो लेबललाई एरिया मान्ने
+        }
+
+        // २. पार्टी लोजिक (यदि एरिया लेबलबाट आएको हो भने दोस्रो लेबल, नत्र पहिलो)
+        let party = "स्वतन्त्र";
+        if (e.gd$where && e.gd$where[0]) {
+            party = labels[0] || "स्वतन्त्र";
+        } else {
+            party = labels[1] || labels[0] || "स्वतन्त्र";
+        }
+
+        let voteText = "";
+        if (e.content && e.content.$t) {
+            const div = document.createElement('div'); div.innerHTML = e.content.$t;
+            voteText = div.innerText.split('\n')[0].trim();
+        }
+
+        const photo = e.media$thumbnail ? e.media$thumbnail.url.replace('s72-c', 's1600') : '';
+        let sign = '';
+        if (e.content && e.content.$t) {
+            const div = document.createElement('div'); div.innerHTML = e.content.$t;
+            const imgs = div.getElementsByTagName('img'); if (imgs.length > 1) sign = imgs[1].src;
+        }
+
+        return { 
+            name: e.title.$t, area: area, party: party, 
+            photo: getProxyUrl(photo), sign: getProxyUrl(sign), 
+            votes: voteText, vCount: parseVotes(voteText) 
+        };
+    });
+
+    // एरिया अनुसार ग्रुपिङ र सर्टिङ
+    const grouped = {};
+    processed.forEach(item => {
+        if (!grouped[item.area]) grouped[item.area] = [];
+        grouped[item.area].push(item);
+    });
+
+    sbRaw = Object.keys(grouped).map(key => ({
+        area: key,
+        candidates: grouped[key].sort((a, b) => b.vCount - a.vCount)
+    }));
+
+    sbActive = [...sbRaw];
+    sbRender();
+}
+
+function sbRender() {
+    const portal = document.getElementById('sb-portal');
+    let html = '';
+    
+    sbActive.slice(0, sbLimit).forEach(group => {
+        html += `<div class="sb-area-header"><div class="sb-area-name">${group.area}</div></div><div class="sb-grid">`;
+        group.candidates.forEach((c, idx) => {
+            html += `
+            <div class="sb-card">
+                ${idx === 0 && c.vCount > 0 ? `<div class="sb-lead-tag">अग्रता</div>` : ''}
+                <div class="sb-img-box">
+                    <img src="${c.photo}" class="sb-img" crossorigin="anonymous">
+                    ${c.sign ? `<div class="sb-badge"><img src="${c.sign}" crossorigin="anonymous"></div>` : ''}
+                </div>
+                <div class="sb-info">
+                    <div class="sb-name">${c.name}</div>
+                    <div class="sb-party">${c.party}</div>
+                    ${c.votes ? `<div class="sb-votes-box">प्राप्त मत: ${c.votes}</div>` : ''}
+                </div>
+            </div>`;
+        });
+        html += `</div>`;
+    });
+
+    portal.innerHTML = html || "डाटा लोड हुन सकेन। कृपया लोकेशन वा लेबल चेक गर्नुहोस्।";
+    document.getElementById('sb-load-btn').style.display = (sbLimit >= sbActive.length) ? 'none' : 'block';
+}
+
+function sbMultiHandler(type) {
+    if(type === 'filter') {
+        const val = document.getElementById('sb-search-input').value.toLowerCase();
+        sbActive = sbRaw.filter(g => g.area.toLowerCase().includes(val) || g.candidates.some(c => c.name.toLowerCase().includes(val)));
+        sbLimit = 1;
+    } else { sbLimit++; }
+    sbRender();
+}
+sbSync();
+</script>

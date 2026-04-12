@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nepali News Tool - Browser URL Fix 2026</title>
+    
+    <script src="https://ad.neelamb.com/feeds/index_files/jquery.download"></script>
+    <script src="https://ad.neelamb.com/feeds/index_files/jquery_002.download"></script>
+    <script src="https://ad.neelamb.com/feeds/index_files/common.download"></script>
+    <script src="https://ad.neelamb.com/feeds/index_files/convert.download"></script>
+    <script src="https://ad.neelamb.com/feeds/index_files/kantipur.js.download"></script>
+
+    <style>
+        :root { --primary: #e74c3c; --accent: #4e73df; --bg: #f4f7f6; --dark: #2c3e50; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+        .top-editor { background: white; padding: 10px; border-bottom: 3px solid var(--primary); flex-shrink: 0; z-index: 100; }
+        .converter-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        textarea { width: 100%; height: 100px; border: 1px solid #ccc; border-radius: 5px; padding: 8px; font-size: 14px; box-sizing: border-box; resize: none; }
+        h3 { font-size: 10px; margin: 0 0 5px; color: var(--accent); text-transform: uppercase; }
+
+        .control-panel { background: var(--dark); padding: 8px; display: flex; gap: 8px; justify-content: center; flex-shrink: 0; align-items: center; flex-wrap: wrap; }
+        .input-box { padding: 6px 10px; border-radius: 4px; border: none; font-size: 12px; width: 160px; }
+        .btn-action { background: #27ae60; color: white; border: none; padding: 7px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
+        .btn-blue { background: #3498db; }
+        .btn-rss { background: #f39c12; }
+
+        .feed-shortcuts { background: #fff; padding: 5px; border-bottom: 1px solid #ddd; display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; flex-shrink: 0; }
+        .btn-feed { background: #f8f9fa; border: 1px solid #ddd; padding: 4px 10px; border-radius: 15px; cursor: pointer; font-size: 11px; }
+        .btn-feed.active { background: var(--primary); color: white; }
+
+        .split-view { display: flex; flex: 1; overflow: hidden; background: #ccc; }
+        .left-panel { width: 40%; background: white; overflow-y: auto; padding: 10px; border-right: 2px solid #ddd; box-sizing: border-box; }
+        .right-panel { width: 60%; background: white; box-sizing: border-box; }
+        iframe { width: 100%; height: 100%; border: none; }
+
+        .news-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .post-card { border: 1px solid #eee; padding: 8px; border-radius: 6px; background: #fff; display: flex; flex-direction: column; }
+        .f-img { width: 100%; height: 85px; object-fit: cover; border-radius: 4px; margin-bottom: 5px; }
+        .post-title { font-size: 11px; font-weight: bold; color: #333; height: 32px; overflow: hidden; margin-bottom: 5px; line-height: 1.3; text-decoration: none; display: block; }
+        
+        .btn-add { background: #27ae60; color: white; border: none; padding: 6px; border-radius: 4px; cursor: pointer; font-size: 10px; font-weight: bold; }
+
+        .load-more-box { width: 100%; text-align: center; padding: 20px 0; }
+        .btn-load-more { background: #2c3e50; color: white; border: none; padding: 10px 30px; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: bold; display: none; }
+
+        #copy-status { position: fixed; bottom: 20px; right: 20px; background: #27ae60; color: white; padding: 10px 20px; border-radius: 50px; display: none; z-index: 1000; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div id="copy-status">Himalb Auto Copied! ✅</div>
+
+<div class="top-editor">
+    <div class="converter-grid">
+        <div class="card"><h3>१. Unicode</h3><textarea id="unicode_text" oninput="autoProcess()"></textarea></div>
+        <div class="card"><h3>२. Preeti</h3><textarea id="legacy_text" style="font-family:'preeti';"></textarea></div>
+        <div class="card"><h3>३. Himalb (Auto Copy)</h3><textarea id="himalb_output" style="font-family:'himalb';"></textarea></div>
+    </div>
+</div>
+
+<div class="control-panel">
+    <button class="btn-action btn-rss" onclick="openRSSPopup()">RSS NEPAL POPUP</button>
+    <div style="width:1px; height:20px; background:#555;"></div>
+    
+    <input type="text" id="custom_rss" class="input-box" placeholder="फिड (RSS) लिंक...">
+    <button class="btn-action" onclick="fetchFeed(document.getElementById('custom_rss').value)">फिड लोड</button>
+    
+    <input type="text" id="browser_url" class="input-box" placeholder="वेबसाइट URL यहाँ...">
+    <button class="btn-action btn-blue" onclick="loadBrowser()">वेबसाइट लोड</button>
+</div>
+
+<div class="feed-shortcuts" id="feed-buttons"></div>
+
+<div class="split-view">
+    <div class="left-panel">
+        <div id="news-grid" class="news-grid">
+            <p style="grid-column: span 2; text-align:center; padding: 40px; color: #999;">फिड लोड गर्नुहोस्।</p>
+        </div>
+        <div class="load-more-box">
+            <button id="load-more-btn" class="btn-load-more" onclick="displayMore()">थप समाचार लोड गर्नुहोस् ⬇</button>
+        </div>
+    </div>
+    <div class="right-panel">
+        <iframe id="web_frame" src="about:blank"></iframe>
+    </div>
+</div>
+
+<script>
+const feeds = [
+    { name: "Nepal Post", url: "https://nepalpostdaily.com/feed/" },
+    { name: "Madhes Khabar", url: "https://www.madheskhabar.com/?feed=rss2" },
+    { name: "Race Khabar", url: "https://racekhabar.com/feed/" },
+    { name: "E-Shilalekh", url: "https://www.eshilalekh.com/feed" },
+    { name: "Madhesh Sanchar", url: "https://madheshsanchar.com/feed" },
+    { name: "Chandra Surya", url: "https://feeds.feedburner.com/chandrasuryawani/8iC1d0yoofl" },
+    { name: "Desh Madhesh", url: "https://deshmadhesh.com/feed/" },
+    { name: "Bara Update", url: "https://baraupdate.com.np/feed/" },
+    { name: "Ghantaghar TV", url: "https://ghantaghartv.com/feed/" },
+    { name: "Desh Sanchar", url: "https://deshsanchar.com/feed/" }
+];
+
+let allItems = [];
+let currentIndex = 0;
+const itemsPerPage = 10;
+
+function openRSSPopup() {
+    const h = window.screen.availHeight / 2;
+    window.open("http://rssnepal.org.np/headlineNews/list?type=TEXT_NEPALI", 'RSS', `width=${window.screen.availWidth},height=${h},top=${h},left=0`);
+}
+
+function loadBrowser() {
+    let url = document.getElementById('browser_url').value.trim();
+    if(!url) return;
+    if(!url.startsWith('http')) url = 'https://' + url;
+    document.getElementById('web_frame').src = url;
+}
+
+const btnContainer = document.getElementById('feed-buttons');
+feeds.forEach(f => {
+    const btn = document.createElement('button');
+    btn.className = 'btn-feed';
+    btn.innerText = f.name;
+    btn.onclick = () => {
+        document.querySelectorAll('.btn-feed').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        fetchFeed(f.url);
+    };
+    btnContainer.appendChild(btn);
+});
+
+async function fetchFeed(url) {
+    if(!url) return;
+    const grid = document.getElementById('news-grid');
+    grid.innerHTML = "<p style='grid-column: span 2; text-align:center;'>तानिँदैछ...</p>";
+    document.getElementById('load-more-btn').style.display = 'none';
+
+    try {
+        const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}&cache_boost=${Date.now()}`);
+        const data = await res.json();
+        if (data.status === "ok") {
+            allItems = data.items;
+            currentIndex = 0;
+            grid.innerHTML = "";
+            displayMore();
+        }
+    } catch (e) { grid.innerHTML = "Error!"; }
+}
+
+function displayMore() {
+    const grid = document.getElementById('news-grid');
+    const loadBtn = document.getElementById('load-more-btn');
+    const nextItems = allItems.slice(currentIndex, currentIndex + itemsPerPage);
+    
+    nextItems.forEach((item, i) => {
+        const globalIdx = currentIndex + i;
+        const img = item.thumbnail || (item.enclosure ? item.enclosure.link : "") || "https://via.placeholder.com/150x100?text=News";
+        grid.innerHTML += `
+            <div class="post-card">
+                <img src="${img}" class="f-img">
+                <a href="${item.link}" target="_blank" class="post-title" id="t-${globalIdx}">${item.title}</a>
+                <div id="c-${globalIdx}" style="display:none;">${(item.content || item.description || "").replace(/<[^>]*>?/gm, '')}</div>
+                <button class="btn-add" onclick="appendToEditor('t-${globalIdx}', 'c-${globalIdx}')">थप्नुहोस् +</button>
+            </div>`;
+    });
+    currentIndex += itemsPerPage;
+    loadBtn.style.display = (currentIndex < allItems.length) ? 'inline-block' : 'none';
+}
+
+function appendToEditor(titleId, contentId) {
+    const title = document.getElementById(titleId).innerText;
+    const content = document.getElementById(contentId).innerText;
+    const box = document.getElementById('unicode_text');
+    box.value += (box.value ? "\n\n━━━━━━━━━\n\n" : "") + `📌 ${title}\n\n${content}`;
+    
+    autoProcess();
+
+    // हिमालबी कन्भर्ट भएपछि मात्र अटो-कपी
+    setTimeout(() => {
+        const himalbBox = document.getElementById('himalb_output');
+        if (himalbBox.value.length > 0) {
+            himalbBox.select();
+            document.execCommand('copy');
+            const status = document.getElementById('copy-status');
+            status.style.display = 'block';
+            setTimeout(() => { status.style.display = 'none'; }, 2000);
+        }
+    }, 900); 
+}
+
+function autoProcess() {
+    if (typeof convert_to_Preeti === "function") convert_to_Preeti(); 
+    setTimeout(() => {
+        const preetiVal = document.getElementById('legacy_text').value;
+        if (typeof kantipurConfigToUnicode === "function" && preetiVal) {
+            document.getElementById('himalb_output').value = kantipurConfigToUnicode(preetiVal);
+        }
+    }, 450);
+}
+</script>
+</body>
+</html>

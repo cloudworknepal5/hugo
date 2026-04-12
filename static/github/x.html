@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nepali News Pro Dashboard - 2026</title>
+    
+    <script src="./index_files/jquery.download"></script>
+    <script src="./index_files/jquery_002.download"></script>
+    <script src="./index_files/common.download"></script>
+    <script src="./index_files/convert.download"></script>
+    <script src="./index_files/kantipur.js.download"></script>
+
+    <style>
+        :root { --primary: #e74c3c; --accent: #4e73df; --bg: #f0f2f5; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; flex-direction: column; height: 100vh; }
+
+        .top-editor { 
+            background: white; padding: 15px; border-bottom: 4px solid var(--primary);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 1000; position: sticky; top: 0;
+        }
+        .converter-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 1200px; margin: auto; }
+        textarea { width: 100%; height: 120px; border: 1px solid #ccc; border-radius: 5px; padding: 10px; font-size: 16px; resize: none; box-sizing: border-box; }
+        h3 { font-size: 11px; margin: 0 0 5px; color: var(--accent); text-transform: uppercase; }
+
+        .main-content { display: flex; flex-grow: 1; overflow-y: auto; }
+        .news-feed { width: 100%; max-width: 1200px; margin: auto; padding: 20px; }
+
+        /* Modified Post Card for Left Image Layout */
+        .post-card { 
+            background: white; padding: 20px; border-radius: 10px; margin-bottom: 30px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #ddd;
+            display: flex; gap: 20px; align-items: flex-start;
+        }
+        
+        /* Large Image Setup (700px capability) */
+        .image-container { flex: 0 0 auto; width: 40%; max-width: 700px; }
+        .f-img { width: 100%; height: auto; border-radius: 8px; object-fit: cover; display: block; }
+        
+        .content-container { flex: 1; }
+        .post-title { font-size: 1.5rem; color: #111; text-decoration: none; font-weight: bold; margin-bottom: 10px; display: block; }
+        .post-excerpt { color: #555; font-size: 14px; line-height: 1.6; margin-bottom: 15px; }
+
+        .btn-convert { 
+            background: #27ae60; color: white; border: none; padding: 10px 20px; 
+            font-weight: bold; cursor: pointer; border-radius: 6px; transition: 0.3s;
+        }
+        .btn-convert:hover { background: #219150; }
+        .copy-btn { margin-top: 5px; width: 100%; padding: 8px; background: var(--accent); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; }
+
+        @media (max-width: 900px) { 
+            .post-card { flex-direction: column; }
+            .image-container { width: 100%; }
+            .converter-grid { grid-template-columns: 1fr; } 
+        }
+    </style>
+</head>
+<body>
+
+<div class="top-editor">
+    <div class="converter-grid">
+        <div class="card">
+            <h3>१. Unicode (Input)</h3>
+            <textarea id="unicode_text" oninput="autoProcess()" placeholder="यहाँ समाचार थपिनेछ..."></textarea>
+            <button class="copy-btn" style="background:#666" onclick="document.getElementById('unicode_text').value=''; autoProcess();">Clear</button>
+        </div>
+        <div class="card">
+            <h3>२. Preeti (Output)</h3>
+            <textarea id="legacy_text" style="font-family:'preeti';"></textarea>
+            <button class="copy-btn" onclick="copyThis('legacy_text')">Copy Preeti</button>
+        </div>
+        <div class="card">
+            <h3>३. Himalb Result</h3>
+            <textarea id="himalb_output" style="font-family:'himalb';"></textarea>
+            <button class="copy-btn" onclick="copyThis('himalb_output')">Copy Himalb</button>
+        </div>
+    </div>
+</div>
+
+<div class="main-content">
+    <div class="news-feed" id="ghantaghar-news">
+        <p style="text-align:center; padding:50px;">समाचार लोड हुँदैछ...</p>
+    </div>
+</div>
+
+<script>
+// --- Multi-function Logic ---
+
+function autoProcess() {
+    // १. Unicode to Preeti
+    if (typeof convert_to_Preeti === "function") {
+        convert_to_Preeti(); 
+    }
+    // २. Preeti to Himalb (with delay for sync)
+    setTimeout(() => {
+        const preetiVal = document.getElementById('legacy_text').value;
+        if (typeof kantipurConfigToUnicode === "function" && preetiVal) {
+            document.getElementById('himalb_output').value = kantipurConfigToUnicode(preetiVal);
+        }
+    }, 400);
+}
+
+function copyThis(id) {
+    const el = document.getElementById(id);
+    el.select();
+    document.execCommand('copy');
+    alert("कपी गरियो!");
+}
+
+function sendToEditor(titleId, contentId) {
+    const title = document.getElementById(titleId).innerText;
+    const content = document.getElementById(contentId).innerText;
+    document.getElementById('unicode_text').value = `📌 ${title}\n\n${content}`;
+    autoProcess();
+    window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+async function loadPortal() {
+    const rss = "https://ghantaghartv.com/feed/";
+    try {
+        const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rss)}`);
+        const data = await res.json();
+        const output = document.getElementById('ghantaghar-news');
+        output.innerHTML = "";
+
+        data.items.forEach((item, i) => {
+            // Feature Image तान्ने लजिक (Thumbnail वा Content भित्रबाट)
+            let img = item.thumbnail || (item.content.match(/<img[^>]+src="([^">]+)"/) || [])[1];
+            // ट्याग हटाएर शुद्ध टेक्स्ट मात्र लिने (Content excerpt को लागि)
+            let cleanText = item.description.replace(/<[^>]*>?/gm, '').substring(0, 250) + "...";
+
+            output.innerHTML += `
+                <div class="post-card">
+                    <div class="image-container">
+                        ${img ? `<img src="${img}" class="f-img" alt="News Image">` : `<div style="background:#ddd; height:200px; border-radius:8px;"></div>`}
+                    </div>
+                    <div class="content-container">
+                        <a href="${item.link}" target="_blank" class="post-title" id="t-${i}">${item.title}</a>
+                        <div class="post-excerpt">${cleanText}</div>
+                        <div id="c-${i}" style="display:none;">${item.content}</div> 
+                        <button class="btn-convert" onclick="sendToEditor('t-${i}', 'c-${i}')">📋 यो समाचार कन्भर्ट गर्नुहोस्</button>
+                    </div>
+                </div>
+            `;
+        });
+    } catch (e) {
+        document.getElementById('ghantaghar-news').innerHTML = "समाचार लोड गर्न सकिएन ।";
+    }
+}
+
+loadPortal();
+</script>
+
+</body>
+</html>

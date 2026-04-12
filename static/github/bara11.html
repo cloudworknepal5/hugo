@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <title>मेरो निर्वाचन अपडेट</title>
+    <style>
+        body { font-family: 'Arial', sans-serif; background-color: #f4f4f4; padding: 20px; }
+        .election-card { max-width: 500px; margin: auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; }
+        .header { background: #004a99; color: white; padding: 15px; text-align: center; font-size: 1.2rem; }
+        .candidate-list { padding: 10px; }
+        .candidate { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
+        .candidate:last-child { border-bottom: none; }
+        .info { flex-grow: 1; }
+        .name { font-weight: bold; display: block; color: #333; }
+        .party { font-size: 0.85rem; color: #666; }
+        .votes { font-size: 1.1rem; font-weight: bold; color: #004a99; }
+        .loading { text-align: center; padding: 20px; color: #888; }
+    </style>
+</head>
+<body>
+
+<div class="election-card">
+    <div class="header">निर्वाचन २०८२ - बारा क्षेत्र नं १</div>
+    <div id="candidate-container" class="candidate-list">
+        <div class="loading">डेटा लोड हुँदैछ...</div>
+    </div>
+</div>
+
+<script>
+    // १. डेटा तान्ने मुख्य फङ्सन (API Fetch Function)
+    async function fetchElectionData() {
+        const apiUrl = 'https://api.example.com/v1/election/bara-1'; // यहाँ वास्तविक API URL राख्नुहोला
+        try {
+            // नोट: यदि अर्को साइटको डेटा तान्दै हुनुहुन्छ भने CORS समस्या आउन सक्छ
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+            renderCandidates(data.results);
+        } catch (error) {
+            console.error("डेटा तान्न सकिएन:", error);
+            document.getElementById('candidate-container').innerHTML = "डेटा उपलब्ध हुन सकेन।";
+        }
+    }
+
+    // २. डेटालाई HTML मा देखाउने फङ्सन (Rendering Function)
+    function renderCandidates(candidates) {
+        const container = document.getElementById('candidate-container');
+        container.innerHTML = ''; // लोड भइरहेको टेक्स्ट हटाउने
+
+        candidates.forEach(can => {
+            const html = `
+                <div class="candidate">
+                    <div class="info">
+                        <span class="name">${can.name}</span>
+                        <span class="party">${can.party}</span>
+                    </div>
+                    <div class="votes">${can.votes}</div>
+                </div>
+            `;
+            container.innerHTML += html;
+        });
+    }
+
+    // पेज लोड हुँदा र हरेक १ मिनेटमा अपडेट गर्ने
+    fetchElectionData();
+    setInterval(fetchElectionData, 60000); // ६० सेकेन्डमा स्वतः अपडेट
+</script>
+
+</body>
+</html>

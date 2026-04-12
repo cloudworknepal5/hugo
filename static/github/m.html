@@ -1,0 +1,123 @@
+<div id="gh-final-master-widget"></div>
+
+<div id="gh-load-more-container" style="text-align: center; margin: 20px 0;">
+    <button id="loadMoreBtn" class="gh-nav-btn" onclick="loadMore()">थप लोड गर्नुहोस्</button>
+</div>
+
+<link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+/* मुख्य लेआउट */
+.gh-master-wrap { max-width: 1300px; margin: 0 auto 30px; font-family: 'Mukta', sans-serif; text-align: center; padding: 0 15px; }
+
+/* हेडलाइन */
+.gh-headline-top { display: block; font-size: 70px; font-weight: 900; color: #ed1c24; margin: 5px auto 10px; text-decoration: none; line-height: 1.1; }
+
+.gh-meta-info { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 15px; }
+.gh-author-img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid #ed1c24; }
+
+/* तपाईँले भन्नुभएको नयाँ क्लास */
+.location-date { color: #777; font-size: 18px; font-weight: 400; }
+
+/* इमेज फ्रेम र ओभरले */
+.gh-img-frame { position: relative; width: 100%; max-width: 1300px; margin: 0 auto 20px; border-radius: 8px; overflow: hidden; background: #f4f4f4; }
+.gh-img-frame img { width: 100%; height: auto; display: block; }
+
+/* रातो ओभरले बोर्डर र एलिमेन्टहरू */
+.gh-overlay-border { position: absolute; top: 15px; left: 15px; right: 15px; bottom: 15px; border: 5px solid #ed1c24; z-index: 5; pointer-events: none; }
+.gh-label-ribbon { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); background: #ed1c24; color: #fff; padding: 3px 25px; font-size: 16px; font-weight: 700; z-index: 10; border-radius: 0 0 10px 10px; }
+
+/* सेन्टरमा सोसल आइकनहरू ओभरले भित्र */
+.gh-social-overlay-center { position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%); z-index: 10; display: flex; gap: 15px; }
+.gh-social-overlay-center img { width: 30px; height: 30px; background: #fff; padding: 4px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+
+/* स्निपेट र बटन */
+.gh-snippet { font-size: 20px; color: #444; max-width: 900px; margin: 0 auto 10px; line-height: 1.5; }
+.gh-read-more { display: inline-block; color: #fff !important; background: #002e5b; padding: 8px 25px; border-radius: 4px; text-decoration: none; font-weight: 700; }
+
+/* पोष्ट पछिको धर्सा */
+.gh-post-divider { border: 0; border-top: 1px solid #ddd; margin: 30px 0; }
+
+/* लोड मोर बटन */
+.gh-nav-btn { background: #ed1c24; color: #fff !important; padding: 12px 50px; border: none; font-size: 18px; font-weight: 800; cursor: pointer; border-radius: 50px; }
+
+@media (max-width: 768px) { .gh-headline-top { font-size: 42px; } }
+</style>
+
+<script>
+let gh_posts = [];
+let displayedCount = 0;
+const postsPerPage = 5;
+
+// फसन १: इमेज एचडी बनाउने
+function getClearHDImage(url) {
+    if (!url) return 'https://via.placeholder.com/1300x700';
+    let hd = url.replace(/\/s[0-9]+(-[a-z0-9-]+)?\//, '/s1600/');
+    hd = hd.replace(/\/w[0-9]+-h[0-9]+(-[a-z0-9-]+)?\//, '/s1600/');
+    if(hd.indexOf('=s') > -1) hd = hd.split('=s')[0] + '=s1600';
+    return hd;
+}
+
+// फसन २: मिति नेपालीमा
+function formatDate(iso) { 
+    return new Date(iso).toLocaleDateString('ne-NP', {year:'numeric', month:'long', day:'numeric'}); 
+}
+
+// फसन ३: पोष्टको HTML रेन्डर गर्ने
+function createPostHTML(post) {
+    const title = post.title.$t;
+    const link = post.link.find(l => l.rel === 'alternate').href;
+    const authorPic = post.author[0].gd$image.src.replace('/s35-c/','/s100-c/');
+    const thumb = post.media$thumbnail ? getClearHDImage(post.media$thumbnail.url) : 'https://via.placeholder.com/1300x700';
+    const snip = (post.content.$t || post.summary.$t).replace(/<[^>]*>?/gm, '').trim().split(/\s+/).slice(0, 25).join(" ") + "...";
+    const label = post.category ? post.category[0].term : "समाचार";
+
+    return `
+        <article class="gh-master-wrap">
+            <a href="${link}" class="gh-headline-top">${title}</a>
+            <div class="gh-meta-info">
+                <img src="${authorPic}" class="gh-author-img" alt="${post.author[0].name.$t}">
+                <span class="gh-author-name"><b>${post.author[0].name.$t}</b></span>
+                <span style="color:#ccc">|</span>
+                <span class="location-date">${formatDate(post.published.$t)}</span>
+            </div>
+
+            <div class="gh-img-frame">
+                <div class="gh-label-ribbon">${label}</div>
+                <div class="gh-social-overlay-center">
+                    <a href="#"><img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="FB"></a>
+                    <a href="#"><img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" alt="WA"></a>
+                    <a href="#"><img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" alt="YT"></a>
+                    <a href="#"><img src="https://cdn-icons-png.flaticon.com/512/5968/5968771.png" alt="MS"></a>
+                </div>
+                <div class="gh-overlay-border"></div>
+                <a href="${link}"><img src="${thumb}" loading="lazy"></a>
+            </div>
+
+            <p class="gh-snippet">${snip}</p>
+            <a href="${link}" class="gh-read-more">थप पढ्नुहोस्</a>
+            <hr class="gh-post-divider">
+        </article>
+    `;
+}
+
+// फसन ४: लोड मोर सञ्चालन गर्ने
+function loadMore() {
+    const container = document.getElementById('gh-final-master-widget');
+    const chunk = gh_posts.slice(displayedCount, displayedCount + postsPerPage);
+    chunk.forEach(p => container.innerHTML += createPostHTML(p));
+    displayedCount += chunk.length;
+    if (displayedCount >= gh_posts.length) document.getElementById('gh-load-more-container').style.display='none';
+}
+
+window.ghFeedCallback = function(j) { 
+    gh_posts = j.feed.entry || []; 
+    if(gh_posts.length) loadMore(); 
+};
+
+(function() {
+    const s = document.createElement('script');
+    s.src = `https://www.birgunj.eu.org/feeds/posts/default?alt=json-in-script&callback=ghFeedCallback&max-results=50`;
+    document.body.appendChild(s);
+})();
+</script>

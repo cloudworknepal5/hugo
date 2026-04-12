@@ -1,0 +1,133 @@
+<div id="gk-master-container"></div>
+
+<link href="https://fonts.googleapis.com/css2?family=Mukta:wght@700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+    /* १. डाउनलोड र कन्टेनर */
+    .gk-download-area { max-width: 1000px; margin: 10px auto; text-align: right; }
+    .gk-btn-download { background: #ffcc00; color: #000; padding: 8px 18px; font-size: 14px; font-weight: 800; border: 2px solid #000; border-radius: 4px; cursor: pointer; font-family: 'Mukta', sans-serif; transition: 0.3s; }
+    .gk-btn-download:hover { background: #000; color: #ffcc00; }
+
+    /* २. मुख्य फ्रेम - पहेंलो र कालो थिम */
+    .gk-master-wrap {
+        max-width: 1000px; margin: 0 auto 20px; font-family: 'Mukta', sans-serif; text-align: center;
+        border: 8px solid #000; padding: 25px; background: #fff; box-sizing: border-box;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+
+    /* ३. फोटो फ्रेम र ओभरले */
+    .gk-img-frame { position: relative; width: 100%; height: 500px; background: #000; overflow: hidden; }
+    .gk-img-frame img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* कालो घेरा */
+    .gk-black-overlay { 
+        position: absolute; top: 12px; left: 12px; right: 12px; bottom: 12px; 
+        border: 3px solid #ffcc00; z-index: 5; pointer-events: none; 
+    }
+
+    /* सानो पहेंलो पट्टी - गोप्य खबर डट कम */
+    .gk-small-ribbon {
+        position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+        background: #ffcc00; color: #000; padding: 3px 25px;
+        font-size: 13px; font-weight: 800; z-index: 20; border-radius: 2px;
+        white-space: nowrap; border: 2px solid #000;
+    }
+
+    /* सोसल आइकनहरू */
+    .gk-social-icons { position: absolute; bottom: -12px; left: 25px; display: flex; gap: 8px; z-index: 20; }
+    .gk-social-icons img { width: 22px; height: 22px; background: #fff; padding: 3px; border-radius: 50%; border: 2px solid #000; }
+
+    /* ४. हेडलाइन र फुटर */
+    .gk-headline { display: block; font-size: 38px; font-weight: 800; color: #000; margin: 25px 0 15px; text-decoration: none; line-height: 1.2; }
+    .gk-footer-black { background: #000; color: #ffcc00 !important; display: inline-block; padding: 12px 60px; font-weight: 800; text-decoration: none; font-size: 19px; border-radius: 5px; border: 2px solid #ffcc00; }
+
+    /* ५. नेभिगेसन */
+    .gk-nav-row { display: flex; justify-content: center; gap: 15px; margin-top: 15px; }
+    .gk-nav-btn { background: #000; color: #ffcc00 !important; padding: 10px 30px; border: 2px solid #ffcc00; font-weight: bold; cursor: pointer; border-radius: 5px; font-size: 15px; }
+    .gk-nav-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    @media (max-width: 768px) { .gk-headline { font-size: 26px; } .gk-img-frame { height: 320px; } }
+</style>
+
+<script>
+let gk_data = [];
+let gk_idx = 0;
+
+// इमेज प्रोक्सी फसन
+function getGkImg(url) {
+    if(!url) return 'https://via.placeholder.com/1000x600?text=Gopyakhabar+News';
+    return "https://images.weserv.nl/?url=" + encodeURIComponent(url.replace(/https?:\/\//, ""));
+}
+
+// डाउनलोड PNG
+async function downloadGK() {
+    const target = document.querySelector('.gk-master-wrap');
+    const btn = document.querySelector('.gk-btn-download');
+    btn.innerText = "कृपया पर्खनुहोस्...";
+    
+    html2canvas(target, {
+        useCORS: true, 
+        scale: 3, 
+        backgroundColor: "#ffffff"
+    }).then(canvas => {
+        const a = document.createElement('a');
+        a.download = `gopyakhabar-${Date.now()}.png`;
+        a.href = canvas.toDataURL("image/png");
+        a.click();
+        btn.innerText = "⬇ Download PNG";
+    });
+}
+
+function updateGKDisplay() {
+    const box = document.getElementById('gk-master-container');
+    const p = gk_data[gk_idx];
+    
+    let imgUrl = '';
+    if (p._embedded && p._embedded['wp:featuredmedia']) {
+        imgUrl = p._embedded['wp:featuredmedia'][0].source_url;
+    } else {
+        const m = p.content.rendered.match(/<img[^>]+src="([^">]+)"/);
+        imgUrl = m ? m[1] : '';
+    }
+    const finalImg = getGkImg(imgUrl);
+
+    box.innerHTML = `
+        <div class="gk-download-area">
+            <button class="gk-btn-download" onclick="downloadGK()">⬇ Download PNG</button>
+        </div>
+        <div class="gk-master-wrap">
+            <div class="gk-img-frame">
+                <img src="${finalImg}" crossorigin="anonymous">
+                <div class="gk-black-overlay">
+                    <div class="gk-small-ribbon">gopyakhabar.com</div>
+                    <div class="gk-social-icons">
+                        <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png">
+                        <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png">
+                        <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png">
+                    </div>
+                </div>
+            </div>
+            <div class="gk-headline">${p.title.rendered}</div>
+            <div class="gk-footer-black">पूरा विवरण कमेन्टमा लिंक गरिएको छ ।</div>
+        </div>
+        <div class="gk-nav-row">
+            <button class="gk-nav-btn" onclick="moveGK(-1)" ${gk_idx === 0 ? 'disabled' : ''}>← अघिल्लो</button>
+            <button class="gk-nav-btn" onclick="moveGK(1)" ${gk_idx === gk_data.length - 1 ? 'disabled' : ''}>अर्को समाचार →</button>
+        </div>
+    `;
+}
+
+async function fetchGK() {
+    try {
+        const res = await fetch("https://gopyakhabar.com/wp-json/wp/v2/posts?_embed&per_page=15");
+        gk_data = await res.json();
+        if (gk_data.length > 0) updateGKDisplay();
+    } catch (err) {
+        document.getElementById('gk-master-container').innerHTML = "डाटा लोड हुन सकेन। gopyakhabar.com को API पहुँच चेक गर्नुहोस्।";
+    }
+}
+
+window.moveGK = (n) => { gk_idx += n; updateGKDisplay(); };
+fetchGK();
+</script>

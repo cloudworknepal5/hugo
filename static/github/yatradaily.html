@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yatra Daily RSS Feed Reader</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .news-card { border: none; border-radius: 12px; transition: transform 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; height: 100%; }
+        .news-card:hover { transform: translateY(-5px); }
+        .news-image { height: 200px; object-fit: cover; width: 100%; background-color: #ddd; }
+        .news-title { font-weight: 700; color: #333; height: 3em; overflow: hidden; }
+        .news-content { font-size: 0.9rem; color: #555; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+        header { background: #d32f2f; color: white; padding: 20px 0; margin-bottom: 30px; text-align: center; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Yatra Daily - Latest News</h1>
+    <p>RSS Feed Data Visualization</p>
+</header>
+
+<div class="container mb-5">
+    <div id="loader" class="text-center my-5">
+        <div class="spinner-border text-danger" role="status"></div>
+        <p class="mt-2">समाचार लोड हुँदैछ...</p>
+    </div>
+
+    <div class="row g-4" id="news-container">
+        </div>
+</div>
+
+<script>
+    // RSS Feed URL (CORS Problem समाधान गर्न rss2json API प्रयोग गरिएको छ)
+    const rssUrl = 'https://yatradaily.com/rss/';
+    const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
+
+    async function fetchNews() {
+        try {
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+
+            if (data.status === 'ok') {
+                const container = document.getElementById('news-container');
+                const loader = document.getElementById('loader');
+                loader.style.display = 'none';
+
+                data.items.forEach(item => {
+                    // फोटो निकाल्ने लजिक: पहिले enclosure चेक गर्ने, नभए कन्टेन्ट भित्र खोज्ने
+                    let imageUrl = item.enclosure.link || item.thumbnail || '';
+                    
+                    // यदि फोटो कतै भेटिएन भने एउटा Placeholder देखाउने
+                    if (!imageUrl) {
+                        const content = item.content || item.description;
+                        const imgMatch = content.match(/<img[^>]+src="([^">]+)"/);
+                        imageUrl = imgMatch ? imgMatch[1] : 'https://via.placeholder.com/400x250?text=No+Image';
+                    }
+
+                    const cardHtml = `
+                        <div class="col-md-4">
+                            <div class="news-card card">
+                                <img src="${imageUrl}" class="news-image card-img-top" alt="${item.title}">
+                                <div class="card-body">
+                                    <h5 class="news-title">${item.title}</h5>
+                                    <p class="news-content">${item.description.replace(/<[^>]*>?/gm, '')}</p>
+                                    <div class="d-flex justify-content-between align-items-center mt-3">
+                                        <small class="text-muted">${new Date(item.pubDate).toLocaleDateString()}</small>
+                                        <a href="${item.link}" target="_blank" class="btn btn-sm btn-outline-danger">थप पढ्नुहोस्</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    container.innerHTML += cardHtml;
+                });

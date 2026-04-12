@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mahabani Auto-Height Design</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* १. डिजाइन (Styling Module) */
+        .mahabani-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* माथिबाट सुरु गर्न */
+            padding-top: 50px;
+            min-height: 100vh;
+            background-color: #f0f2f5;
+        }
+
+        .mahabani-card {
+            width: 300px;
+            /* हाइट फिक्स हटाइयो, अब टेक्स्ट अनुसार बढ्छ */
+            height: auto; 
+            min-height: 100px; 
+            background: linear-gradient(145deg, #2c3e50, #000000);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box;
+            color: white;
+            font-family: 'Mukta', sans-serif;
+            transition: height 0.3s ease; /* हाइट परिवर्तन हुँदा स्मूथ देखियोस् */
+        }
+
+        .mahabani-header {
+            font-size: 28px;
+            font-weight: 700;
+            color: #ffcc00;
+            margin: 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 204, 0, 0.4);
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .content-area {
+            padding-top: 15px;
+            text-align: center;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        #typing-news-container {
+            font-size: 20px;
+            line-height: 1.6;
+            font-weight: 400;
+        }
+
+        .cursor {
+            color: #ffcc00;
+            font-weight: bold;
+            animation: blink 0.8s infinite;
+            display: inline-block;
+            margin-left: 5px;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="mahabani-wrapper">
+        <div class="mahabani-card">
+            <div class="mahabani-header">महावाणी</div>
+            <div class="content-area">
+                <span id="typing-news-container">लोड हुँदैछ...</span>
+                <span class="cursor">|</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // क. कन्फिगरेसन (Multi-function Config)
+            const config = {
+                containerId: 'typing-news-container',
+                feedUrl: "https://nepalimahabani.blogspot.com/feeds/posts/default?alt=json-in-script&max-results=25&callback=MahabaniApp.initData",
+                typeSpeed: 70,
+                backSpeed: 35,
+                pause: 2500
+            };
+
+            let state = {
+                items: [],
+                mIdx: 0,
+                charIdx: 0,
+                isDeleting: false
+            };
+
+            // ख. मुख्य मल्टि-फसनल एप
+            const MahabaniApp = {
+                init: function() {
+                    const script = document.createElement('script');
+                    script.src = config.feedUrl;
+                    document.body.appendChild(script);
+                },
+
+                initData: function(data) {
+                    if (data.feed && data.feed.entry) {
+                        state.items = data.feed.entry.map(e => e.title.$t);
+                        this.animate();
+                    }
+                },
+
+                animate: function() {
+                    const el = document.getElementById(config.containerId);
+                    if (!el || state.items.length === 0) return;
+
+                    const currentQuote = state.items[state.mIdx];
+                    let speed = state.isDeleting ? config.backSpeed : config.typeSpeed;
+
+                    if (!state.isDeleting && state.charIdx < currentQuote.length) {
+                        state.charIdx++;
+                    } else if (state.isDeleting && state.charIdx > 0) {
+                        state.charIdx--;
+                    } else {
+                        state.isDeleting = !state.isDeleting;
+                        if (!state.isDeleting) {
+                            state.mIdx = (state.mIdx + 1) % state.items.length;
+                        }
+                        speed = state.isDeleting ? config.pause : 500;
+                    }
+
+                    this.render(el, currentQuote);
+                    setTimeout(() => this.animate(), speed);
+                },
+
+                // UI अपडेट गर्ने फसन
+                render: function(target, text) {
+                    target.textContent = text.substring(0, state.charIdx);
+                }
+            };
+
+            // एप लन्च
+            window.MahabaniApp = MahabaniApp;
+            MahabaniApp.init();
+        })();
+    </script>
+
+</body>
+</html>

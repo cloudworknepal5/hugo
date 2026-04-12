@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <title>Multi-function News Hub & Preeti Converter</title>
+    <style>
+        :root { --primary: #d93025; --secondary: #1a73e8; --success: #28a745; --bg: #f1f3f4; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+        .dashboard { background: white; width: 1400px; height: 98vh; padding: 20px; border-radius: 12px; box-shadow: 0 5px 25px rgba(0,0,0,0.1); display: flex; flex-direction: column; box-sizing: border-box; }
+        
+        .header { text-align: center; border-bottom: 2px solid #f1f1f1; padding-bottom: 10px; margin-bottom: 10px; }
+        .main-content { display: flex; gap: 20px; flex: 1; overflow: hidden; }
+        
+        /* Left Panel: Email & Converter */
+        .left-panel { flex: 1.2; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
+        
+        .section-box { background: #fafafa; padding: 15px; border-radius: 8px; border: 1px solid #eee; }
+        
+        /* Email Management */
+        .input-group { display: flex; gap: 5px; margin-bottom: 10px; }
+        .input-group input { flex: 1; padding: 10px; border: 1px solid #dadce0; border-radius: 6px; }
+        .list-container { max-height: 200px; overflow-y: auto; }
+        .email-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; background: white; border: 1px solid #eee; border-radius: 6px; margin-bottom: 5px; font-size: 11px; }
+        
+        .btn-add { background: var(--success); color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; }
+        .btn-del { background: #fee; color: #d93025; border: 1px solid #d93025; padding: 4px 8px; border-radius: 4px; cursor: pointer; }
+
+        /* Converter Embedding */
+        .converter-container { height: 350px; border: 2px solid var(--secondary); border-radius: 8px; overflow: hidden; }
+
+        /* Right Panel: News Editor */
+        .right-panel { flex: 2; display: flex; flex-direction: column; gap: 10px; }
+        .subject-preview { background: #e8f0fe; padding: 10px; border-radius: 6px; border: 1px dashed var(--secondary); font-size: 14px; color: #1967d2; font-weight: bold; }
+        textarea { flex: 1; width: 100%; padding: 15px; border: 2px solid #dadce0; border-radius: 8px; font-size: 18px; resize: none; outline: none; box-sizing: border-box; }
+        
+        .active-info { display: flex; justify-content: space-between; align-items: center; background: #fffde7; padding: 8px; border: 1px solid #ffe57f; border-radius: 4px; }
+        .btn-compose { background: var(--primary); color: white; width: 100%; font-size: 20px; height: 60px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="dashboard">
+    <div class="header"><h2>Multi-function News Hub (Preeti-Unicode Integrated)</h2></div>
+    <div class="main-content">
+        
+        <div class="left-panel">
+            <div class="section-box">
+                <div style="font-weight:bold; margin-bottom:10px; color:var(--secondary);">इमेल भण्डार (Add/Remove)</div>
+                <div class="input-group">
+                    <input type="email" id="emailInput" placeholder="नयाँ इमेल थप्नुहोस्...">
+                    <button style="background:var(--secondary); color:white; border:none; padding:10px; border-radius:6px; cursor:pointer; font-weight:bold;" onclick="addNewEmail()">Save</button>
+                </div>
+                <div class="list-container" id="emailList"></div>
+            </div>
+
+            <div class="section-box">
+                <div style="font-weight:bold; margin-bottom:10px; color:var(--primary);">Preeti to Unicode Auto</div>
+                <div class="converter-container">
+                    <embed src="https://designers2077.github.io/PreetiToUnicodeAuto/" width="100%" height="100%">
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="subject-preview" id="subjectPreview">विषय यहाँ देखिनेछ...</div>
+            <textarea id="fullNews" oninput="detectSubject()" placeholder="नेपाली समाचार यहाँ पेस्ट गर्नुहोस्..."></textarea>
+            
+            <div class="active-info">
+                <div style="font-size:11px; color:#666; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 85%;">
+                    <strong>पठाउन छानिएका:</strong> <span id="activeEmailsText">None</span>
+                </div>
+                <button style="background:#666; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:11px;" onclick="resetSelection()">Reset</button>
+            </div>
+            
+            <button class="btn-compose" onclick="smartCompose()">🚀 COMPOSE GMAIL</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let repository = JSON.parse(localStorage.getItem('emailRepo')) || [
+        "janasamarpitdaily.updates@blogger.com", "newskhojtalash2079.update1@blogger.com", 
+        "shodhkhabar.updatesshodh@blogger.com", "cloudworknepal1.updatesbirgunj@blogger.com"
+    ];
+    let activeEmails = [];
+
+    function renderRepository() {
+        const list = document.getElementById('emailList');
+        list.innerHTML = '';
+        repository.forEach((email, index) => {
+            const isActive = activeEmails.includes(email);
+            list.innerHTML += `
+                <div class="email-item">
+                    <span>${email}</span>
+                    <div class="btn-group">
+                        ${isActive ? '<span style="color:green; font-weight:bold;">✓</span>' : `<button class="btn-add" onclick="toggleActive('${email}')">+Add</button>`}
+                        <button class="btn-del" onclick="deleteEmail(${index})">Remove</button>
+                    </div>
+                </div>`;
+        });
+        document.getElementById('activeEmailsText').innerText = activeEmails.length > 0 ? activeEmails.join(", ") : "None";
+        localStorage.setItem('emailRepo', JSON.stringify(repository));
+    }
+
+    function addNewEmail() {
+        const val = document.getElementById('emailInput').value;
+        if (val.includes('@')) { repository.push(val); document.getElementById('emailInput').value = ''; renderRepository(); }
+    }
+
+    function deleteEmail(index) {
+        if(confirm("के यो इमेल हटाउन चाहनुहुन्छ?")) { repository.splice(index, 1); renderRepository(); }
+    }
+
+    function toggleActive(email) {
+        if (!activeEmails.includes(email)) activeEmails.push(email);
+        renderRepository();
+    }
+
+    function resetSelection() { activeEmails = []; renderRepository(); }
+
+    function detectSubject() {
+        const lines = document.getElementById('fullNews').value.split('\n');
+        document.getElementById('subjectPreview').innerText = lines[0] ? "विषय: " + lines[0] : "विषय यहाँ देखिनेछ...";
+    }
+
+    async function smartCompose() {
+        const content = document.getElementById('fullNews').value;
+        if (activeEmails.length === 0 || !content) return alert("विवरण अपूर्ण छ!");
+        const lines = content.split('\n');
+        const subject = encodeURIComponent(lines[0].trim());
+        const body = encodeURIComponent(lines.slice(1).join('\n').trim());
+        const to = encodeURIComponent(activeEmails.join(","));
+
+        if ((subject + body).length > 1800) {
+            await navigator.clipboard.writeText(lines.slice(1).join('\n').trim());
+            window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${to}&su=${subject}`, '_blank');
+            alert("समाचार कपी गरियो, जिमेलमा पेस्ट गर्नुहोस्।");
+        } else {
+            window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${to}&su=${subject}&body=${body}`, '_blank');
+        }
+    }
+
+    renderRepository();
+</script>
+</body>
+</html>

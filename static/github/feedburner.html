@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>मधेश खबर - ताजा समाचार</title>
+    <style>
+        body { font-family: 'Arial', sans-serif; background: #f0f2f5; margin: 0; padding: 15px; }
+        .container { max-width: 800px; margin: auto; background: #fff; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .header { background: #d32f2f; color: white; padding: 15px; text-align: center; border-radius: 10px 10px 0 0; }
+        
+        .item { border-bottom: 1px solid #eee; }
+        .item-head { padding: 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .item-head:hover { background: #f9f9f9; }
+        .title { font-size: 1.1em; font-weight: bold; color: #333; line-height: 1.5; }
+        
+        .plus-minus { font-size: 24px; font-weight: bold; color: #d32f2f; margin-left: 10px; }
+        
+        .content { display: none; padding: 20px; background: #fafafa; border-top: 1px solid #f0f0f0; }
+        .content img { width: 100%; height: auto; border-radius: 5px; margin-bottom: 15px; }
+        .description { font-size: 1.05em; color: #444; line-height: 1.8; }
+        
+        .btn-link { display: inline-block; margin-top: 15px; color: #d32f2f; text-decoration: none; font-weight: bold; }
+        .loader { padding: 50px; text-align: center; color: #777; font-size: 1.2em; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">मधेश खबर - समाचार पोर्टल</div>
+    <div id="news-feed">
+        <div class="loader">समाचार लोड हुँदैछ, कृपया केही बेर पर्खनुहोस्...</div>
+    </div>
+</div>
+
+<script>
+/**
+ * Multi-function Feed Engine (CORS Fix)
+ */
+const FEED_URL = "https://feeds.feedburner.com/madheskhabar/plihkdgaodx";
+// बैकअप API को प्रयोग गरेर सिधै JSON तान्ने
+const API_URL = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(FEED_URL)}`;
+
+async function fetchNews() {
+    const feedContainer = document.getElementById('news-feed');
+    
+    try {
+        const response = await fetch(API_URL);
+        const data = await response.json();
+
+        if (data.status !== 'ok') throw new Error("Data fetch error");
+
+        feedContainer.innerHTML = ''; // लोडर हटाउने
+
+        data.items.forEach((item, index) => {
+            const article = document.createElement('div');
+            article.className = 'item';
+            
+            // १. फोटो पहिचान गर्ने (Thumbnail वा Enclosure बाट)
+            let imgSource = item.thumbnail || "";
+            
+            // यदि थम्बनेल छैन भने डिस्क्रिप्शन भित्र फोटो खोज्ने
+            if (!imgSource && item.description.includes('<img')) {
+                const doc = new DOMParser().parseFromString(item.description, 'text/html');
+                const img = doc.querySelector('img');
+                imgSource = img ? img.src : "";
+            }
+
+            // फोटोको ट्याग बनाउने
+            const imgTag = imgSource ? `<img src="${imgSource}" alt="News Image">` : "";
+            
+            // २. डिस्क्रिप्शनबाट अनावश्यक HTML हटाउने तर टेक्स्ट सबै राख्ने
+            const cleanDescription = item.description.replace(/<img[^>]*>/g, "");
+
+            article.innerHTML = `
+                <div class="item-head" onclick="toggleView(${index})">
+                    <div class="title">${item.title}</div>
+                    <div class="plus-minus" id="icon-${index}">+</div>
+                </div>
+                <div class="content" id="content-${index}">
+                    ${imgTag}
+                    <div class="description">${cleanDescription}</div>
+                    <a href="${item.link}" target="_blank" class="btn-link">पुरा समाचार पढ्नुहोस् →</a>
+                    <div style="font-size:0.8em; color:#999; margin-top:10px;">प्रकाशित: ${item.pubDate}</div>
+                </div>
+            `;
+            feedContainer.appendChild(article);
+        });
+
+    } catch (error) {
+        feedContainer.innerHTML = `<div style="padding:20px; color:red; text-align:center;">
+            फिड लोड गर्न सकिएन। यो प्रायः 'Cross-Origin' सुरक्षा वा फिडको समस्याले हुन्छ। 
+            कृपया एकपटक रिफ्रेस गर्नुहोस्।
+        </div>`;
+    }
+}
+
+// प्लस/माइनस टगल फंक्शन
+function toggleView(id) {
+    const content = document.getElementById(`content-${id}`);
+    const icon = document.getElementById(`icon-${id}`);
+    
+    const isVisible = content.style.display === "block";
+    
+    // अरु सबैलाई बन्द गर्ने
+    document.querySelectorAll('.content').forEach(c => c.style.display = 'none');
+    document.querySelectorAll('.plus-minus').forEach(i => i.innerText = '+');
+
+    if (!isVisible) {
+        content.style.display = "block";
+        icon.innerText = "−";
+    } else {
+        content.style.display = "none";
+        icon.innerText = "+";
+    }
+}
+
+window.onload = fetchNews;
+</script>
+
+</body>
+</html>

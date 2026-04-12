@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghantaghar TV - Pro Dashboard Feed</title>
+    <script src="./index_files/common.download"></script>
+    <script src="./index_files/convert.download"></script>
+    <script src="./index_files/kantipur.js.download"></script>
+
+    <style>
+        :root { --primary: #e74c3c; --accent: #4e73df; --bg: #f4f6f9; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: auto; }
+        
+        /* समाचार कार्ड */
+        .post-card { background: white; padding: 25px; border-radius: 12px; margin-bottom: 50px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 1px solid #ddd; }
+        .post-title { font-size: 2rem; color: #111; text-decoration: none; font-weight: bold; line-height: 1.3; }
+        
+        /* ७०० पिक्सेल फिचर इमेज */
+        .f-img { width: 100%; max-width: 700px; height: auto; display: block; margin: 20px auto; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        
+        .post-content { font-size: 1.15rem; line-height: 1.8; color: #333; margin-bottom: 30px; text-align: justify; }
+
+        /* कन्भर्टर ग्रिड (३ कोलम) */
+        .converter-grid { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 15px; 
+            background: #f8f9fc; 
+            padding: 20px; 
+            border-radius: 10px; 
+            border: 2px solid #eee;
+        }
+        .card h3 { font-size: 12px; margin: 0 0 10px 0; color: #555; text-transform: uppercase; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+        textarea { width: 100%; height: 180px; border: 1px solid #ddd; border-radius: 5px; padding: 10px; font-size: 16px; resize: none; box-sizing: border-box; }
+        
+        .btn-group { display: flex; gap: 5px; margin-top: 10px; }
+        button { flex: 1; padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px; transition: 0.3s; }
+        .btn-copy { background: var(--accent); color: white; }
+        .btn-clear { background: #666; color: white; }
+        .btn-append { background: #27ae60; color: white; width: 100%; padding: 15px; font-size: 16px; margin-bottom: 15px; border-radius: 8px; }
+        
+        @media (max-width: 800px) { .converter-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="ghantaghar-feed">
+        <p style="text-align:center;">समाचार र कन्भर्टर लोड हुँदैछ...</p>
+    </div>
+</div>
+
+<script>
+/**
+ * Multi-function: टेक्स्ट कन्भर्ट गर्ने र समाचार थप्ने लोजिक
+ */
+function runConversion(index) {
+    // १. Unicode to Preeti
+    if (typeof convert_to_Preeti === "function") {
+        // यो फङ्सनले unicode_text बाट legacy_text मा कन्भर्ट गर्छ
+        convert_to_Preeti(index); 
+    }
+    
+    // २. Preeti to Himalb (ढिलाइ गरेर ताकि पहिलो कन्भर्सन सकियोस्)
+    setTimeout(() => {
+        const preetiVal = document.getElementById(`legacy-${index}`).value;
+        if (typeof kantipurConfigToUnicode === "function") {
+            document.getElementById(`himalb-${index}`).value = kantipurConfigToUnicode(preetiVal);
+        }
+    }, 300);
+}
+
+function copyToClip(id) {
+    const el = document.getElementById(id);
+    el.select();
+    document.execCommand('copy');
+    alert("कपी गरियो!");
+}
+
+function appendToConverter(index, titleId, contentId) {
+    const title = document.getElementById(titleId).innerText;
+    const content = document.getElementById(contentId).innerText;
+    const box = document.getElementById(`unicode-${index}`);
+    
+    box.value = `📌 ${title}\n\n${content}`;
+    runConversion(index); // थप्ने बित्तिकै कन्भर्ट गर्ने
+}
+
+async function loadGhantagharDashboard() {
+    const rss = "https://ghantaghartv.com/feed/";
+    const proxy = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rss)}`;
+
+    try {
+        const res = await fetch(proxy);
+        const data = await res.json();
+        const output = document.getElementById('ghantaghar-feed');
+        output.innerHTML = "";
+
+        data.items.forEach((item, i) => {
+            // इमेज लोजिक
+            let img = item.thumbnail;
+            if (!img) {
+                const m = item.content.match(/<img[^>]+src="([^">]+)"/);
+                img = m ? m[1] : "";
+            }
+
+            output.innerHTML += `
+                <div class="post-card">
+                    <a href="${item.link}" target="_blank" class="post-title" id="t-${i}">${item.title}</a>
+                    ${img ? `<img src="${img}" class="f-img">` : ""}
+                    <div class="post-content" id="c-${i}">${item.content}</div>
+
+                    <button class="btn-append" onclick="appendToConverter(${i}, 't-${i}', 'c-${i}')">📋 यो समाचार कन्भर्टरमा थप्नुहोस्</button>
+
+                    <div class="converter-grid">
+                        <div class="card">
+                            <h3>Unicode (Output)</h3>
+                            <textarea id="unicode-${i}" oninput="runConversion(${i})" placeholder="यहाँ समाचार आउनेछ..."></textarea>
+                            <div class="btn-group"><button class="btn-clear" onclick="document.getElementById('unicode-${i}').value=''">Clear</button></div>
+                        </div>
+                        <div class="card">
+                            <h3>Preeti</h3>
+                            <textarea id="legacy-${i}" style="font-family:'preeti';" readonly></textarea>
+                            <div class="btn-group"><button class="btn-copy" onclick="copyToClip('legacy-${i}')">Copy Preeti</button></div>
+                        </div>
+                        <div class="card">
+                            <h3>Himalb Result</h3>
+                            <textarea id="himalb-${i}" style="font-family:'himalb';" readonly></textarea>
+                            <div class="btn-group"><button class="btn-copy" onclick="copyToClip('himalb-${i}')">Copy Himalb</button></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    } catch (e) { output.innerHTML = "फिड लोड गर्न सकिएन।"; }
+}
+
+loadGhantagharDashboard();
+</script>
+
+</body>
+</html>

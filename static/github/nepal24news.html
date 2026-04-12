@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nepal24News - Multi-Size HD Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+    <style>
+        :root { --fb-red: #ed1c24; --fb-blue: #002e5b; --fb-yellow: #ffcc00; }
+        body { background: #f0f2f5; margin: 0; padding: 0; font-family: 'Mukta', sans-serif; touch-action: manipulation; }
+        
+        #gh-outer-wrapper { width: 100%; display: flex; flex-direction: column; align-items: center; }
+
+        .gh-controls-panel { 
+            background: #fff; padding: 15px; border-bottom: 2px solid #ddd; 
+            width: 100%; display: flex; flex-wrap: wrap; justify-content: center; gap: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000;
+        }
+        .control-group { display: flex; align-items: center; gap: 10px; background: #f1f3f4; padding: 8px 15px; border-radius: 30px; border: 1px solid #ddd; font-weight: bold; font-size: 14px; }
+        
+        #gh-master-container { transform-origin: top center; margin: 25px 0; }
+
+        .gh-master-wrap { 
+            background: #000; border: 20px solid var(--fb-blue); 
+            box-sizing: border-box; position: relative;
+            overflow: hidden; box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+        
+        .gh-inner-border { position: absolute; inset: 12px; border: 2px solid rgba(255, 255, 255, 0.3); pointer-events: none; z-index: 25; }
+        
+        .gh-domain-ribbon { 
+            position: absolute; top: -2px; left: 50%; transform: translateX(-50%);
+            background: var(--fb-blue); color: #fff; padding: 8px 60px;
+            font-size: 24px; font-weight: 800; z-index: 35; border-radius: 0 0 20px 20px;
+        }
+
+        .draggable-item { position: absolute; z-index: 100; cursor: move; touch-action: none; }
+        
+        /* Removed physical white border and added white glow */
+        .gh-logo-watermark { 
+            width: 450px; 
+            max-width: 95%;
+            height: auto; 
+            object-fit: contain; 
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.7)); /* White glow effect */
+            pointer-events: none; 
+            /* background: white; - removed white background */
+            /* border: 5px solid white; - removed physical border */
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .gh-img-frame { position: absolute; inset: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #000; }
+        .main-photo { position: absolute; will-change: transform; cursor: move; touch-action: none; }
+
+        /* Removed white border from social icons box */
+        .gh-social-icons { display: flex; flex-direction: row; gap: 15px; padding: 15px; background: rgba(0,0,0,0.6); border-radius: 15px; /* border: 2px solid white; - removed border */ }
+        /* Removed border from individual social icons */
+        .gh-social-icons img { width: 50px; height: 50px; border-radius: 50%; /* border: 3px solid #fff; - removed individual border */ box-shadow: 0 0 10px rgba(255,255,255,0.4); }
+
+        /* Modified Headline - removed white stroke, kept text shadow for readability */
+        .gh-headline { 
+            width: 95%; text-align: center; font-weight: 800; line-height: 1.2;
+            background: transparent; padding: 15px;
+            /* -webkit-text-stroke: 2px white; - removed white outline stroke */
+            text-shadow: 3px 3px 0px rgba(0,0,0,0.9), 0 0 10px rgba(255,255,255,0.5); /* Added glow for visibility */
+            word-break: keep-all; user-select: none;
+        }
+        .word-red { color: var(--fb-red); }
+        .word-blue { color: #5dade2; }
+
+        .comment-ribbon {
+            background: var(--fb-blue); color: white;
+            padding: 8px 30px; font-size: 28px; font-weight: 700;
+            border-radius: 50px; margin-top: 10px;
+            display: inline-block; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.4); /* Made comment border light */
+        }
+
+        .gh-nav-row { display: flex; justify-content: center; gap: 15px; margin: 20px 0; width: 100%; }
+        .gh-nav-btn { background: var(--fb-blue); color: #fff; padding: 12px 35px; border: none; font-weight: bold; cursor: pointer; border-radius: 6px; font-size: 18px; }
+        .gh-footer { margin-top: 30px; padding: 20px; width: 100%; text-align: center; background: #fff; border-top: 1px solid #ddd; font-weight: bold; color: #555; }
+    </style>
+</head>
+<body>
+
+<div id="gh-outer-wrapper">
+    <div class="gh-controls-panel">
+        <div class="control-group">
+            <i class="fas fa-expand"></i>
+            <select id="sizeSelector" onchange="updateSize()">
+                <option value="1600x1600">Square (1600x1600)</option>
+                <option value="1200x628">FB Post (1200x628)</option>
+                <option value="1080x1920">Reel/TikTok (1080x1920)</option>
+                <option value="1280x720">YouTube Thumb (1280x720)</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <i class="fas fa-image"></i>
+            <input type="range" id="imgZoom" min="0.1" max="5" step="0.1" value="1.5" oninput="applyTransform()">
+        </div>
+        <div class="control-group">
+            <i class="fas fa-font"></i>
+            <input type="range" id="headlineSize" min="30" max="180" step="1" value="90" oninput="adjustHeadline()">
+        </div>
+        <div class="control-group">
+            <i class="fas fa-id-card"></i>
+            <input type="range" id="logoSizeMeter" min="100" max="800" step="10" value="450" oninput="adjustLogoSize()">
+        </div>
+        <button onclick="capturePNG()" style="background: #28a745; color: white; padding: 10px 25px; border: none; border-radius: 30px; font-weight: bold; cursor: pointer;">
+            <i class="fas fa-download"></i> HD सेभ गर्नुहोस
+        </button>
+    </div>
+
+    <div id="gh-master-container"></div>
+
+    <div class="gh-nav-row">
+        <button class="gh-nav-btn" onclick="move(-1)">← नयाँ</button>
+        <button class="gh-nav-btn" onclick="move(1)">पुरानो →</button>
+    </div>
+
+    <div class="gh-footer">
+        Copyright &copy; 2026 | Designed by <a href="https://neelamb.com" target="_blank" style="color: var(--fb-red); text-decoration: none;"><b>Neelamb.com</b></a>
+    </div>
+</div>
+
+<script>
+let gh_posts_data = [];
+let gh_current_idx = 0;
+let imgState = { x: 0, y: 0, scale: 1.5 };
+let SITE_DOMAIN = "nepal24news.com";
+let SITE_LOGO_URL = "https://nepal24news.com/wp-content/uploads/2026/03/logo_and_banner.png";
+
+const SIZES = {
+    "1600x1600": { w: 1600, h: 1600 },
+    "1200x628": { w: 1200, h: 628 },
+    "1080x1920": { w: 1080, h: 1920 },
+    "1280x720": { w: 1280, h: 720 }
+};
+
+function initInteract() {
+    interact('.draggable-item').draggable({
+        inertia: true,
+        listeners: {
+            move(event) {
+                const target = event.target;
+                const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+                const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+                target.style.transform = `translate(${x}px, ${y}px)`;
+                target.setAttribute('data-x', x);
+                target.setAttribute('data-y', y);
+            }
+        }
+    });
+    interact('.main-photo').draggable({
+        listeners: { move(event) { imgState.x += event.dx; imgState.y += event.dy; applyTransform(); } }
+    });
+}
+
+function applyTransform() {
+    const img = document.getElementById('mainImg');
+    if(!img) return;
+    imgState.scale = document.getElementById('imgZoom').value;
+    img.style.transform = `translate(${imgState.x}px, ${imgState.y}px) scale(${imgState.scale})`;
+}
+
+function adjustHeadline() {
+    const headline = document.getElementById('ghHeadline');
+    if (headline) headline.style.fontSize = document.getElementById('headlineSize').value + "px";
+}
+
+function adjustLogoSize() {
+    const logo = document.getElementById('mainLogo');
+    if (logo) logo.style.width = document.getElementById('logoSizeMeter').value + "px";
+}
+
+function formatHeadline(text) {
+    const words = text.split(' ');
+    const halfIndex = Math.ceil(words.length / 2);
+    const firstHalf = words.slice(0, halfIndex).join(' ');
+    const secondHalf = words.slice(halfIndex).join(' ');
+    return `<span class="word-red">${firstHalf}</span> <span class="word-blue">${secondHalf}</span>`;
+}
+
+function updateSize() {
+    updateDisplay();
+}
+
+function updateDisplay() {
+    const container = document.getElementById('gh-master-container');
+    const p = gh_posts_data[gh_current_idx];
+    if(!p) return;
+
+    const selectedSize = document.getElementById('sizeSelector').value;
+    const dims = SIZES[selectedSize];
+    let featuredImg = p._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
+    
+    container.innerHTML = `
+        <div class="gh-master-wrap" id="captureArea" style="width: ${dims.w}px; height: ${dims.h}px;">
+            <div class="gh-domain-ribbon">${SITE_DOMAIN}</div>
+            <div class="gh-inner-border"></div>
+
+            <div class="gh-img-frame">
+                <img src="https://images.weserv.nl/?url=${encodeURIComponent(featuredImg.replace('https://',''))}" class="main-photo" id="mainImg">
+            </div>
+
+            <div class="draggable-item" style="top: 50px; right: 40px;">
+                <img src="https://images.weserv.nl/?url=${encodeURIComponent(SITE_LOGO_URL.replace('https://',''))}" class="gh-logo-watermark" id="mainLogo">
+            </div>
+
+            <div class="draggable-item gh-social-icons" style="bottom: 40px; left: 40px;">
+                <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png">
+                <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png">
+                <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png">
+                <img src="https://cdn-icons-png.flaticon.com/512/733/733585.png">
+            </div>
+
+            <div class="draggable-item" id="headlineGroup" style="bottom: 130px; left: 50%; transform: translateX(-50%); width: 92%; text-align: center;">
+                <div class="gh-headline" id="ghHeadline">
+                    ${formatHeadline(p.title.rendered)}
+                </div>
+                <div class="comment-ribbon">
+                    विस्तृत समाचार कमेन्टमा <i class="fas fa-comment"></i>
+                </div>
+            </div>
+        </div>
+    `;
+
+    const imgEl = document.getElementById('mainImg');
+    imgEl.onload = () => { 
+        initInteract(); 
+        adjustScale(); 
+        adjustHeadline(); 
+        adjustLogoSize();
+        applyTransform();
+    };
+}
+
+function adjustScale() {
+    const container = document.getElementById('gh-master-container');
+    const wrap = document.querySelector('.gh-master-wrap');
+    if(!wrap) return;
+    const currentW = parseInt(wrap.style.width);
+    const currentH = parseInt(wrap.style.height);
+    const scale = Math.min(1, (window.innerWidth - 40) / currentW, 0.45); 
+    container.style.transform = `scale(${scale})`;
+    container.style.marginBottom = `-${currentH * (1 - scale)}px`;
+}
+
+async function capturePNG() {
+    const container = document.getElementById('gh-master-container');
+    const target = document.getElementById('captureArea');
+    const originalTransform = container.style.transform;
+    window.scrollTo(0,0);
+    container.style.transform = "scale(1)";
+    setTimeout(async () => {
+        try {
+            const canvas = await html2canvas(target, { useCORS: true, scale: 1.5 });
+            const link = document.createElement('a');
+            link.download = `nepal24-${document.getElementById('sizeSelector').value}-${Date.now()}.png`;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+        } catch (e) { alert("Error saving image."); }
+        finally { container.style.transform = originalTransform; }
+    }, 500);
+}
+
+async function loadData() {
+    try {
+        const res = await fetch(`https://nepal24news.com/wp-json/wp/v2/posts?_embed&per_page=20`);
+        gh_posts_data = await res.json();
+        if (gh_posts_data.length > 0) { updateDisplay(); }
+    } catch (e) { console.log("Fetch error"); }
+}
+
+window.move = (n) => { 
+    gh_current_idx = (gh_current_idx + n + gh_posts_data.length) % gh_posts_data.length; 
+    updateDisplay(); 
+};
+
+window.addEventListener('resize', adjustScale);
+loadData();
+</script>
+</body>
+</html>

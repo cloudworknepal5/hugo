@@ -1,0 +1,124 @@
+<style>
+  .drive-page-container { max-width: 1400px; margin: 20px auto; font-family: sans-serif; }
+  .drive-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+    gap: 25px; 
+  }
+  .drive-card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  }
+  .thumb-wrapper {
+    width: 100%;
+    height: 500px; /* तपाईंले भन्नुभएको उचाइ */
+    background: #f4f4f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .thumb-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* पूर्ण रूपमा भर्नको लागि, यदि फोटो नलिने हो भने 'contain' राख्नुहोस् */
+  }
+  .card-content { padding: 15px; text-align: center; }
+  .card-content h3 { font-size: 16px; margin: 0 0 10px; color: #333; }
+  .view-btn {
+    display: block;
+    padding: 10px;
+    background: #007bff;
+    color: #fff !important;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+  }
+  
+  /* लोड मोर बटन स्टाइलिङ */
+  .load-more-container { text-align: center; margin-top: 30px; }
+  #load-more-btn {
+    padding: 12px 30px;
+    font-size: 16px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    display: none; /* सुरुमा लुकाउने */
+  }
+  #load-more-btn:hover { background: #218838; }
+</style>
+
+<div class="drive-page-container">
+  <div id="drive-grid-display" class="drive-grid"></div>
+  <div class="load-more-container">
+    <button id="load-more-btn" onclick="loadMoreFiles()">थप फाइलहरू हेर्नुहोस् (Load More)</button>
+  </div>
+  <div id="status-msg" style="text-align:center; padding:20px;">लोड हुँदैछ...</div>
+</div>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxaBFiBhFM-V3bZd5i3QRPEs1P1Md9GMJ-f5GzXrlaW7ZGNLjI6Z7PPikc1i0HZ-5vg/exec";
+
+let allFiles = [];      // सबै फाइलहरू स्टोर गर्न
+let displayedCount = 0; // अहिले सम्म देखिएका फाइलहरूको संख्या
+const BATCH_SIZE = 4;   // एक पटकमा कतिवटा देखाउने
+
+// Function १: डेटा तान्ने
+async function initDriveGallery() {
+    try {
+        const response = await fetch(SCRIPT_URL);
+        allFiles = await response.json();
+        document.getElementById('status-msg').style.display = 'none';
+        loadMoreFiles(); // पहिलो ४ वटा देखाउन
+    } catch (err) {
+        document.getElementById('status-msg').innerHTML = "डाटा लोड गर्न सकिएन ।";
+    }
+}
+
+// Function २: थम्बनेल लिङ्क बनाउने
+function getLargeThumb(id) {
+    return `https://drive.google.com/thumbnail?id=${id}&sz=w1000`; // उच्च गुणस्तरको लागि w1000
+}
+
+// Function ३: फाइलहरूलाई ग्रिडमा थप्ने
+function loadMoreFiles() {
+    const grid = document.getElementById('drive-grid-display');
+    const btn = document.getElementById('load-more-btn');
+    
+    // अर्को ब्याचका फाइलहरू निकाल्ने
+    const nextBatch = allFiles.slice(displayedCount, displayedCount + BATCH_SIZE);
+    
+    nextBatch.forEach(file => {
+        const card = document.createElement('div');
+        card.className = 'drive-card';
+        card.innerHTML = `
+            <div class="thumb-wrapper">
+                <img src="${getLargeThumb(file.id)}" alt="${file.name}" onerror="this.src='https://via.placeholder.com/400x400?text=No+Preview'">
+            </div>
+            <div class="card-content">
+                <h3>${file.name}</h3>
+                <a href="${file.url}" target="_blank" class="view-btn">हेर्नुहोस्</a>
+            </div>
+        `;
+        grid.appendChild(card);
+    });
+
+    displayedCount += nextBatch.length;
+
+    // यदि थप फाइलहरू बाँकी छन् भने बटन देखाउने, नत्र लुकाउने
+    if (displayedCount < allFiles.length) {
+        btn.style.display = 'inline-block';
+    } else {
+        btn.style.display = 'none';
+    }
+}
+
+// ग्यालरी सुरु गरौँ
+initDriveGallery();
+</script>

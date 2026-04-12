@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <title>मेरो क्लाउड किप - अनलाइन</title>
+    <style>
+        :root { --bg: #f1f3f4; --primary: #fbbc04; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 20px; }
+        .container { max-width: 600px; margin: auto; }
+        .note-card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); margin-bottom: 20px; }
+        input, textarea { width: 100%; border: none; outline: none; margin-bottom: 10px; font-size: 16px; }
+        .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+        .note-item { padding: 15px; border-radius: 8px; border: 1px solid #ddd; position: relative; transition: 0.2s; }
+        button { background: var(--primary); border: none; padding: 10px 15px; cursor: pointer; border-radius: 5px; font-weight: bold; }
+        .status { text-align: center; font-size: 12px; margin-bottom: 10px; color: #5f6368; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="status" class="status">फायरबेसमा जोडिँदै...</div>
+    
+    <div class="note-card">
+        <input type="text" id="noteTitle" placeholder="शीर्षक">
+        <textarea id="noteContent" placeholder="नोट लेख्नुहोस्..." rows="3"></textarea>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <input type="color" id="noteColor" value="#ffffff" style="width:40px; height:40px; border:none; background:none; cursor:pointer;">
+            <button onclick="noteApp.actions.save()">क्लाउडमा सुरक्षित गर्नुहोस्</button>
+        </div>
+    </div>
+
+    <div id="displayArea" class="notes-grid"></div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy } 
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    // १. तपाईँले पठाउनुभएको Config
+    const firebaseConfig = {
+        apiKey: "AIzaSyDWl62upbxsBTx1ICx8jbtmN_vVZrx_6UU",
+        authDomain: "keep-977cc.firebaseapp.com",
+        projectId: "keep-977cc",
+        storageBucket: "keep-977cc.firebasestorage.app",
+        messagingSenderId: "281172709411",
+        appId: "1:281172709411:web:7b2748b12825d04e20e196",
+        measurementId: "G-D6PMY43MCK"
+    };
+
+    // Firebase सुरु गर्ने
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const notesCol = collection(db, "myNotes");
+
+    // २. Multi-function App Logic
+    window.noteApp = {
+        actions: {
+            // नोट सेभ गर्ने Function
+            save: async function() {
+                const title = document.getElementById('noteTitle').value;
+                const content = document.getElementById('noteContent').value;
+                const color = document.getElementById('noteColor').value;
+
+                if (title.trim() || content.trim()) {
+                    try {
+                        await addDoc(notesCol, {
+                            title: title,
+                            content: content,
+                            color: color,
+                            createdAt: Date.now()
+                        });
+                        document.getElementById('noteTitle').value = '';
+                        document.getElementById('noteContent').value = '';
+                    } catch (e) {
+                        alert("Error: " + e.message);
+                    }
+                }
+            },
+            // नोट मेटाउने Function
+            delete: async function(id) {
+                if(confirm("के तपाईँ यो नोट मेटाउन चाहनुहुन्छ?")) {
+                    await deleteDoc(doc(db, "myNotes", id));
+                }
+            }
+        },
+
+        // रियल-टाइम डाटा लोड र डिस्प्ले गर्ने Function
+        init: function() {
+            const q = query(notesCol, orderBy("createdAt", "desc"));
+            onSnapshot(q, (snapshot) => {
+                const area = document.getElementById('displayArea');
+                area.innerHTML = '';
+                document.getElementById('status').innerText = "अनलाइन सिंक सक्रिय छ (Firebase Connected) ✅";
+                
+                snapshot.forEach((doc) => {
+                    const note = doc.data();
+                    const div = document.createElement('div');
+                    div.className = 'note-item';
+                    div.style.backgroundColor = note.color;
+                    div.innerHTML = `
+                        <button style="position:absolute; top:5px; right:5px; background:none; color:red; font-size:18px;" 
+                                onclick="noteApp.actions.delete('${doc.id}')">×</button>
+                        <h3 style="margin:0 0 10px 0; font-size:18px;">${note.title || 'बिना शीर्षक'}</h3>
+                        <p style="margin:0; white-space:pre-wrap;">${note.content}</p>
+                    `;
+                    area.appendChild(div);
+                });
+            }, (error) => {
+                document.getElementById('status').innerText = "त्रुटि: Firebase Rules चेक गर्नुहोस्!";
+                console.error(error);
+            });
+        }
+    };
+
+    noteApp.init();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,79 @@
+<style>
+    /* चम्किरहेको लाइभ एनिमेसन (Pulsing Effect) */
+    @keyframes pulse-red {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(255, 0, 0, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); }
+    }
+    .live-dot {
+        width: 10px;
+        height: 10px;
+        background: #ff0000;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 8px;
+        animation: pulse-red 1.5s infinite;
+        vertical-align: middle;
+    }
+    .wa-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(37, 211, 102, 0.4); }
+</style>
+
+<div id="birgunj-live-wa" style="width: 300px; height: 300px; background: #ffffff; border-radius: 20px; overflow: hidden; font-family: 'Helvetica Neue', Arial, sans-serif; box-shadow: 0 15px 35px rgba(0,0,0,0.1); border: 1px solid #eee; display: flex; flex-direction: column; box-sizing: border-box;">
+    
+    <div style="background: #25D366; padding: 12px; display: flex; align-items: center; justify-content: center; color: white;">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" style="width: 26px; height: 26px; margin-right: 10px;">
+        <span style="font-weight: 700; font-size: 16px;">Birgunj Update</span>
+    </div>
+
+    <div style="padding: 15px; display: flex; flex-direction: column; justify-content: space-between; flex-grow: 1; background: #fafafa;">
+        
+        <div style="text-align: center;">
+            <p style="font-size: 13px; color: #444; margin: 0 0 12px 0; font-weight: 600;">१. च्यानलमा जोडिनुहोस्</p>
+            <a href="https://whatsapp.com/channel/0029VaEoRwKFCCobfvZQMQ3P" target="_blank" class="wa-btn" 
+               style="background: #25D366; color: white; text-align: center; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: bold; font-size: 14px; display: flex; align-items: center; justify-content: center; transition: 0.3s;">
+               <span class="live-dot"></span>
+               LIVE Updates Follow
+            </a>
+        </div>
+
+        <div style="display: flex; align-items: center; margin: 5px 0;">
+            <div style="flex: 1; height: 1px; background: #ddd;"></div>
+            <span style="margin: 0 10px; font-size: 10px; color: #999; font-weight: bold;">अथवा</span>
+            <div style="flex: 1; height: 1px; background: #ddd;"></div>
+        </div>
+
+        <div style="background: #ffffff; padding: 12px; border-radius: 12px; border: 1px solid #efefef; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+            <p style="font-size: 12px; color: #555; margin: 0 0 8px 0; font-weight: 600; text-align: center;">२. व्यक्तिगत म्यासेज पठाउनुहोस्</p>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                <input type="text" id="waNameInput" placeholder="तपाईंको पूरा नाम..." 
+                    style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 13px; box-sizing: border-box; outline: none; background: #fdfdfd;">
+                
+                <button onclick="sendLiveWA()" 
+                    style="width: 100%; background: #075E54; color: white; border: none; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.3s;">
+                    सबस्क्राइब गर्नुहोस् 🚀
+                </button>
+            </div>
+        </div>
+
+        <p style="font-size: 9px; text-align: center; color: #bbb; margin: 0;">🔔 नोटिफिकेसनका लागि 'Bell' अन गर्नुहोस्</p>
+    </div>
+</div>
+
+<script>
+/**
+ * Multi-Function Process for Birgunj Update
+ */
+function sendLiveWA() {
+    const name = document.getElementById('waNameInput').value.trim();
+    const phone = "9779814272487";
+
+    if (!name) {
+        alert("कृपया आफ्नो नाम लेख्नुहोस्।");
+        document.getElementById('waNameInput').focus();
+        return;
+    }
+
+    const msg = encodeURIComponent(`*नयाँ सबस्क्रिप्सन अनुरोध*\n👤 नाम: ${name}\n✅ कृपया मलाई बिरगंज अपडेटको समाचार पठाउनुहोस्।`);
+    window.open(`https://api.whatsapp.com/send?phone=${phone}&text=${msg}`, '_blank');
+}
+</script>

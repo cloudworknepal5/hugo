@@ -1,0 +1,108 @@
+/* Optimized 1200px Layout */
+#featured-container {
+    width: 100%;
+    max-width: 1200px; 
+    margin: 20px auto; /* Reduced top margin */
+    text-align: center;
+    padding: 0 15px;
+    box-sizing: border-box;
+}
+
+.fp-item {
+    margin-bottom: 40px; /* Reduced gap between posts */
+    padding-bottom: 40px;
+    border-bottom: 2px solid #f0f0f0; /* Clear Divider */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.fp-item:last-child {
+    border-bottom: none; /* No divider after the last post */
+}
+
+.fp-title {
+    font-size: 60px; /* Desktop Size */
+    font-weight: 800;
+    line-height: 1.1;
+    margin: 10px 0 15px 0; /* Tightened spacing */
+    color: #111;
+    font-family: 'Inter', sans-serif;
+}
+
+.fp-meta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 20px; /* Reduced gap */
+    font-size: 15px;
+    color: #666;
+}
+
+.fp-author-img {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.fp-image-wrap {
+    width: 100%; 
+    margin-bottom: 25px;
+}
+
+.fp-image-wrap img {
+    width: 100%;
+    height: auto; /* Full size natural height */
+    border-radius: 12px;
+    display: block;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+.fp-snippet {
+    font-size: 18px;
+    line-height: 1.7;
+    color: #444;
+    margin-bottom: 25px;
+    max-width: 1100px; /* Wider snippet as requested */
+    text-align: center;
+}
+
+/* Attractive Read More Button */
+.fp-readmore {
+    display: inline-block;
+    padding: 12px 35px;
+    background: linear-gradient(135deg, #222 0%, #444 100%);
+    color: #fff !important;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    border: 1px solid #222;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.fp-readmore:hover {
+    background: #fff;
+    color: #222 !important;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+/* Responsive Scaling */
+@media screen and (max-width: 768px) {
+    .fp-title {
+        font-size: 40px; /* Mobile Size */
+        padding: 0 10px;
+    }
+    .fp-item {
+        margin-bottom: 30px;
+        padding-bottom: 30px;
+    }
+    .fp-snippet {
+        font-size: 16px;
+    }
+}

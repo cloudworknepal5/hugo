@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Birgunj Clean Widget</title>
+    <style>
+        /* CSS: सबै बाहिरी लिङ्क र अनावश्यक बोर्डर हटाइएको */
+        body { 
+            margin: 0; 
+            padding: 0; 
+            background: transparent !important; 
+            overflow: visible; 
+            font-family: 'Kalimati', Arial, sans-serif; 
+        }
+        
+        #floating-wrapper {
+            position: fixed;
+            top: 50px;
+            right: 15px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
+        }
+
+        .tabs-trigger {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* साना रातो गोलो बटनहरू */
+        .tab-btn {
+            width: 52px;
+            height: 52px;
+            background: #bc1d22;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            box-shadow: none !important;
+            transition: transform 0.2s ease;
+        }
+
+        .tab-btn:hover { transform: scale(1.1); background: #e60000; }
+        .tab-btn.active { background: #333; }
+
+        /* समाचार बाकस */
+        #news-content {
+            width: 270px;
+            background: #fff;
+            border-radius: 10px;
+            margin-top: 5px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-in-out;
+            border: none; 
+        }
+
+        #news-content.show { max-height: 420px; border: 1px solid #eee; }
+
+        .news-list { list-style: none; padding: 0; margin: 0; display: none; }
+        .news-list.active { display: block; }
+        
+        .news-item { padding: 12px 15px; border-bottom: 1px solid #f8f8f8; }
+        .news-item:last-child { border-bottom: none; }
+        
+        .news-item a { 
+            text-decoration: none; 
+            color: #333; 
+            font-size: 13.5px; 
+            display: block; 
+            line-height: 1.5; 
+            font-weight: 500; 
+        }
+        .news-item a:hover { color: #bc1d22; }
+        
+        .content-area { overflow-y: auto; max-height: 400px; }
+        .content-area::-webkit-scrollbar { width: 3px; }
+        .content-area::-webkit-scrollbar-thumb { background: #bc1d22; }
+    </style>
+</head>
+<body>
+
+<div id="floating-wrapper">
+    <div class="tabs-trigger">
+        <button class="tab-btn" id="btn-taja" onclick="toggleView('taja', this)">ताजा</button>
+        <button class="tab-btn" id="btn-pop" onclick="toggleView('popular', this)">लोकप्रिय</button>
+    </div>
+
+    <div id="news-content">
+        <div class="content-area">
+            <div id="taja" class="news-list">लोडिङ...</div>
+            <div id="popular" class="news-list">लोडिङ...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let tajaTitles = []; // Multi-function:重複 हटाउन प्रयोग हुने एरे [cite: 2026-01-07]
+
+    function toggleView(type, btn) {
+        const content = document.getElementById('news-content');
+        const lists = document.querySelectorAll('.news-list');
+        const buttons = document.querySelectorAll('.tab-btn');
+
+        if (btn.classList.contains('active')) {
+            btn.classList.remove('active');
+            content.classList.remove('show');
+            return;
+        }
+
+        buttons.forEach(b => b.classList.remove('active'));
+        lists.forEach(l => l.classList.remove('active'));
+        
+        btn.classList.add('active');
+        document.getElementById(type).classList.add('active');
+        content.classList.add('show');
+    }
+
+    // १. ताजा समाचार लोड गर्ने
+    window.cb_taja = function(data) {
+        let html = "";
+        const entries = data.feed.entry || [];
+        entries.forEach(entry => {
+            let title = entry.title.$t;
+            tajaTitles.push(title);
+            let link = entry.link.find(l => l.rel === 'alternate').href;
+            html += `<div class="news-item"><a href="${link}" target="_parent">${title}</a></div>`;
+        });
+        document.getElementById('taja').innerHTML = html || "डाटा भेटिएन।";
+    };
+
+    // २. लोकप्रिय समाचार लोड गर्ने (Multi-function: फिल्टर लोजिक सहित) [cite: 2026-01-07]
+    window.cb_pop = function(data) {
+        let html = "";
+        const entries = data.feed.entry || [];
+        let count = 0;
+        entries.forEach(entry => {
+            let title = entry.title.$t;
+            if (!tajaTitles.includes(title) && count < 8) {
+                let link = entry.link.find(l => l.rel === 'alternate').href;
+                html += `<div class="news-item"><a href="${link}" target="_parent">${title}</a></div>`;
+                count++;
+            }
+        });
+        document.getElementById('popular').innerHTML = html || "लोकप्रिय समाचार लोड हुँदैछ...";
+    };
+
+    window.onload = function() {
+        // फिड इन्जेक्सन
+        const s1 = document.createElement('script');
+        s1.src = "https://www.birgunj.eu.org/feeds/posts/default?alt=json-in-script&max-results=10&callback=cb_taja";
+        document.body.appendChild(s1);
+
+        setTimeout(() => {
+            const s2 = document.createElement('script');
+            s2.src = "https://www.birgunj.eu.org/feeds/posts/default?alt=json-in-script&orderby=updated&max-results=20&callback=cb_pop";
+            document.body.appendChild(s2);
+        }, 600);
+    };
+</script>
+
+</body>
+</html>

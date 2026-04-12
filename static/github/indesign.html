@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <title>Photo Upload News Builder</title>
+    <style>
+        /* Function 1: Font Embedding */
+        @font-face {
+            font-family: 'HimalB';
+            src: url('https://educationnepal.eu.org/HIMALB.TTF') format('truetype');
+            font-weight: bold;
+            font-style: normal;
+        }
+
+        :root { --editor-bg: #222; --accent: #3498db; }
+        
+        body { margin: 0; display: flex; height: 100vh; background: #333; font-family: 'HimalB', serif; }
+        
+        /* Editor Panel */
+        .editor-panel { width: 30%; padding: 20px; background: var(--editor-bg); color: white; overflow-y: auto; border-right: 2px solid #444; }
+        .editor-panel h2 { font-family: sans-serif; color: var(--accent); border-bottom: 1px solid #444; padding-bottom: 10px; }
+        label { display: block; margin-top: 15px; font-size: 13px; font-family: sans-serif; color: #aaa; }
+        input, textarea { width: 100%; padding: 10px; margin-top: 5px; border-radius: 4px; border: 1px solid #444; background: #333; color: white; font-size: 16px; box-sizing: border-box; }
+        textarea { height: 300px; }
+
+        /* Preview Panel */
+        .preview-panel { width: 70%; padding: 30px; overflow-y: auto; display: flex; justify-content: center; }
+        .paper { width: 210mm; min-height: 297mm; background: white; padding: 20mm; color: #000; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+
+        /* Newspaper Styles */
+        .main-headline { 
+            font-size: 45px; 
+            text-align: center; 
+            margin-bottom: 20px; 
+            line-height: 1.1; 
+            font-family: 'HimalB';
+            border-bottom: 2px solid #000;
+            padding-bottom: 15px;
+        }
+
+        /* 4-Column Layout */
+        .article-body { 
+            column-count: 4; 
+            column-gap: 25px; 
+            column-rule: 1px solid #ccc; 
+            text-align: justify; 
+            font-size: 18px; 
+            line-height: 1.5;
+        }
+
+        /* Uploaded Image Style */
+        .news-img-container { width: 100%; text-align: center; margin-bottom: 20px; }
+        #outImg { max-width: 100%; height: auto; border: 1px solid #000; display: none; }
+
+        .btn-print { background: #27ae60; color: white; border: none; padding: 15px; width: 100%; cursor: pointer; margin-top: 20px; font-weight: bold; font-size: 16px; border-radius: 5px; }
+
+        @media print {
+            .editor-panel { display: none; }
+            .preview-panel { width: 100%; padding: 0; background: white; }
+            .paper { box-shadow: none; border: none; margin: 0; width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="editor-panel">
+        <h2>पत्रिका सम्पादक</h2>
+        
+        <label>मुख्य हेडलाइन:</label>
+        <input type="text" id="inHeadline" value="मुख्य समाचारको शीर्षक यहाँ टाइप गर्नुहोस्" oninput="update()">
+
+        <label>फोटो अपलोड गर्नुहोस् (Upload Photo):</label>
+        <input type="file" id="inUpload" accept="image/*" onchange="previewImage(this)">
+
+        <label>समाचार विवरण (४-कोलम):</label>
+        <textarea id="inText" oninput="update()">यहाँ तपाईंको समाचार पेस्ट गर्नुहोस्। यो समाचार स्वतः चारवटा कोलममा बाँडिनेछ। 
+
+तपाईंले माथि 'Choose File' मा क्लिक गरेर आफ्नो कम्प्युटर वा मोबाइलबाट सिधै फोटो अपलोड गर्न सक्नुहुन्छ। अपलोड गरिएको फोटो हेडलाइनको मुनि देखिनेछ।</textarea>
+
+        <button class="btn-print" onclick="window.print()">प्रिन्ट / PDF सेभ गर्नुहोस्</button>
+    </div>
+
+    <div class="preview-panel">
+        <div class="paper">
+            <div class="main-headline" id="outHeadline">मुख्य समाचारको शीर्षक यहाँ टाइप गर्नुहोस्</div>
+            
+            <div class="news-img-container">
+                <img id="outImg" src="" alt="News Image">
+            </div>
+
+            <div class="article-body" id="outText">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        // Function 3: Real-time Text Update
+        function update() {
+            document.getElementById('outHeadline').innerText = document.getElementById('inHeadline').value;
+            document.getElementById('outText').innerText = document.getElementById('inText').value;
+        }
+
+        // Function 4: Image Upload Preview Logic
+        function previewImage(input) {
+            const file = input.files[0];
+            const reader = new FileReader();
+            const imgElement = document.getElementById('outImg');
+
+            reader.onload = function(e) {
+                imgElement.src = e.target.result;
+                imgElement.style.display = 'block';
+            }
+
+            if (file) {
+                reader.readAsDataURL(file);
+            } else {
+                imgElement.src = "";
+                imgElement.style.display = 'none';
+            }
+        }
+
+        // Initial Load
+        update();
+    </script>
+
+</body>
+</html>

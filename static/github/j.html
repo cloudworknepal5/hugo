@@ -1,0 +1,121 @@
+<div id="gh-master-container"></div>
+
+<link href="https://fonts.googleapis.com/css2?family=Mukta:wght@700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+    .gh-download-area { max-width: 1000px; margin: 10px auto; text-align: right; }
+    .gh-btn-download { background: #27ae60; color: #fff; padding: 8px 18px; font-size: 14px; font-weight: 800; border: none; border-radius: 4px; cursor: pointer; font-family: 'Mukta', sans-serif; }
+
+    .gh-master-wrap {
+        max-width: 1000px; margin: 0 auto 20px; font-family: 'Mukta', sans-serif; text-align: center;
+        border: 5px solid #ed1c24; padding: 20px; background: #fff; box-sizing: border-box;
+    }
+
+    .gh-img-frame { position: relative; width: 100%; height: 500px; background: #f4f4f4; overflow: hidden; }
+    .gh-img-frame img { width: 100%; height: 100%; object-fit: cover; }
+
+    .gh-red-overlay { 
+        position: absolute; top: 12px; left: 12px; right: 12px; bottom: 12px; 
+        border: 2px solid #ed1c24; z-index: 5; pointer-events: none; 
+    }
+
+    .gh-small-ribbon {
+        position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+        background: #ed1c24; color: #fff; padding: 2px 20px;
+        font-size: 12px; font-weight: 700; z-index: 20; border-radius: 2px;
+        white-space: nowrap; letter-spacing: 0.5px;
+    }
+
+    .gh-social-icons { position: absolute; bottom: -10px; left: 20px; display: flex; gap: 6px; z-index: 20; }
+    .gh-social-icons img { width: 20px; height: 20px; background: #fff; padding: 2px; border-radius: 50%; border: 1px solid #ed1c24; }
+
+    .gh-headline { display: block; font-size: 36px; font-weight: 800; color: #ed1c24; margin: 20px 0 15px; text-decoration: none; line-height: 1.2; }
+    .gh-footer-strip { background: #002e5b; color: #fff !important; display: inline-block; padding: 10px 40px; font-weight: 800; text-decoration: none; font-size: 17px; border-radius: 4px; }
+
+    .gh-nav-row { display: flex; justify-content: center; gap: 15px; margin-top: 15px; }
+    .gh-nav-btn { background: #ed1c24; color: #fff !important; padding: 10px 25px; border: none; font-weight: bold; cursor: pointer; border-radius: 4px; font-size: 14px; }
+    .gh-nav-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+    @media (max-width: 768px) { .gh-headline { font-size: 24px; } .gh-img-frame { height: 320px; } }
+</style>
+
+<script>
+let gh_posts_data = [];
+let gh_current_idx = 0;
+
+function getSecureImg(url) {
+    if(!url) return 'https://via.placeholder.com/1000x600?text=No+Image';
+    return "https://images.weserv.nl/?url=" + encodeURIComponent(url.replace(/https?:\/\//, ""));
+}
+
+async function capturePNG() {
+    const target = document.querySelector('.gh-master-wrap');
+    const btn = document.querySelector('.gh-btn-download');
+    btn.innerText = "प्रक्रिया हुँदैछ...";
+    
+    html2canvas(target, {
+        useCORS: true, 
+        scale: 3, // अझै प्रस्ट फोटोका लागि scale ३ राखिएको छ
+        backgroundColor: "#ffffff"
+    }).then(canvas => {
+        const a = document.createElement('a');
+        a.download = `ghantaghar-${Date.now()}.png`;
+        a.href = canvas.toDataURL("image/png");
+        a.click();
+        btn.innerText = "⬇ Download PNG";
+    });
+}
+
+function updateDisplay() {
+    const box = document.getElementById('gh-master-container');
+    const p = gh_posts_data[gh_current_idx];
+    
+    let rawUrl = '';
+    if (p._embedded && p._embedded['wp:featuredmedia']) {
+        rawUrl = p._embedded['wp:featuredmedia'][0].source_url;
+    } else {
+        const match = p.content.rendered.match(/<img[^>]+src="([^">]+)"/);
+        rawUrl = match ? match[1] : '';
+    }
+    const image = getSecureImg(rawUrl);
+
+    box.innerHTML = `
+        <div class="gh-download-area">
+            <button class="gh-btn-download" onclick="capturePNG()">⬇ Download PNG</button>
+        </div>
+        <div class="gh-master-wrap">
+            <div class="gh-img-frame">
+                <img src="${image}" crossorigin="anonymous">
+                <div class="gh-red-overlay">
+                    <div class="gh-small-ribbon">ghantaghartv.com</div>
+                    <div class="gh-social-icons">
+                        <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png">
+                        <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png">
+                        <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png">
+                    </div>
+                </div>
+            </div>
+            <div class="gh-headline">${p.title.rendered}</div>
+            <div class="gh-footer-strip">पूरा विवरण कमेन्टमा लिंक गरिएको छ ।</div>
+        </div>
+        <div class="gh-nav-row">
+            <button class="gh-nav-btn" onclick="move(-1)" ${gh_current_idx === 0 ? 'disabled' : ''}>← अघिल्लो</button>
+            <button class="gh-nav-btn" onclick="move(1)" ${gh_current_idx === gh_posts_data.length - 1 ? 'disabled' : ''}>अर्को →</button>
+        </div>
+    `;
+}
+
+async function loadData() {
+    try {
+        const res = await fetch("https://ghantaghartv.com/wp-json/wp/v2/posts?_embed&per_page=20");
+        gh_posts_data = await res.json();
+        if (gh_posts_data.length > 0) updateDisplay();
+    } catch (err) {
+        console.error("डाटा आएन");
+    }
+}
+
+window.move = (n) => { gh_current_idx += n; updateDisplay(); };
+loadData();
+</script>

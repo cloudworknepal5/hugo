@@ -1,0 +1,233 @@
+<div id="gh-master-container"></div>
+<link href="https://fonts.googleapis.com/css2?family=Mukta:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+    /* फेसबुक ओपेनग्राफ साइज: १२००x६३० - फिक्स एरिया */
+    .gh-master-wrap { 
+        width: 1200px; height: 630px; margin: 20px auto; 
+        font-family: 'Mukta', sans-serif; text-align: center; 
+        border: 15px solid #ed1c24; background: #fff; 
+        box-sizing: border-box; position: relative;
+        display: flex; flex-direction: column; justify-content: flex-start; 
+        overflow: hidden;
+    }
+
+    /* मुख्य लोगो: ३० पिक्सेल टप (१० पिक्सेल तल झारिएको) */
+    .gh-logo-watermark { 
+        position: absolute; top: 30px; right: 25px; 
+        width: 150px; height: auto; z-index: 100; 
+        object-fit: contain;
+    }
+
+    /* फोटो एरिया: कसिलो बनाउन हाइट बढाइएको (४३० पिक्सेल) */
+    .gh-img-frame { 
+        position: relative; width: 100%; height: 430px; 
+        background: #000; overflow: hidden; 
+        display: flex; align-items: center; justify-content: center;
+    }
+     
+    /* फोटो: कभर स्टाइलमा ढाकिने गरी (नखुम्चिने गरी) */
+    .gh-img-frame img { 
+        width: 100%; height: 100%; 
+        object-fit: cover; /* यसले फोटोलाई फ्रेममा टम्म भर्छ र खुम्चिन दिँदैन */
+        object-position: center;
+        display: block;
+    }
+
+    /* ओभरले डिजाइन */
+    .gh-red-overlay { 
+        position: absolute; top: 12px; left: 12px; right: 12px; bottom: 12px; 
+        border: 2px solid rgba(237, 28, 36, 0.4); z-index: 10; pointer-events: none; 
+    }
+    .gh-small-ribbon { 
+        position: absolute; top: -10px; left: 50%; transform: translateX(-50%); 
+        background: #ed1c24; color: #fff; padding: 3px 35px; 
+        font-size: 16px; font-weight: 700; z-index: 20; border-radius: 3px; 
+    }
+     
+    /* आइकनहरू सानो र १० पिक्सेल तल */
+    .gh-social-icons { 
+        position: absolute; bottom: 5px; left: 20px; 
+        display: flex; gap: 8px; z-index: 110; 
+    }
+    .gh-social-icons img, .btn-print-icon { 
+        width: 30px; height: 30px; background: #fff; padding: 5px; 
+        border-radius: 50%; border: 1px solid #ed1c24; 
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; color: #ed1c24; font-size: 15px; pointer-events: auto;
+    }
+
+    /* --- नयाँ रङ सेटिङ --- */
+    /* हेडलाइन र फुटर सेक्सन: रातो ब्याकग्राउन्ड */
+    .gh-text-section {
+        flex-grow: 1;
+        background-color: #ed1c24; /* रातो ब्याकग्राउन्ड */
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 10px 0 0 0; /* फुटर स्ट्रिप टम्म मिलाउन तलको प्याडिङ हटाइएको */
+        overflow: hidden;
+    }
+
+    /* हेडलाइन: सेतो रङ र टाइट स्पेस */
+    .gh-headline { 
+        flex-grow: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 40px;
+        font-size: 52px;
+        font-weight: 800; 
+        color: #fff; /* सेतो रङ */
+        line-height: 1.1;
+        margin: 0;
+        text-align: center;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* फुटर स्ट्रिप */
+    .gh-footer-strip { 
+        background: #002e5b;
+        color: #fff !important; 
+        padding: 5px 60px;
+        font-weight: 800;
+        font-size: 22px; 
+        border-radius: 5px 5px 0 0;
+        width: fit-content;
+        margin: 0 auto;
+        z-index: 50;
+        display: block;
+    }
+    /* ------------------- */
+
+    /* नेभिगेसन बटनहरू */
+    .gh-nav-row { display: flex; justify-content: center; gap: 15px; margin-top: 20px; margin-bottom: 50px; }
+    .gh-nav-btn { background: #ed1c24; color: #fff !important; padding: 12px 35px; border: none; font-weight: bold; cursor: pointer; border-radius: 4px; }
+    .gh-nav-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+    /* ब्राउजर प्रिभ्यू स्केल */
+    @media (max-width: 1250px) { #gh-master-container { transform: scale(0.65); transform-origin: top center; margin-bottom: -150px; } }
+    @media (max-width: 768px) { #gh-master-container { transform: scale(0.35); transform-origin: top center; margin-bottom: -350px; } }
+</style>
+
+<script>
+let gh_posts_data = [];
+let gh_current_idx = 0;
+
+const SITE_DOMAIN = "nepaltopkhabar.com";
+const SITE_LOGO_URL = "https://nepaltopkhabar.com/wp-content/uploads/2025/09/logo11-copy-300x84.png";
+
+function getSecureImg(url) {
+    if(!url) return 'https://via.placeholder.com/1200x630?text=No+Image';
+    return "https://images.weserv.nl/?url=" + encodeURIComponent(url.replace(/https?:\/\//, ""));
+}
+
+async function capturePNG() {
+    const target = document.querySelector('.gh-master-wrap');
+    const printBtn = document.querySelector('.btn-print-icon');
+    const headline = document.querySelector('.gh-headline');
+
+    // डाउनलोड गर्दा प्रिन्ट आइकन लुकाउने
+    printBtn.style.opacity = "0";
+     
+    // हेडलाइनलाई फिक्स हाइट दिने (प्रिन्ट गर्दा खुम्चिन नदिन)
+    const originalHeadlineHeight = headline.style.height;
+    headline.style.height = '120px'; // फिक्स हाइट
+
+    // html2canvas options - फोटो खुम्चिने समस्या समाधानका लागि सुधार गरिएको
+    html2canvas(target, {
+        useCORS: true,
+        scale: 2, // उच्च गुणस्तरको लागि (२ स्केल)
+        width: 1200, // क्याप्चर चौडाइ
+        height: 630, // क्याप्चर उचाइ
+        backgroundColor: "#ffffff",
+        logging: false, // कन्सोल सफा राख्न
+        onclone: (clonedDoc) => {
+            // क्लोज्ड डॉक्युमेन्टमा फोटोलाई पुनः 'cover' स्टाइल दिने (Fix)
+            const clonedImg = clonedDoc.querySelector('.gh-img-frame img');
+            if (clonedImg) {
+                clonedImg.style.objectFit = 'cover';
+                clonedImg.style.width = '1200px';
+                clonedImg.style.height = '430px';
+            }
+            // क्लोन गरिएको डकुमेन्टमा पनि ब्याकग्राउन्ड रातो नै रहोस् भनी सुनिश्चित गर्न
+            const clonedTextSection = clonedDoc.querySelector('.gh-text-section');
+            if(clonedTextSection) {
+                clonedTextSection.style.backgroundColor = '#ed1c24';
+            }
+        }
+    }).then(canvas => {
+        // डाउनलोड लिङ्क सिर्जना गर्ने
+        const link = document.createElement('a');
+        link.download = `nepaltopkhabar-wide-${Date.now()}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+         
+        // पूर्वावस्थामा फर्काउने
+        printBtn.style.opacity = "1";
+        headline.style.height = originalHeadlineHeight;
+    });
+}
+
+function updateDisplay() {
+    const box = document.getElementById('gh-master-container');
+    const p = gh_posts_data[gh_current_idx];
+    if(!p) return;
+
+    let featuredImg = '';
+    if (p._embedded && p._embedded['wp:featuredmedia']) {
+        featuredImg = p._embedded['wp:featuredmedia'][0].source_url;
+    } else {
+        const match = p.content.rendered.match(/<img[^>]+src="([^">]+)"/);
+        featuredImg = match ? match[1] : '';
+    }
+
+    const image = getSecureImg(featuredImg);
+    const logoImg = getSecureImg(SITE_LOGO_URL);
+
+    box.innerHTML = `
+        <div class="gh-master-wrap">
+            <img src="${logoImg}" class="gh-logo-watermark" crossorigin="anonymous">
+            <div class="gh-img-frame">
+                <img src="${image}" crossorigin="anonymous">
+                <div class="gh-red-overlay">
+                    <div class="gh-small-ribbon">${SITE_DOMAIN}</div>
+                </div>
+                <div class="gh-social-icons">
+                    <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" title="Facebook">
+                    <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png" title="TikTok">
+                    <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" title="YouTube">
+                    <img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" title="WhatsApp">
+                    <div class="btn-print-icon" onclick="capturePNG()" title="Download PNG">
+                        <i class="fas fa-print"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="gh-text-section">
+                <div class="gh-headline">${p.title.rendered}</div>
+                <div class="gh-footer-strip">पूरा विवरण कमेन्टमा लिंक गरिएको छ ।</div>
+            </div>
+        </div>
+        <div class="gh-nav-row">
+            <button class="gh-nav-btn" onclick="move(-1)" ${gh_current_idx === 0 ? 'disabled' : ''}>← अघिल्लो</button>
+            <button class="gh-nav-btn" onclick="move(1)" ${gh_current_idx === gh_posts_data.length - 1 ? 'disabled' : ''}>अर्को →</button>
+        </div>
+    `;
+}
+
+async function loadData() {
+    try {
+        const res = await fetch(`https://${SITE_DOMAIN}/wp-json/wp/v2/posts?_embed&per_page=20`);
+        gh_posts_data = await res.json();
+        if (gh_posts_data.length > 0) updateDisplay();
+    } catch (err) {
+        console.error("NepalTopKhabar Data fetch error");
+    }
+}
+
+window.move = (n) => { gh_current_idx += n; updateDisplay(); };
+loadData();
+</script>

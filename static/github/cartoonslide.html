@@ -1,0 +1,168 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700;800&display=swap');
+    
+    .frame-container {
+        font-family: 'Mukta', sans-serif;
+        max-width: 320px;
+        margin: 20px auto;
+        background: #f4f4f4;
+        padding: 15px;
+        border: 10px solid #333; /* फ्रेमको बोर्डर */
+        border-radius: 15px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        position: relative;
+    }
+
+    .sb-header-box { 
+        background: #cc0000; 
+        padding: 8px; 
+        text-align: center; 
+        margin-bottom: 15px;
+        border-radius: 5px; 
+    }
+    .sb-title-text { color: #fff; font-size: 16px; font-weight: 800; margin: 0; }
+
+    /* डिस्प्ले एरिया */
+    #sb-display {
+        position: relative;
+        height: 420px;
+        overflow: hidden;
+    }
+
+    .sb-card { 
+        background: #fff; 
+        border: 1px solid #ddd; 
+        border-radius: 8px; 
+        display: flex; 
+        flex-direction: column; 
+        width: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        opacity: 0;
+        transition: opacity 0.8s ease-in-out;
+        box-sizing: border-box;
+    }
+
+    .sb-card.active { opacity: 1; z-index: 2; }
+
+    .sb-img-box { position: relative; width: 100%; height: 320px; background: #eee; }
+    .sb-img { width: 100%; height: 100%; object-fit: cover; }
+    
+    .sb-badge {
+        position: absolute; right: 10px; bottom: 10px; width: 50px; height: 50px; 
+        background: #fff; border: 2px solid #cc0000; border-radius: 50%; 
+        padding: 4px; display: flex; align-items: center; justify-content: center;
+    }
+    .sb-badge img { width: 90%; height: 90%; object-fit: contain; }
+    
+    .sb-info { padding: 15px 10px; text-align: center; }
+    .sb-area-tag { 
+        font-size: 12px; color: #fff; background: #e74c3c;
+        padding: 2px 10px; border-radius: 20px; font-weight: 700; 
+        display: inline-block; margin-bottom: 5px; 
+    }
+    .sb-name { font-size: 19px; font-weight: 800; color: #222; }
+
+</style>
+
+<div class="frame-container" id="capture-area">
+    <div class="sb-header-box">
+        <div class="sb-title-text">प्रतिनिधिसभा सदस्य उम्मेदवार २०८२</div>
+    </div>
+    
+    <div id="sb-display">
+        <div style="text-align:center; padding-top:100px;">लोड हुँदैछ...</div>
+    </div>
+</div>
+
+<script>
+let candidates = [];
+let currentIndex = 0;
+let slideInterval;
+
+// Multi-function 1: Image Proxy
+function getProxyUrl(url) { 
+    return url ? "https://images.weserv.nl/?url=" + encodeURIComponent(url.replace(/https?:\/\//, "")) : ""; 
+}
+
+// Multi-function 2: API Fetch
+function sbSync() {
+    const s = document.createElement('script');
+    s.src = "https://www.election.neelamb.com/feeds/posts/default?alt=json-in-script&callback=sbBuild&max-results=50&t=" + new Date().getTime();
+    document.body.appendChild(s);
+}
+
+function sbBuild(json) {
+    const entries = json.feed.entry || [];
+    candidates = entries.map(e => {
+        const labels = e.category ? e.category.map(cat => cat.term) : [];
+        let area = labels.find(l => l.includes("क्षेत्र") || l.includes("नं")) || (labels[0] || "उम्मेदवार");
+        
+        const photo = e.media$thumbnail ? e.media$thumbnail.url.replace('s72-c', 's1600') : '';
+        let sign = '';
+        if (e.content && e.content.$t) {
+            const div = document.createElement('div'); 
+            div.innerHTML = e.content.$t;
+            const imgs = div.getElementsByTagName('img'); 
+            if (imgs.length > 1) sign = imgs[1].src;
+        }
+        return { name: e.title.$t, area: area, photo: getProxyUrl(photo), sign: getProxyUrl(sign) };
+    });
+    
+    sbStartDisplay();
+}
+
+// Multi-function 3: Sequential Display Logic
+function sbStartDisplay() {
+    const container = document.getElementById('sb-display');
+    if (candidates.length === 0) {
+        container.innerHTML = "डाटा उपलब्ध छैन";
+        return;
+    }
+
+    renderCards();
+    showNextCard();
+    
+    // Auto-play interval
+    startTimer();
+
+    // Multi-function 4: Hover to Pause
+    const frame = document.querySelector('.frame-container');
+    frame.onmouseenter = () => clearInterval(slideInterval);
+    frame.onmouseleave = () => startTimer();
+}
+
+function renderCards() {
+    const container = document.getElementById('sb-display');
+    container.innerHTML = candidates.map((c, i) => `
+        <div class="sb-card" id="card-${i}">
+            <div class="sb-img-box">
+                <img src="${c.photo}" class="sb-img" onerror="this.src='https://via.placeholder.com/300x400?text=No+Image'">
+                ${c.sign ? `<div class="sb-badge"><img src="${c.sign}"></div>` : ''}
+            </div>
+            <div class="sb-info">
+                <span class="sb-area-tag">${c.area}</span>
+                <div class="sb-name">${c.name}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function showNextCard() {
+    const allCards = document.querySelectorAll('.sb-card');
+    allCards.forEach(card => card.classList.remove('active'));
+    
+    allCards[currentIndex].classList.add('active');
+    
+    currentIndex = (currentIndex + 1) % candidates.length;
+}
+
+function startTimer() {
+    slideInterval = setInterval(showNextCard, 4000); // प्रत्येक ४ सेकेन्डमा परिवर्तन हुने
+}
+
+sbSync();
+</script>

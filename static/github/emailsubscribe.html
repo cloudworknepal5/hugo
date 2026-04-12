@@ -1,0 +1,76 @@
+<div id="subscription-container" style="max-width: 400px; margin: 20px auto; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+    <div style="background: #f9f9f9; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 5px solid #d32f2f;">
+        <h3 style="margin-top: 0; color: #333;">ताजा अपडेट प्राप्त गर्नुहोस्</h3>
+        <p style="font-size: 14px; color: #666;">हाम्रो न्युज फिड सबस्क्राइब गर्नुहोस् र नयाँ समाचार सिधै इमेलमा पाउनुहोस्।</p>
+        
+        <form id="subscribeForm" onsubmit="return handleSubscription(event)">
+            <div style="margin-bottom: 15px;">
+                <input type="email" id="userEmail" placeholder="आफ्नो इमेल राख्नुहोस्..." required 
+                    style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; outline: none;">
+            </div>
+            <button type="submit" id="subBtn" 
+                style="width: 100%; padding: 12px; background: #d32f2f; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s;">
+                सबस्क्राइब गर्नुहोस्
+            </button>
+        </form>
+        
+        <div id="statusMsg" style="margin-top: 15px; font-size: 14px; display: none; padding: 10px; border-radius: 5px;"></div>
+    </div>
+</div>
+
+<script>
+/**
+ * Multi-Function Subscription Logic
+ * 1. Validation 2. Submission 3. UI Update
+ */
+function handleSubscription(event) {
+    event.preventDefault();
+    
+    const email = document.getElementById('userEmail').value;
+    const statusBox = document.getElementById('statusMsg');
+    const btn = document.getElementById('subBtn');
+    
+    // UI Reset
+    statusBox.style.display = 'none';
+    btn.disabled = true;
+    btn.innerText = 'प्रक्रिया हुँदैछ...';
+
+    // Validation & Action (Example using Feedburner structure)
+    if (validateEmail(email)) {
+        // यहाँ तपाईंले आफ्नो API (Firebase, Apps Script, or Mailchimp) सँग कनेक्ट गर्न सक्नुहुन्छ
+        setTimeout(() => {
+            showStatus("बधाई छ! तपाईं सफलतापूर्वक सबस्क्राइब हुनुभयो।", "success");
+            document.getElementById('subscribeForm').reset();
+            btn.disabled = false;
+            btn.innerText = 'सबस्क्राइब गर्नुहोस्';
+        }, 1500);
+    } else {
+        showStatus("कृपया सही इमेल ठेगाना प्रयोग गर्नुहोस्।", "error");
+        btn.disabled = false;
+        btn.innerText = 'सबस्क्राइब गर्नुहोस्';
+    }
+    
+    return false;
+}
+
+function validateEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+}
+
+function showStatus(message, type) {
+    const statusBox = document.getElementById('statusMsg');
+    statusBox.innerText = message;
+    statusBox.style.display = 'block';
+    
+    if (type === "success") {
+        statusBox.style.background = "#e8f5e9";
+        statusBox.style.color = "#2e7d32";
+        statusBox.style.border = "1px solid #c8e6c9";
+    } else {
+        statusBox.style.background = "#ffebee";
+        statusBox.style.color = "#c62828";
+        statusBox.style.border = "1px solid #ffcdd2";
+    }
+}
+</script>

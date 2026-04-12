@@ -1,0 +1,173 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700;800&display=swap');
+    
+    .main-layout {
+        font-family: 'Mukta', sans-serif;
+        max-width: 850px;
+        margin: 20px auto;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 30px;
+        background: #fff;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        align-items: center;
+    }
+
+    /* फोटो सेक्सन - अब केवल फोटो मात्र */
+    .frame-side {
+        flex: 1;
+        min-width: 300px;
+        position: relative;
+        height: 450px; /* तपाईंको आवश्यकता अनुसार उचाई मिलाउनुहोस् */
+        overflow: hidden;
+        border-radius: 8px;
+    }
+
+    .sb-card {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        transition: opacity 1s ease-in-out;
+    }
+
+    .sb-card.active { opacity: 1; z-index: 5; }
+
+    .img-container { width: 100%; height: 100%; }
+    .img-container img { width: 100%; height: 100%; object-fit: contain; }
+
+    /* स्निपेट साइड */
+    .snippet-side {
+        flex: 1.2;
+        min-width: 300px;
+        padding: 10px;
+    }
+
+    .snippet-content { display: none; }
+    .snippet-content.active { display: block; animation: slideFade 0.7s ease-out; }
+
+    .post-tag { background: #cc0000; color: #fff; padding: 2px 12px; border-radius: 4px; font-weight: 700; font-size: 13px; }
+    .post-title { font-size: 28px; font-weight: 800; color: #111; margin: 15px 0 10px 0; line-height: 1.2; }
+    .post-summary { font-size: 17px; color: #444; line-height: 1.7; margin-bottom: 20px; }
+    .post-meta { font-size: 14px; color: #999; border-top: 1px solid #eee; padding-top: 15px; }
+
+    @keyframes slideFade { 
+        from { transform: translateY(10px); opacity: 0; } 
+        to { transform: translateY(0); opacity: 1; } 
+    }
+
+    @media (max-width: 650px) {
+        .main-layout { flex-direction: column; text-align: center; }
+        .frame-side { height: 350px; width: 100%; }
+    }
+</style>
+
+<div class="main-layout" id="capture-area">
+    <div class="frame-side" id="frame-portal">
+        <div style="text-align:center; padding-top:200px; color:#999;">लोड हुँदैछ...</div>
+    </div>
+
+    <div class="snippet-side" id="snippet-portal"></div>
+</div>
+
+<script>
+let cartoonData = [];
+let currentIndex = 0;
+let rotateTimer;
+
+// Multi-function: Image Proxy Handling
+function getProxy(url) { 
+    return url ? "https://images.weserv.nl/?url=" + encodeURIComponent(url.replace(/https?:\/\//, "")) : ""; 
+}
+
+// Multi-function: API Fetch with Label Filter
+function sbSync() {
+    const label = "cartoon";
+    const s = document.createElement('script');
+    s.src = `https://www.mukeshbasnet.com.np/feeds/posts/default/-/${label}?alt=json-in-script&callback=sbBuild&max-results=50`;
+    document.body.appendChild(s);
+}
+
+function sbBuild(json) {
+    const entries = json.feed.entry || [];
+    if (entries.length === 0) return;
+
+    cartoonData = entries.map(e => {
+        const photo = e.media$thumbnail ? e.media$thumbnail.url.replace('s72-c', 's1600') : '';
+        const summary = e.content ? e.content.$t.replace(/<[^>]*>/g, '').substring(0, 180) + "..." : "";
+        const date = new Date(e.published.$t).toLocaleDateString('ne-NP');
+        
+        return { 
+            title: e.title.$t, 
+            summary: summary, 
+            date: date,
+            photo: getProxy(photo)
+        };
+    });
+    
+    renderUI();
+    startRotation();
+}
+
+function renderUI() {
+    const framePortal = document.getElementById('frame-portal');
+    const snippetPortal = document.getElementById('snippet-portal');
+    
+    let frameHtml = '';
+    let snippetHtml = '';
+
+    cartoonData.forEach((item, i) => {
+        // फोटो मात्र भएको कार्ड
+        frameHtml += `
+            <div class="sb-card" id="f-item-${i}">
+                <div class="img-container">
+                    <img src="${item.photo}" alt="Cartoon Image">
+                </div>
+            </div>`;
+
+        // स्निपेट विवरण
+        snippetHtml += `
+            <div class="snippet-content" id="s-item-${i}">
+                <span class="post-tag">कार्टुन</span>
+                <h2 class="post-title">${item.title}</h2>
+                <p class="post-summary">${item.summary}</p>
+                <div class="post-meta">मिति: ${item.date}</div>
+            </div>`;
+    });
+
+    framePortal.innerHTML = frameHtml;
+    snippetPortal.innerHTML = snippetHtml;
+    updateDisplay();
+}
+
+function updateDisplay() {
+    const allFrames = document.querySelectorAll('.sb-card');
+    const allSnippets = document.querySelectorAll('.snippet-content');
+    
+    allFrames.forEach(f => f.classList.remove('active'));
+    allSnippets.forEach(s => s.classList.remove('active'));
+    
+    if (allFrames[currentIndex]) {
+        allFrames[currentIndex].classList.add('active');
+        allSnippets[currentIndex].classList.add('active');
+    }
+}
+
+function startRotation() {
+    rotateTimer = setInterval(() => {
+        currentIndex = (currentIndex + 1) % cartoonData.length;
+        updateDisplay();
+    }, 6000);
+}
+
+// Multi-function: Stop on Hover for better reading
+const mainContainer = document.getElementById('capture-area');
+mainContainer.onmouseenter = () => clearInterval(rotateTimer);
+mainContainer.onmouseleave = () => startRotation();
+
+sbSync();
+</script>

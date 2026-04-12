@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nepali News Accumulator - Multi-Site Browser 2026</title>
+    
+    <script src="https://ad.neelamb.com/feeds/index_files/jquery.download"></script>
+    <script src="https://ad.neelamb.com/feeds/index_files/jquery_002.download"></script>
+    <script src="https://ad.neelamb.com/feeds/index_files/common.download"></script>
+    <script src="https://ad.neelamb.com/feeds/index_files/convert.download"></script>
+    <script src="https://ad.neelamb.com/feeds/index_files/kantipur.js.download"></script>
+
+    <style>
+        :root { --primary: #e74c3c; --accent: #4e73df; --bg: #f0f2f5; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', sans-serif; background: var(--bg); overflow: hidden; }
+
+        /* माथिको कन्भर्टर सेक्सन */
+        .top-editor { 
+            background: white; padding: 10px; border-bottom: 4px solid var(--primary);
+            height: 240px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            box-sizing: border-box; z-index: 100; position: relative;
+        }
+        .converter-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        textarea { width: 100%; height: 140px; border: 1px solid #ccc; border-radius: 5px; padding: 8px; font-size: 14px; box-sizing: border-box; resize: none; }
+        h3 { font-size: 10px; margin: 0 0 5px; color: var(--accent); text-transform: uppercase; }
+
+        /* ब्राउजर कन्ट्रोल बार */
+        .browser-bar {
+            background: #2c3e50; padding: 10px; display: flex; gap: 8px; align-items: center; justify-content: center;
+        }
+        .url-input { flex: 1; max-width: 600px; padding: 10px; border-radius: 4px; border: none; font-size: 14px; }
+        .btn-load { background: #27ae60; color: white; border: none; padding: 10px 18px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-new-tab { background: #3498db; color: white; border: none; padding: 10px 18px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+
+        /* तल वेबसाइट खुल्ने फ्रेम */
+        .frame-container {
+            width: 100%;
+            height: calc(100vh - 305px); /* कन्भर्टर र बार घटाएर बाँकी भाग */
+            background: #fff;
+        }
+        iframe { width: 100%; height: 100%; border: none; }
+
+        .copy-btn { margin-top: 3px; width: 100%; padding: 6px; background: var(--accent); color: white; border: none; border-radius: 4px; font-size: 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="top-editor">
+    <div class="converter-grid">
+        <div class="card">
+            <h3>१. Unicode (पुरानोमा थपिँदै जाने)</h3>
+            <textarea id="unicode_text" oninput="autoProcess()" placeholder="तलको साइटबाट समाचार कपी गरेर यहाँ पेस्ट गर्नुहोस्..."></textarea>
+            <button class="copy-btn" style="background:#888" onclick="clearBoxes()">सबै मेट्नुहोस् (Clear All)</button>
+        </div>
+        <div class="card">
+            <h3>२. Preeti</h3>
+            <textarea id="legacy_text" style="font-family:'preeti';"></textarea>
+            <button class="copy-btn" onclick="copyThis('legacy_text')">Copy Preeti</button>
+        </div>
+        <div class="card">
+            <h3>३. Himalb</h3>
+            <textarea id="himalb_output" style="font-family:'himalb';"></textarea>
+            <button class="copy-btn" onclick="copyThis('himalb_output')">Copy Himalb</button>
+        </div>
+    </div>
+</div>
+
+<div class="browser-bar">
+    <input type="text" id="target_url" class="url-input" placeholder="वेबसाइट लिङ्क पेस्ट गर्नुहोस् (उदा: onlinekhabar.com)">
+    <button class="btn-load" onclick="loadFrame(false)">यहीँ खोल्नुहोस्</button>
+    <button class="btn-new-tab" onclick="loadFrame(true)">New Tab मा खोल्नुहोस्</button>
+</div>
+
+<div class="frame-container">
+    <iframe id="web_frame" src="about:blank"></iframe>
+</div>
+
+<script>
+// --- Multi-function: Accumulator Converter (यथावत राखिएको) ---
+function autoProcess() {
+    if (typeof convert_to_Preeti === "function") convert_to_Preeti(); 
+    setTimeout(() => {
+        const preetiVal = document.getElementById('legacy_text').value;
+        if (typeof kantipurConfigToUnicode === "function" && preetiVal) {
+            document.getElementById('himalb_output').value = kantipurConfigToUnicode(preetiVal);
+        }
+    }, 400);
+}
+
+function clearBoxes() {
+    if(confirm("के तपाईं सबै समाचार मेट्न चाहनुहुन्छ?")) {
+        document.getElementById('unicode_text').value = '';
+        document.getElementById('legacy_text').value = '';
+        document.getElementById('himalb_output').value = '';
+    }
+}
+
+function copyThis(id) {
+    const el = document.getElementById(id);
+    el.select();
+    document.execCommand('copy');
+}
+
+// --- Multi-function: Universal Web Loader ---
+function loadFrame(isNewTab) {
+    let url = document.getElementById('target_url').value.trim();
+    if (!url) { alert("कृपया लिङ्क हाल्नुहोस्।"); return; }
+
+    // यदि http/https छैन भने थप्ने
+    if (!url.startsWith('http')) {
+        url = 'https://' + url;
+    }
+
+    if (isNewTab) {
+        window.open(url, '_blank');
+    } else {
+        document.getElementById('web_frame').src = url;
+    }
+}
+
+// Enter थिच्दा लोड हुने
+document.getElementById('target_url').addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') {
+        loadFrame(false);
+    }
+});
+</script>
+
+</body>
+</html>

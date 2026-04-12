@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Newspaper PMD Downloader</title>
+</head>
+<body>
+
+    <div id="newspaper-container"></div>
+
+    <script>
+    (function() {
+        // १. कन्फिगरेसन: यहाँ आफ्नो विवरण मिलाउनुहोस्
+        const SETTINGS = {
+            label: "main-news",
+            fontUrl: "https://educationnepal.eu.org/HIMALB.TTF",
+            pmdFileUrl: "https://educationnepal.eu.org/HIMALB.pmd", // तपाईंको PMD फाइलको लिंक
+            apiBase: "https://birgunj.eu.org/feeds/posts/default/-/"
+        };
+
+        // २. स्टाइल र फन्ट इम्बेड गर्ने फङ्सन
+        const injectStyles = () => {
+            const style = document.createElement('style');
+            style.innerHTML = `
+                @font-face {
+                    font-family: 'HimaliCustom';
+                    src: url('${SETTINGS.fontUrl}') format('truetype');
+                }
+                .news-paper-box { 
+                    max-width: 900px; margin: 20px auto; padding: 25px; 
+                    background: #fff; border: 2px solid #000; 
+                    font-family: 'HimaliCustom', serif; 
+                }
+                .news-headline { font-size: 55px; text-align: center; border-bottom: 2px solid #000; margin-bottom: 15px; }
+                .content-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; font-size: 20px; line-height: 1.4; text-align: justify; }
+                
+                /* Download Button */
+                .download-wrapper { text-align: center; margin-top: 20px; padding-top: 15px; border-top: 1px dashed #444; }
+                .btn-download-pmd {
+                    display: inline-block;
+                    background: #d32f2f; color: #fff;
+                    padding: 12px 25px; text-decoration: none;
+                    font-family: sans-serif; font-weight: bold;
+                    border-radius: 4px; box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+                }
+                .btn-download-pmd:hover { background: #b71c1c; }
+            `;
+            document.head.appendChild(style);
+        };
+
+        // ३. डाउनलोड बटन बनाउने फङ्सन (.PMD को लागि)
+        const createDownloadButton = () => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'download-wrapper';
+            wrapper.innerHTML = `
+                <a href="${SETTINGS.pmdFileUrl}" class="btn-download-pmd" download="newspaper_layout.pmd">
+                    📥 PageMaker (.PMD) फाइल डाउनलोड गर्नुहोस्
+                </a>
+            `;
+            return wrapper;
+        };
+
+        // ४. डाटा रेन्डर गर्ने फङ्सन
+        window.renderLayout = function(json) {
+            const root = document.getElementById('newspaper-container');
+            if (!json.feed.entry) {
+                root.innerHTML = 'समाचार पाइएन।';
+                return;
+            }
+
+            const entry = json.feed.entry[0];
+            const title = entry.title.$t;
+            const fullText = (entry.content ? entry.content.$t : entry.summary.$t).replace(/<[^>]*>?/gm, '');
+
+            const layoutHtml = `
+                <div class="news-paper-box">
+                    <h1 class="news-headline">${title}</h1>
+                    <div class="content-grid">
+                        <div>${fullText.substring(0, 500)}...</div>
+                        <div>${fullText.substring(500, 1000)}...</div>
+                    </div>
+                    <div id="button-area"></div>
+                </div>
+            `;
+            
+            root.innerHTML = layoutHtml;
+            document.getElementById('button-area').appendChild(createDownloadButton());
+        };
+
+        // ५. सुरु गर्ने फङ्सन (Initializer)
+        const init = () => {
+            injectStyles();
+            const script = document.createElement('script');
+            script.src = `${SETTINGS.apiBase}${SETTINGS.label}?alt=json-in-script&callback=renderLayout&max-results=1`;
+            document.body.appendChild(script);
+        };
+
+        init();
+    })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+    .photo-only-container {
+        max-width: 600px; /* तपाईंले आफ्नो आवश्यकता अनुसार साइज घटाउन वा बढाउन सक्नुहुन्छ */
+        margin: 10px auto;
+        position: relative;
+        overflow: hidden;
+        border-radius: 12px;
+        background: #fdfdfd;
+        /* यदि फ्रेम जस्तो देखाउन मन लागेमा तलको बोर्डर अन गर्न सक्नुहुन्छ */
+        /* border: 5px solid #333; */
+    }
+
+    /* फोटोको साइज मिलाउने ठाउँ */
+    .photo-viewport {
+        width: 100%;
+        height: 500px; /* फोटोको उचाई यहाँबाट कन्ट्रोल गर्नुहोस् */
+        position: relative;
+    }
+
+    .sb-photo-card {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        transition: opacity 1.2s ease-in-out; /* फोटो फेरिने एनिमेसन */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .sb-photo-card.active {
+        opacity: 1;
+        z-index: 10;
+    }
+
+    .sb-photo-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain; /* फोटो नकाटियोस् भनेर contain राखिएको छ */
+        display: block;
+    }
+
+    /* मोबाइलको लागि साइज मिलाइएको */
+    @media (max-width: 600px) {
+        .photo-viewport { height: 350px; }
+    }
+</style>
+
+<div class="photo-only-container" id="capture-area">
+    <div class="photo-viewport" id="photo-portal">
+        <div style="text-align:center; padding-top:150px; font-family: sans-serif; color: #999;">
+            तस्विर लोड हुँदैछ...
+        </div>
+    </div>
+</div>
+
+<script>
+let photoData = [];
+let currentIndex = 0;
+let photoTimer;
+
+// Multi-function 1: Image Proxy (फोटोहरू स्पष्ट लोड हुनका लागि)
+function getProxy(url) { 
+    return url ? "https://images.weserv.nl/?url=" + encodeURIComponent(url.replace(/https?:\/\//, "")) : ""; 
+}
+
+// Multi-function 2: Blogger Feed Sync (केवल 'cartoon' लेबलका लागि)
+function sbSync() {
+    const label = "cartoon";
+    const s = document.createElement('script');
+    s.src = `https://www.mukeshbasnet.com.np/feeds/posts/default/-/${label}?alt=json-in-script&callback=sbBuild&max-results=50`;
+    document.body.appendChild(s);
+}
+
+function sbBuild(json) {
+    const entries = json.feed.entry || [];
+    if (entries.length === 0) {
+        document.getElementById('photo-portal').innerHTML = "कुनै तस्विर भेटिएन।";
+        return;
+    }
+
+    photoData = entries.map(e => {
+        const fullResPhoto = e.media$thumbnail ? e.media$thumbnail.url.replace('s72-c', 's1600') : '';
+        return { photo: getProxy(fullResPhoto) };
+    });
+    
+    renderPhotos();
+    startSlideshow();
+}
+
+function renderPhotos() {
+    const portal = document.getElementById('photo-portal');
+    portal.innerHTML = photoData.map((item, i) => `
+        <div class="sb-photo-card" id="p-item-${i}">
+            <img src="${item.photo}" alt="Cartoon Content">
+        </div>
+    `).join('');
+    
+    updateDisplay();
+}
+
+function updateDisplay() {
+    const allPhotos = document.querySelectorAll('.sb-photo-card');
+    allPhotos.forEach(p => p.classList.remove('active'));
+    
+    if (allPhotos[currentIndex]) {
+        allPhotos[currentIndex].classList.add('active');
+    }
+}
+
+function startSlideshow() {
+    photoTimer = setInterval(() => {
+        currentIndex = (currentIndex + 1) % photoData.length;
+        updateDisplay();
+    }, 5000); // प्रत्येक ५ सेकेन्डमा फोटो परिवर्तन हुने
+}
+
+// Multi-function 3: Hover to Pause (माउस लैजाँदा रोकिने)
+const container = document.getElementById('capture-area');
+container.onmouseenter = () => clearInterval(photoTimer);
+container.onmouseleave = () => startSlideshow();
+
+sbSync();
+</script>

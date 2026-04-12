@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Birgunj News Widget</title>
+</head>
+<body>
+
+<div id="birgunj-widget-root"></div>
+
+<script>
+/**
+ * Birgunj News Tab Widget - Audio & Snippet Version
+ * Multi-function: News Fetching, UI Toggling, and Text-to-Speech
+ */
+(function() {
+    // 1. Setup Container and Styles
+    const rootId = 'birgunj-widget-root';
+    const style = document.createElement('style');
+    style.textContent = `
+        #floating-wrapper { 
+            position: fixed; 
+            top: 150px; 
+            right: 12px; 
+            z-index: 999999; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: flex-end; 
+            gap: 12px; 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+        }
+        .tabs-trigger { display: flex; flex-direction: column; gap: 10px; }
+        .tab-btn { 
+            width: 48px; height: 48px; 
+            background: #bc1d22 !important; 
+            border-radius: 50% !important; 
+            border: 2px solid #fff !important; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            color: white !important; 
+            font-size: 22px; 
+            transition: all 0.3s ease; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3); 
+            padding: 0; 
+            outline: none; 
+        }
+        .tab-btn:hover { transform: scale(1.1); background: #333 !important; }
+        .tab-btn.active { background: #333 !important; border-color: #00d2ff !important; }
+        .tab-btn.playing { background: #2ecc71 !important; animation: pulse-audio 1.5s infinite; }
+        
+        @keyframes pulse-audio { 
+            0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); } 
+            70% { box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); } 
+            100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); } 
+        }
+
+        #news-content { 
+            width: 300px; 
+            background: #fff !important; 
+            border-radius: 12px; 
+            max-height: 0; 
+            overflow: hidden; 
+            transition: all 0.4s ease; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
+            position: absolute; 
+            right: 60px; 
+            top: 0; 
+        }
+        #news-content.show { max-height: 450px; border: 1px solid #ddd; }
+        .content-area { overflow-y: auto; max-height: 400px; padding: 5px 0; }
+        .news-list { display: none; }
+        .news-list.active { display: block; }
+        .news-item { padding: 12px 15px; border-bottom: 1px solid #f2f2f2; }
+        .news-item a { text-decoration: none !important; color: #333 !important; font-size: 14px; font-weight: 500; display: block; }
+        
+        @media (max-width: 480px) { 
+            #news-content { width: 260px; right: 55px; } 
+            .tab-btn { width: 42px; height: 42px; font-size: 18px; } 
+        }
+    `;
+    document.head.appendChild(style);
+
+    // 2. Inject HTML Structure
+    document.getElementById(rootId).innerHTML = `
+        <div id="floating-wrapper">
+            <div class="tabs-trigger">
+                <button class="tab-btn" id="btn-taja" title="Taja News">⚡</button>
+                <button class="tab-btn" id="btn-pop" title="Popular News">🔥</button>
+                <button class="tab-btn" id="btn-audio" title="Listen News">🔊</button>
+            </div>
+            <div id="news-content">
+                <div style="background:#bc1d22; color:white; padding:8px; font-size:13px; font-weight:bold; text-align:center;" id="list-header">समाचार</div>
+                <div class="content-area">
+                    <div id="taja-list" class="news-list">लोडिङ...</div>
+                    <div id="pop-list" class="news-list">लोडिङ...</div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // 3. Variables & Multi-function Setup
+    const audioBtn = document.getElementById('btn-audio');
+    let synth = window.speechSynthesis;
+    let newsData = []; // Stores combined Title and Snippet for Audio
+
+    // FUNCTION: Text-to-Speech (Audio)
+    function speakNews() {
+        if (synth.speaking) {
+            synth.cancel();
+            audioBtn.innerText = "🔊";
+            audioBtn.classList.remove('playing');
+            return;
+        }
+
+        // Detect which tab is currently active to read that specific news
+        const activeListId = document.querySelector('.news-list.active')?.id;
+        const typeKey = activeListId === 'taja-list' ? 'taja' : 'pop';
+        const currentItems = newsData.filter(item => item.type === typeKey);
+
+        if (currentItems.length === 0) {
+            alert("कृपया समाचार लोड हुन दिनुहोस्।");
+            return;
+        }
+
+        audioBtn.innerText = "🛑";
+        audioBtn.classList.add('playing');
+
+        let textToRead = "नमस्ते, बिरगञ्ज न्यूजमा तपाईंलाई स्वागत छ। आजका मुख्य समाचारहरू यस प्रकार छन्। ";
+        currentItems.slice(0, 5).forEach((item, i) => {
+            textToRead += `समाचार नम्बर ${i+1}: ${item.title}. विवरण: ${item.snippet}. `;
+        });
+
+        const utter = new SpeechSynthesisUtterance(textToRead);
+        
+        // Find suitable voice (Nepali or Hindi fallback)
+        const voices = synth.getVoices();
+        const nepaliVoice = voices.find(v => v.lang.includes('ne'));
+        const hindiVoice = voices.find(v => v.lang.includes('hi'));
+        
+        utter.voice = nepaliVoice || hindiVoice || voices[0];
+        utter.lang = nepaliVoice ? 'ne-NP' : (hindiVoice ? 'hi-IN' : 'en-US');
+        utter.rate = 0.9;
+
+        utter.onend = () => {
+            audioBtn.innerText = "🔊";
+            audioBtn.classList.remove('playing');
+        };
+        
+        synth.speak(utter);
+    }
+
+    // FUNCTION: UI Toggle Logic
+    function toggleTab(type) {
+        const btn = document.getElementById('btn-' + type);
+        const list = document.getElementById(type + '-list');
+        const isShowing = btn.classList.contains('active');
+
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.news-list').forEach(l => l.classList.remove('active'));
+
+        if (!isShowing) {
+            btn.classList.add('active');
+            list.classList.add('active');
+            document.getElementById('news-content').classList.add('show');
+            document.getElementById('list-header').innerText = type === 'taja' ? "ताजा समाचार" : "लोकप्रिय समाचार";
+        } else {
+            document.getElementById('news-content').classList.remove('show');
+        }
+    }
+
+    // Event Listeners
+    document.getElementById('btn-taja').onclick = () => toggleTab('taja');
+    document.getElementById('btn-pop').onclick = () => toggleTab('pop');
+    audioBtn.onclick = () => speakNews();
+
+    // 4. Data Handlers (Feed Callbacks)
+    window.renderTaja = function(data) {
+        let html = "";
+        data.feed.entry?.forEach(e => {
+            const title = e.title.$t;
+            const link = e.link.find(l => l.rel === 'alternate').href;
+            const snippet = e.summary?.$t.replace(/<[^>]*>?/gm, '').substring(0, 120) || "विवरण उपलब्ध छैन";
+            newsData.push({ type: 'taja', title, snippet });
+            html += `<div class="news-item"><a href="${link}" target="_blank">${title}</a></div>`;
+        });
+        document.getElementById('taja-list').innerHTML = html || "फेला परेन।";
+    };
+
+    window.renderPop = function(data) {
+        let html = "";
+        data.feed.entry?.forEach(e => {
+            const title = e.title.$t;
+            const link = e.link.find(l => l.rel === 'alternate').href;
+            const snippet = e.summary?.$t.replace(/<[^>]*>?/gm, '').substring(0, 120) || "विवरण उपलब्ध छैन";
+            newsData.push({ type: 'pop', title, snippet });
+            html += `<div class="news-item"><a href="${link}" target="_blank">${title}</a></div>`;
+        });
+        document.getElementById('pop-list').innerHTML = html || "फेला परेन।";
+    };
+
+    // 5. Inject External Scripts (Blogger Feeds)
+    function injectFeed(url) {
+        const s = document.createElement('script');
+        s.src = url;
+        document.body.appendChild(s);
+    }
+
+    // Use summary feed to get snippets
+    injectFeed("https://www.birgunj.eu.org/feeds/posts/summary?alt=json-in-script&max-results=8&callback=renderTaja");
+    
+    setTimeout(() => {
+        injectFeed("https://www.birgunj.eu.org/feeds/posts/summary?alt=json-in-script&orderby=updated&max-results=8&callback=renderPop");
+    }, 1200);
+
+})();
+</script>
+
+</body>
+</html>

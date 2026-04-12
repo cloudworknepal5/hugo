@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>मधेश खबर - पूर्ण समाचार र कपी सुविधा</title>
+    <style>
+        :root { --bg: #f0f2f5; --card: #ffffff; --primary: #1a73e8; --text: #202124; }
+        .dark-mode { --bg: #18191a; --card: #242526; --primary: #8ab4f8; --text: #e4e6eb; }
+        
+        body { background-color: var(--bg); color: var(--text); font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; transition: 0.3s; }
+        .container { max-width: 1000px; margin: auto; }
+        
+        .header-box { text-align: center; margin-bottom: 30px; }
+        .controls { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ccc; min-width: 200px; }
+        
+        .news-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .news-card { background: var(--card); border-radius: 12px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
+        .news-card img { width: 100%; height: 200px; object-fit: cover; }
+        
+        .card-body { padding: 15px; flex-grow: 1; }
+        .card-body h3 { font-size: 1.2rem; margin: 10px 0; line-height: 1.4; }
+        .snippet { font-size: 0.95rem; color: #5f6368; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .dark-mode .snippet { color: #b0b3b8; }
+
+        .card-footer { padding: 15px; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .dark-mode .card-footer { border-top: 1px solid #3e4042; }
+
+        .btn { padding: 8px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-copy { background: #34a853; color: white; }
+        .btn-mode { background: var(--primary); color: white; }
+        .btn:hover { opacity: 0.8; }
+        .copy-success { font-size: 0.8rem; color: #34a853; font-weight: bold; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-box">
+        <h1>मधेश खबर (Madhes Khabar)</h1>
+    </div>
+
+    <div class="controls">
+        <input type="text" id="searchInput" placeholder="समाचार खोज्नुहोस्..." onkeyup="newsManager.searchNews()">
+        <button class="btn btn-mode" onclick="newsManager.toggleDarkMode()">डार्क मोड स्विच</button>
+    </div>
+
+    <div id="news-container" class="news-grid">समाचार लोड हुँदैछ...</div>
+</div>
+
+<script>
+    class NewsManager {
+        constructor() {
+            this.apiURL = "https://api.rss2json.com/v1/api.json?rss_url=https://feeds.feedburner.com/chandrasuryawani/8iC1d0yoofl";
+            this.allNews = [];
+        }
+
+        async fetchAll() {
+            try {
+                const response = await fetch(this.apiURL);
+                const data = await response.json();
+                this.allNews = data.items;
+                this.render(this.allNews);
+            } catch (error) {
+                document.getElementById('news-container').innerHTML = "डाटा लोड गर्दा समस्या भयो।";
+            }
+        }
+
+        // HTML बाट शुद्ध टेक्स्ट निकाल्ने Function
+        cleanHTML(html) {
+            const div = document.createElement("div");
+            div.innerHTML = html;
+            return div.innerText || div.textContent || "";
+        }
+
+        extractImage(item) {
+            if (item.thumbnail) return item.thumbnail;
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = item.content || item.description;
+            const img = tempDiv.querySelector('img');
+            return img ? img.src : 'https://via.placeholder.com/400x200?text=No+Image';
+        }
+
+        // Function: पूर्ण समाचार कपी गर्ने
+        copyFullNews(index, btnElement) {
+            const item = this.allNews[index];
+            const fullContent = this.cleanHTML(item.content || item.description);
+            
+            const textToCopy = `शीर्षक: ${item.title}\nमिति: ${item.pubDate}\nलिङ्क: ${item.link}\n\nपूर्ण विवरण:\n${fullContent}`;
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const originalText = btnElement.innerText;
+                btnElement.innerText = "✓ कपी भयो";
+                btnElement.style.background = "#000";
+                setTimeout(() => {
+                    btnElement.innerText = originalText;
+                    btnElement.style.background = "#34a853";
+                }, 2000);
+            });
+        }
+
+        searchNews() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = this.allNews.filter(item => 
+                item.title.toLowerCase().includes(query) || 
+                item.content.toLowerCase().includes(query)
+            );
+            this.render(filtered);
+        }
+
+        toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+        }
+
+        render(newsItems) {
+            const container = document.getElementById('news-container');
+            container.innerHTML = newsItems.length ? '' : 'कुनै समाचार भेटिएन।';
+            
+            newsItems.forEach((item, index) => {
+                const imageUrl = this.extractImage(item);
+                const shortText = this.cleanHTML(item.description || item.content);
+                
+                const card = document.createElement('div');
+                card.className = 'news-card';
+                card.innerHTML = `
+                    <img src="${imageUrl}" alt="News">
+                    <div class="card-body">
+                        <small>${item.pubDate}</small>
+                        <h3>${item.title}</h3>
+                        <p class="snippet">${shortText}</p>
+                    </div>
+                    <div class="card-footer">
+                        <a href="${item.link}" target="_blank" style="color:var(--primary); font-size:0.9rem;">थप पढ्नुहोस्</a>
+                        <button class="btn btn-copy" onclick="newsManager.copyFullNews(${index}, this)">कपी समाचार</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+    }
+
+    const newsManager = new NewsManager();
+    newsManager.fetchAll();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <title>Nepali AI Voice - Smooth Loader</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 30px; }
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 500px; text-align: center; }
+        textarea { width: 100%; height: 120px; padding: 15px; border-radius: 12px; border: 2px solid #ddd; font-size: 17px; margin-bottom: 20px; box-sizing: border-box; }
+        
+        /* Voice Meter Style */
+        .meter-container { height: 40px; background: #eee; border-radius: 20px; margin-bottom: 20px; overflow: hidden; display: flex; align-items: center; justify-content: center; gap: 3px; }
+        .bar { width: 6px; height: 10px; background: #3498db; border-radius: 3px; transition: 0.1s; }
+        .playing .bar { animation: wave 0.5s infinite ease-in-out; }
+        @keyframes wave { 0%, 100% { height: 10px; } 50% { height: 35px; } }
+
+        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        button { padding: 14px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.3s; color: white; }
+        .btn-play { background: #3498db; grid-column: span 2; font-size: 18px; }
+        .btn-download { background: #2ecc71; }
+        .btn-stop { background: #e74c3c; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .status { margin-top: 10px; font-size: 13px; color: #666; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>सफा नेपाली आवाज 🎙️</h2>
+    
+    <div class="meter-container" id="meter">
+        <div class="bar" style="animation-delay: 0.1s"></div>
+        <div class="bar" style="animation-delay: 0.2s"></div>
+        <div class="bar" style="animation-delay: 0.3s"></div>
+        <div class="bar" style="animation-delay: 0.4s"></div>
+        <div class="bar" style="animation-delay: 0.5s"></div>
+    </div>
+
+    <textarea id="text-input">नमस्ते, अब मेरो आवाज सफा सुनिनेछ र मिटरले पनि काम गर्नेछ।</textarea>
+    
+    <div class="controls">
+        <button class="btn-play" id="play-btn" onclick="handleVoice('play')">▶ सुन्नुहोस् (Play)</button>
+        <button class="btn-stop" onclick="handleVoice('stop')">⏹ रोक्नुहोस्</button>
+        <button class="btn-download" onclick="handleVoice('download')">⬇ डाउनलोड (MP3)</button>
+    </div>
+    <p id="status" class="status">तयार छ</p>
+</div>
+
+<script>
+    let audio = new Audio();
+    const meter = document.getElementById('meter');
+    const status = document.getElementById('status');
+
+    function handleVoice(type) {
+        const text = document.getElementById('text-input').value;
+        if (!text.trim()) return alert("केही लेख्नुहोस्!");
+
+        // Google Translate API with Smooth Parameters
+        const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=ne&client=tw-ob&ttsspeed=1`;
+
+        if (type === 'play') {
+            status.innerText = "लोड हुँदैछ...";
+            audio.src = url;
+            
+            audio.onplay = () => {
+                meter.classList.add('playing');
+                status.innerText = "बजिरहेको छ...";
+            };
+            
+            audio.onended = () => {
+                meter.classList.remove('playing');
+                status.innerText = "सकियो।";
+            };
+
+            audio.onerror = () => {
+                status.innerText = "Error: फेरि प्रयास गर्नुहोस्।";
+                meter.classList.remove('playing');
+            };
+
+            audio.play().catch(e => {
+                status.innerText = "बजाउन सकिएन। ब्राउजर सेटिङ चेक गर्नुहोस्।";
+            });
+
+        } else if (type === 'stop') {
+            audio.pause();
+            audio.currentTime = 0;
+            meter.classList.remove('playing');
+            status.innerText = "रोकियो।";
+        } else if (type === 'download') {
+            const link = document.createElement('a');
+            link.href = url;
+            link.target = "_blank";
+            link.download = "nepali_audio.mp3";
+            link.click();
+        }
+    }
+</script>
+
+</body>
+</html>

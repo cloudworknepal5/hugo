@@ -1,0 +1,105 @@
+<style>
+  #label-news-container { 
+    font-family: 'Mukta', sans-serif; 
+    max-width: 100%; 
+  }
+  .news-card {
+    display: flex;
+    background-color: #1a3c61;
+    color: #ffffff !important; /* सबै फन्ट सेतो */
+    margin-bottom: 25px;
+    border-radius: 12px;
+    overflow: hidden;
+    text-decoration: none;
+    transition: transform 0.3s;
+  }
+  .news-card:hover { transform: translateY(-5px); }
+  
+  .news-thumb {
+    flex: 1;
+    min-height: 300px; /* इमेजको हाइट बढाइएको (Height Increased) */
+    background-size: cover;
+    background-position: center;
+    border-right: 1px solid rgba(255,255,255,0.1);
+  }
+  
+  .news-info {
+    flex: 1.2;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  
+  .news-h3 {
+    font-size: 25px; /* Mukta 25px */
+    font-weight: 700; /* Bold */
+    margin: 0 0 15px 0;
+    line-height: 1.3;
+    color: #ffffff !important; /* शीर्षक सेतो */
+  }
+  
+  .news-text {
+    font-size: 16px;
+    color: #ffffff !important; /* विवरण पनि सेतो */
+    opacity: 0.95;
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  /* मोबाइलको लागि मिलाइएको */
+  @media (max-width: 650px) {
+    .news-card { flex-direction: column; }
+    .news-thumb { height: 250px; }
+  }
+</style>
+
+<div id="label-news-container">समाचार लोड हुँदैछ...</div>
+
+<script>
+// Multi-function Configuration
+var labelName = "news"; // लेबल 'news' सेट गरिएको छ
+var maxPosts = 1; // कतिवटा पोस्ट देखाउने?
+
+function displayLabelPosts(json) {
+  var container = document.getElementById('label-news-container');
+  var html = "";
+  
+  if (!json.feed.entry) {
+    container.innerHTML = "यो लेबलमा कुनै पोस्ट भेटिएन।";
+    return;
+  }
+
+  for (var i = 0; i < json.feed.entry.length; i++) {
+    var entry = json.feed.entry[i];
+    var title = entry.title.$t;
+    var link = "";
+    for (var j = 0; j < entry.link.length; j++) {
+      if (entry.link[j].rel == 'alternate') { link = entry.link[j].href; break; }
+    }
+    
+    // Thumbnail Logic (High Quality)
+    var imgUrl = entry.media$thumbnail ? entry.media$thumbnail.url.replace('s72-c', 's1600') : "https://via.placeholder.com/600x400?text=No+Image";
+    
+    // Content Snippet
+    var summary = entry.summary ? entry.summary.$t : (entry.content ? entry.content.$t.replace(/<[^>]*>?/gm, '') : "");
+    var snippet = summary.substring(0, 150);
+
+    html += '<a class="news-card" href="' + link + '">';
+    html += '<div class="news-thumb" style="background-image: url(' + imgUrl + ')"></div>';
+    html += '<div class="news-info">';
+    html += '<h3 class="news-h3">' + title + '</h3>';
+    html += '<div class="news-text">' + snippet + '...</div>';
+    html += '</div></a>';
+  }
+  container.innerHTML = html;
+}
+
+// Data Fetching
+var script = document.createElement('script');
+script.src = "https://birgunj.eu.org/feeds/posts/default/-/" + encodeURIComponent(labelName) + "?alt=json-in-script&callback=displayLabelPosts&max-results=" + maxPosts;
+document.body.appendChild(script);
+</script>

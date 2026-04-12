@@ -1,0 +1,78 @@
+<div style="width: 300px; height: 100px; margin: 10px auto; background: linear-gradient(145deg, #0f0c29, #302b63, #24243e); border-radius: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.4); font-family: 'Segoe UI', Arial, sans-serif; overflow: hidden; position: relative; display: flex; flex-direction: column; justify-content: center; border: 1px solid rgba(0,210,255,0.2);">
+
+  <div style="position: absolute; width: 100%; height: 35%; bottom: 0; display: flex; justify-content: space-around; align-items: flex-end; opacity: 0.15; pointer-events: none;">
+    <div class="bar" style="width:4px; background:#00d2ff; animation: wave 1s infinite alternate;"></div>
+    <div class="bar" style="width:4px; background:#00d2ff; animation: wave 1.2s infinite alternate; animation-delay: 0.2s;"></div>
+    <div class="bar" style="width:4px; background:#00d2ff; animation: wave 0.8s infinite alternate; animation-delay: 0.4s;"></div>
+    <div class="bar" style="width:4px; background:#00d2ff; animation: wave 1.1s infinite alternate; animation-delay: 0.6s;"></div>
+    <div class="bar" style="width:4px; background:#00d2ff; animation: wave 0.9s infinite alternate; animation-delay: 0.8s;"></div>
+  </div>
+
+  <div style="display: flex; align-items: center; padding: 0 12px; margin-bottom: 8px; z-index: 2; overflow: hidden;">
+    <div id="logo-container" style="width: 38px; height: 38px; border-radius: 50%; border: 2px solid #00d2ff; overflow: hidden; flex-shrink: 0; margin-right: 10px; animation: rotateLogo 4s linear infinite; animation-play-state: paused; box-shadow: 0 0 10px rgba(0,210,255,0.4);">
+      <img src="https://blogger.googleusercontent.com/img/a/AVvXsEiBnC4hcDiMC18QrERnMrE8HTsMkzJDQqBmgeGvMpw_MA8NcKTPX3jUdY-byqu7K7iXUR9uByo0VBeiYdx5UXPJQHoslvzt6z-EprS-I-bg-L-w9hC_n2AUfIXuq5Nr5R1jZF5txT9r3_g5zq6FE1O8KcpaTVzrrhTWEIFv2PsjwJTSuLyHWRcjtzKRLnI=s100" 
+           style="width: 100%; height: 100%; object-fit: cover;">
+    </div>
+    
+    <div style="display: flex; flex-direction: column; width: 100%; overflow: hidden;">
+      <span style="color: white; font-size: 13px; font-weight: 800; white-space: nowrap; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">Birgunj Entertainment Unlimited</span>
+      <marquee scrollamount="3" style="color: #00d2ff; font-size: 11px; font-weight: 600; margin-top: 2px;">
+        स्वागत छ, तपाईंलाई वीरगंज इयु एफएममा!
+      </marquee>
+    </div>
+  </div>
+
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 15px; z-index: 2;">
+    <button id="mainBtn" onclick="togglePlayer()" style="width: 34px; height: 34px; border-radius: 50%; border: none; background: #00d2ff; color: #141e30; cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; transition: 0.3s; box-shadow: 0 0 12px rgba(0,210,255,0.5);">▶</button>
+    
+    <div style="display: flex; align-items: center; background: rgba(255,255,255,0.1); padding: 3px 10px; border-radius: 20px; gap: 8px;">
+      <span id="mIcon" onclick="toggleMute()" style="cursor: pointer; font-size: 13px; color: white;">🔊</span>
+      <input type="range" id="vSlider" min="0" max="1" step="0.1" value="1" oninput="adjVol(this.value)" style="width: 80px; height: 3px; cursor: pointer; accent-color: #00d2ff;">
+    </div>
+  </div>
+
+  <audio id="fmLive" src="https://stream-151.zeno.fm/tdfnrjbmb8gtv"></audio>
+</div>
+
+<style>
+  @keyframes rotateLogo { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  @keyframes wave { from { height: 5px; } to { height: 25px; } }
+  .bar { animation-play-state: paused; }
+  input[type=range] { -webkit-appearance: none; background: rgba(255,255,255,0.2); border-radius: 5px; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 11px; width: 11px; border-radius: 50%; background: #fff; cursor: pointer; border: 2px solid #00d2ff; }
+</style>
+
+<script>
+  const radio = document.getElementById('fmLive');
+  const playBtn = document.getElementById('mainBtn');
+  const logo = document.getElementById('logo-container');
+  const bars = document.querySelectorAll('.bar');
+  const muteIcon = document.getElementById('mIcon');
+
+  function togglePlayer() {
+    if (radio.paused) {
+      radio.play();
+      playBtn.innerHTML = "⏸";
+      logo.style.animationPlayState = 'running';
+      bars.forEach(b => b.style.animationPlayState = 'running');
+    } else {
+      radio.pause();
+      playBtn.innerHTML = "▶";
+      logo.style.animationPlayState = 'paused';
+      bars.forEach(b => b.style.animationPlayState = 'paused');
+    }
+  }
+
+  function adjVol(v) {
+    radio.volume = v;
+    radio.muted = false;
+    muteIcon.innerHTML = v == 0 ? "🔇" : (v < 0.5 ? "🔉" : "🔊");
+    muteIcon.style.opacity = "1";
+  }
+
+  function toggleMute() {
+    radio.muted = !radio.muted;
+    muteIcon.style.opacity = radio.muted ? "0.5" : "1";
+    muteIcon.innerHTML = radio.muted ? "🔇" : (radio.volume < 0.5 ? "🔉" : "🔊");
+  }
+</script>

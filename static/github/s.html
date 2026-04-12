@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <title>Ultimate Nepali News Engine - Advanced Features</title>
+    <style>
+        :root { --primary: #e74c3c; --dark: #1a252f; --border: #dcdde1; --success: #27ae60; --blue: #3498db; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; background: #f0f2f5; }
+        
+        /* १. साइडबार */
+        .sidebar { width: 280px; background: var(--dark); color: white; display: flex; flex-direction: column; }
+        .sidebar h2 { padding: 15px; font-size: 16px; background: #000; margin: 0; color: var(--primary); text-align: center; border-bottom: 2px solid var(--primary); }
+        #site-list { flex-grow: 1; overflow-y: auto; }
+        .site-item { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #2c3e50; font-size: 13px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
+        .site-item:hover, .site-item.active { background: var(--primary); }
+        .update-time { font-size: 10px; opacity: 0.6; }
+
+        /* २. हेडलाइन सूची */
+        .headlines-col { width: 400px; background: white; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+        .headlines-col h3 { padding: 15px; margin: 0; border-bottom: 2px solid var(--primary); font-size: 16px; background: #fff; position: sticky; top: 0; z-index: 10; }
+        #headline-list { overflow-y: auto; flex-grow: 1; }
+        .news-card { padding: 15px; border-bottom: 1px solid #eee; cursor: pointer; display: flex; align-items: flex-start; }
+        .news-card.active { border-left: 5px solid var(--primary); background: #fff5f5; }
+        .news-index { font-weight: bold; color: var(--primary); margin-right: 12px; min-width: 25px; }
+        .badge { font-size: 10px; padding: 2px 5px; border-radius: 3px; color: white; margin-left: 5px; font-weight: bold; }
+        .today { background: var(--success); }
+
+        /* ३. समाचार रिडर र कन्ट्रोल बटनहरू */
+        .reader-col { flex-grow: 1; background: white; overflow-y: auto; }
+        .toolbar { position: sticky; top: 0; background: #f8f9fa; padding: 10px 25px; border-bottom: 1px solid var(--border); display: flex; gap: 10px; z-index: 20; display: none; }
+        .btn { padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; color: white; font-weight: bold; font-size: 12px; transition: 0.2s; }
+        .btn-copy { background: var(--blue); }
+        .btn-download { background: var(--success); }
+        .btn:hover { opacity: 0.8; }
+
+        .article-view { max-width: 850px; margin: 0 auto; padding: 30px 25px; }
+        .f-img { width: 100%; max-height: 500px; object-fit: cover; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .f-title { font-size: 32px; font-weight: bold; line-height: 1.3; color: #111; margin-bottom: 15px; }
+        .f-content { font-size: 20px; line-height: 1.8; color: #333; text-align: justify; }
+        .f-content img { max-width: 100%; height: auto; border-radius: 8px; margin: 15px 0; }
+        
+        .loader { border: 3px solid #f3f3f3; border-top: 3px solid var(--primary); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 50px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h2 onclick="location.reload()">🔄 ७०+ न्यूज पोर्टलहरू</h2>
+    <div id="site-list"></div>
+</div>
+
+<div class="headlines-col">
+    <h3 id="current-title">ताजा अपडेटहरू लोड हुँदैछ...</h3>
+    <div id="headline-list"></div>
+</div>
+
+<div class="reader-col">
+    <div class="toolbar" id="article-toolbar">
+        <button class="btn btn-copy" onclick="copyNews()">📋 समाचार कपी गर्नुहोस्</button>
+        <button class="btn btn-download" onclick="downloadRTF()">📥 RTF डाउनलोड</button>
+    </div>
+    <div id="article-body" class="article-view" style="display:none;">
+        <h1 id="f-title" class="f-title"></h1>
+        <p id="f-meta" style="color:#666; font-size:14px; margin-bottom:20px;"></p>
+        <img id="f-img" class="f-img" src="">
+        <div id="f-content" class="f-content"></div>
+    </div>
+    <div id="placeholder" style="text-align:center; color:#ccc; margin-top:200px;">
+        <h3>बायाँबाट समाचार चयन गर्नुहोस्</h3>
+    </div>
+</div>
+
+<script>
+    // तपाइँको OPML बाट तानिएका फिडहरूको सूची
+    const sites = [
+        { name: "Public Readers", url: "https://publicreaders.com/feed/" },
+        { name: "Bara Update", url: "https://baraupdate.com.np/feed/" },
+        { name: "Rato News", url: "https://ratonews.com/feed/" },
+        { name: "Madhesh Sanchar", url: "https://madheshsanchar.com/feed" },
+        { name: "Prateek Daily", url: "https://www.eprateekdaily.com/feed" },
+        { name: "Nepal Press", url: "https://nepalpress.eu.org/feed/" },
+        { name: "Ratopati", url: "https://www.ratopati.com/feed/" },
+        { name: "Birgunj Sanjal", url: "https://birgunjsanjal.com/feed/" },
+        { name: "Janakpur Today", url: "https://ejanakpurtoday.com/feed/" },
+        { name: "Khabarhub", url: "https://khabarhub.com/feed/" },
+        { name: "Online Khabar", url: "https://www.onlinekhabar.com/feed" }
+        // ... OPML मा भएका अन्य सबै ६०+ फिडहरू यहाँ थप्न सकिन्छ
+    ];
+
+    let allFeeds = [];
+    let siteMeta = [];
+
+    // १. सबै फिड लोड गर्ने र अटो-सर्ट गर्ने
+    async function init() {
+        const promises = sites.map(async (site) => {
+            try {
+                const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(site.url)}`);
+                const data = await res.json();
+                if (data.status === 'ok' && data.items.length > 0) {
+                    const lastUpdate = new Date(data.items[0].pubDate);
+                    siteMeta.push({ ...site, lastUpdate, items: data.items });
+                    data.items.forEach(i => allFeeds.push({ ...i, sourceName: site.name }));
+                }
+            } catch (e) {}
+        });
+
+        await Promise.all(promises);
+        siteMeta.sort((a, b) => b.lastUpdate - a.lastUpdate);
+        allFeeds.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+        
+        renderSidebar();
+        renderHeadlines(allFeeds);
+        document.getElementById('current-title').innerText = "सबै ताजा समाचार";
+    }
+
+    function renderSidebar() {
+        const list = document.getElementById('site-list');
+        list.innerHTML = "";
+        siteMeta.forEach(s => {
+            const div = document.createElement('div');
+            div.className = 'site-item';
+            div.innerHTML = `<span>${s.name}</span> <span class="update-time">${s.lastUpdate.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</span>`;
+            div.onclick = () => renderHeadlines(s.items.map(i => ({...i, sourceName: s.name})));
+            list.appendChild(div);
+        });
+    }
+
+    function renderHeadlines(items) {
+        const list = document.getElementById('headline-list');
+        list.innerHTML = "";
+        items.forEach((item, index) => {
+            const date = new Date(item.pubDate);
+            const badge = new Date().toDateString() === date.toDateString() ? '<span class="badge today">आज</span>' : '';
+            const card = document.createElement('div');
+            card.className = 'news-card';
+            card.innerHTML = `
+                <div class="news-index">${index + 1}</div>
+                <div class="news-info">
+                    <small style="color:var(--primary); font-weight:bold;">${item.sourceName}</small>
+                    <h4>${item.title} ${badge}</h4>
+                    <span style="font-size:11px; color:#999;">🕒 ${date.toLocaleTimeString('ne-NP')}</span>
+                </div>
+            `;
+            card.onclick = () => showNews(item, card);
+            list.appendChild(card);
+        });
+    }
+
+    // २. जबरजस्ती कन्टेन्ट र इमेज तान्ने फिचर
+    function showNews(item, card) {
+        document.querySelectorAll('.news-card').forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        document.getElementById('placeholder').style.display = 'none';
+        document.getElementById('article-body').style.display = 'block';
+        document.getElementById('article-toolbar').style.display = 'flex';
+
+        let img = item.thumbnail || (item.enclosure ? item.enclosure.link : "");
+        const content = (item.content || "") + (item.description || "");
+        if (!img) {
+            const match = content.match(/<img.*?src=["'](.*?)["']/i);
+            img = match ? match[1] : "";
+        }
+
+        document.getElementById('f-title').innerText = item.title;
+        document.getElementById('f-meta').innerText = `स्रोत: ${item.sourceName} | मिति: ${item.pubDate}`;
+        const imgEl = document.getElementById('f-img');
+        if (img) { imgEl.src = img; imgEl.style.display = 'block'; } else { imgEl.style.display = 'none'; }
+        document.getElementById('f-content').innerHTML = content;
+        document.querySelector('.reader-col').scrollTop = 0;
+    }
+
+    // ३. नयाँ फिचर: कपी र RTF डाउनलोड
+    function copyNews() {
+        const title = document.getElementById('f-title').innerText;
+        const content = document.getElementById('f-content').innerText;
+        const fullText = `${title}\n\n${content}`;
+        navigator.clipboard.writeText(fullText).then(() => alert("समाचार कपी गरियो!"));
+    }
+
+    function downloadRTF() {
+        const title = document.getElementById('f-title').innerText;
+        const content = document.getElementById('f-content').innerText;
+        // Basic RTF Structure for Nepali Unicode
+        const rtfHeader = "{\\rtf1\\ansi\\ansicpg1252\\deff0{\\fonttbl{\\f0 Arial;}}\n";
+        const rtfBody = `{\\b ${title}}\\line\\line ${content}`;
+        const rtfFooter = "}";
+        const blob = new Blob([rtfHeader + rtfBody + rtfFooter], { type: 'application/rtf' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `${title.substring(0,20)}.rtf`;
+        link.click();
+    }
+
+    init();
+</script>
+</body>
+</html>

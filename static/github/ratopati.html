@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>निर्वाचन २०८२ - बारा १ (फोटो सहित)</title>
+    <style>
+        :root { --primary-color: #e31e24; --bg-color: #f4f7f6; }
+        body { font-family: 'Arial', sans-serif; background-color: var(--bg-color); margin: 0; padding: 15px; }
+        .container { max-width: 500px; margin: auto; background: white; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); overflow: hidden; }
+        
+        .header { background: var(--primary-color); color: white; padding: 15px; text-align: center; }
+        .header h2 { margin: 0; font-size: 1.2rem; }
+
+        .card { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #eee; }
+        
+        /* फोटोको लागि स्टाइल */
+        .photo-wrap { position: relative; width: 60px; height: 60px; border-radius: 50%; overflow: hidden; border: 2px solid #ddd; background: #eee; }
+        .photo-wrap img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .info { flex-grow: 1; margin-left: 15px; }
+        .name { font-weight: bold; font-size: 1rem; color: #222; display: block; }
+        .party { font-size: 0.8rem; color: #666; }
+        
+        .votes { text-align: right; min-width: 80px; }
+        .vote-num { font-size: 1.3rem; font-weight: bold; color: var(--primary-color); display: block; }
+        .vote-txt { font-size: 9px; color: #999; }
+
+        .loading { text-align: center; padding: 30px; color: #777; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h2>निर्वाचन नतिजा: बारा - १</h2>
+        <small>लाइभ अपडेट</small>
+    </div>
+
+    <div id="candidate-list">
+        <div class="loading">उम्मेदवारहरूको फोटो र विवरण लोड हुँदैछ...</div>
+    </div>
+</div>
+
+<script>
+    // १. मुख्य डेटा तान्ने फङ्सन (Fetch Function)
+    async function loadResults() {
+        const target = 'https://election.ratopati.com/candidates?province_id=2&district_id=33';
+        const proxy = 'https://api.allorigins.win/get?url=' + encodeURIComponent(target);
+
+        try {
+            const response = await fetch(proxy);
+            const data = await response.json();
+            renderUI(data.contents);
+        } catch (err) {
+            document.getElementById('candidate-list').innerHTML = "<p class='loading'>नेटवर्कमा समस्या देखियो।</p>";
+        }
+    }
+
+    // २. डेटालाई HTML मा बदल्ने र फोटो हाल्ने फङ्सन (Render Function)
+    function renderUI(html) {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const container = document.getElementById('candidate-list');
+        
+        // रातोपाटीको संरचना अनुसार कार्डहरू खोज्ने
+        const items = doc.querySelectorAll('.candidate-card');
+        
+        if(items.length === 0) {
+            container.innerHTML = "<div class='loading'>अहिले मतगणना सुरु भइसकेको छैन।</div>";
+            return;
+        }
+
+        container.innerHTML = '';
+        items.forEach(item => {
+            // डेटा निकाल्ने
+            const name = item.querySelector('h3')?.innerText || "उम्मेदवार";
+            const party = item.querySelector('.party-name')?.innerText || "स्वतन्त्र";
+            const votes = item.querySelector('.vote-count')?.innerText || "०";
+            
+            // फोटोको URL निकाल्ने
+            let imgSrc = item.querySelector('img')?.src;
+            // यदि फोटो प्रोक्सी मार्फत आउँदा बिग्रेको छ भने रातोपाटीको मुख्य डोमेन जोड्ने
+            if(imgSrc && imgSrc.includes('allorigins')) {
+                const urlParams = new URLSearchParams(new URL(imgSrc).search);
+                imgSrc = urlParams.get('url');
+            }
+
+            container.innerHTML += `
+                <div class="card">
+                    <div class="photo-wrap">
+                        <img src="${imgSrc}" onerror="this.src='https://via.placeholder.com/60?text=User'" alt="${name}">
+                    </div>
+                    <div class="info">
+                        <span class="name">${name}</span>
+                        <span class="party">${party}</span>
+                    </div>
+                    <div class="votes">
+                        <span class="vote-num">${votes}</span>
+                        <span class="vote-txt">प्राप्त मत</span>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    // ३. सुरु गर्ने र हरेक २ मिनेटमा अपडेट गर्ने
+    loadResults();
+    setInterval(loadResults, 120000); 
+</script>
+
+</body>
+</html>

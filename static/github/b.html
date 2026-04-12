@@ -1,0 +1,207 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700;800&display=swap');
+
+    .sidebar-wrapper {
+        font-family: 'Mukta', sans-serif;
+        max-width: 100%;
+        background: #ffffff;
+        padding: 20px;
+        border: 2px solid #cc0000;
+        border-radius: 15px;
+        box-sizing: border-box;
+        box-shadow: 0 15px 40px rgba(0,0,0,0.12);
+        margin: 10px auto;
+        overflow: hidden;
+    }
+
+    /* स्लाइडर फ्रेम र एनिमेसन */
+    .sb-slider-container {
+        overflow: hidden;
+        position: relative;
+        width: 100%;
+        padding: 10px 0;
+    }
+
+    .sb-track {
+        display: flex;
+        width: max-content;
+        /* बायाँबाट दायाँ सार्न (Reverse direction) */
+        animation: scroll-right 40s linear infinite;
+    }
+
+    /* माउस लैजाँदा रोकिने (Hover to Stop) */
+    .sb-track:hover {
+        animation-play-state: paused;
+    }
+
+    @keyframes scroll-right {
+        0% { transform: translateX(-50%); }
+        100% { transform: translateX(0); }
+    }
+
+    /* कार्ड र ग्रिडमा सुधार */
+    .sb-card {
+        background: #fff;
+        border: 1.5px solid #cc0000;
+        border-radius: 12px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        width: 220px;
+        margin: 0 10px;
+        transition: transform 0.3s ease;
+        flex-shrink: 0;
+    }
+    
+    .sb-card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(204, 0, 0, 0.2); }
+
+    .sb-img-box { position: relative; width: 100%; height: 280px; overflow: hidden; background: #f0f0f0; }
+    .sb-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    .sb-badge {
+        position: absolute; right: 8px; bottom: 8px; width: 40px; height: 40px; 
+        background: #fff; border: 2px solid #cc0000; border-radius: 50%; 
+        display: flex; align-items: center; justify-content: center; z-index: 5;
+    }
+    .sb-badge img { width: 80%; height: 80%; object-fit: contain; }
+
+    /* अन्य एलिमेन्टहरु */
+    .sb-logo-area { text-align: center; margin-bottom: 10px; }
+    .sb-main-logo { width: 250px; height: auto; }
+    .sb-header-box { background: #cc0000; padding: 10px; text-align: center; border-radius: 8px; margin-bottom: 20px; }
+    .sb-title-text { color: #fff; font-size: 20px; font-weight: 800; margin: 0; }
+    
+    .sb-area-tag {
+        background: #e74c3c; color: #fff; padding: 2px 10px; border-radius: 4px;
+        font-size: 12px; margin-bottom: 5px; display: inline-block;
+    }
+
+    .sb-info { padding: 10px; text-align: center; }
+    .sb-name { font-size: 16px; font-weight: 800; color: #1a1a1a; }
+    .sb-party { font-size: 13px; font-weight: 700; color: #cc0000; }
+
+    /* कमाण्ड बटम र सर्च */
+    .sb-controls { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 15px; }
+    #sb-search-input { flex: 1; padding: 8px 15px; border-radius: 20px; border: 2px solid #cc0000; outline: none; }
+    #sb-download-btn { background: #27ae60; color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; }
+
+    .sb-block-footer { text-align: center; margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px; }
+    .sb-social-row { display: flex; justify-content: center; gap: 15px; margin-top: 5px; }
+    .sb-social-item { text-decoration: none; font-size: 12px; color: #333; font-weight: bold; display: flex; align-items: center; gap: 4px; }
+    .sb-social-item img { width: 16px; height: 16px; }
+</style>
+
+<div class="sidebar-wrapper" id="capture-area">
+    <div class="sb-controls">
+        <input type="text" id="sb-search-input" placeholder="उम्मेदवार वा क्षेत्र खोज्नुहोस्..." oninput="sbMultiHandler('filter')">
+        <button id="sb-download-btn" onclick="downloadPNG()">Download</button>
+    </div>
+
+    <div class="sb-logo-area" id="logo-container"></div>
+    <div class="sb-header-box"><div class="sb-title-text">निर्वाचन २०८२: हेभिवेट उम्मेदवारहरू</div></div>
+
+    <div class="sb-slider-container">
+        <div id="sb-portal" class="sb-track">
+            लोड हुँदैछ...
+        </div>
+    </div>
+
+    <div class="sb-block-footer">
+        <div style="font-weight: 800; color: #2c3e50; margin-bottom: 5px;">GHANTAGHARTV.COM</div>
+        <div class="sb-social-row">
+            <a href="#" class="sb-social-item"><img src="https://cdn-icons-png.flaticon.com/512/124/124010.png"> घण्टाघरटिभी</a>
+            <a href="#" class="sb-social-item"><img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png"> घण्टाघरटिभी</a>
+        </div>
+    </div>
+</div>
+
+<script>
+let sbRaw = [];
+let sbActive = [];
+
+// Multi-function helper to clean and proxy images
+function getProxyUrl(url) { 
+    return url ? "https://images.weserv.nl/?url=" + encodeURIComponent(url.replace(/https?:\/\//, "")) : ""; 
+}
+
+const logoUrl = getProxyUrl("https://ghantaghartv.com/wp-content/uploads/2022/10/Ghantaghar-TV-banner-png-300.png");
+document.getElementById('logo-container').innerHTML = `<img src="${logoUrl}" class="sb-main-logo" crossorigin="anonymous">`;
+
+function downloadPNG() {
+    const controls = document.querySelector('.sb-controls');
+    controls.style.visibility = "hidden";
+    
+    html2canvas(document.querySelector("#capture-area"), { scale: 2, useCORS: true, backgroundColor: "#ffffff" }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'Heavyweight_Candidates.png';
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+        controls.style.visibility = "visible";
+    });
+}
+
+function sbSync() {
+    const s = document.createElement('script');
+    s.src = "https://www.election.neelamb.com/feeds/posts/default?alt=json-in-script&callback=sbBuild&max-results=50&t=" + new Date().getTime();
+    document.body.appendChild(s);
+}
+
+function sbBuild(json) {
+    const entries = json.feed.entry || [];
+    sbRaw = entries.map(e => {
+        const labels = e.category ? e.category.map(cat => cat.term) : [];
+        const photo = e.media$thumbnail ? e.media$thumbnail.url.replace('s72-c', 's1600') : '';
+        let sign = '';
+        if (e.content && e.content.$t) {
+            const div = document.createElement('div'); div.innerHTML = e.content.$t;
+            const imgs = div.getElementsByTagName('img'); if (imgs.length > 1) sign = imgs[1].src;
+        }
+        return { 
+            name: e.title.$t, 
+            party: labels[1] || "स्वतन्त्र", 
+            area: labels[0] || "निर्वाचन क्षेत्र", 
+            photo: getProxyUrl(photo), 
+            sign: getProxyUrl(sign) 
+        };
+    });
+    sbActive = [...sbRaw];
+    sbRender();
+}
+
+function sbRender() {
+    const container = document.getElementById('sb-portal');
+    let html = '';
+    
+    // Multi-function: Creating a continuous loop by duplicating the list
+    const listToRender = [...sbActive, ...sbActive]; 
+
+    listToRender.forEach(c => {
+        html += `
+            <div class="sb-card">
+                <div class="sb-img-box">
+                    <img src="${c.photo}" class="sb-img" crossorigin="anonymous">
+                    ${c.sign ? `<div class="sb-badge"><img src="${c.sign}" crossorigin="anonymous"></div>` : ''}
+                </div>
+                <div class="sb-info">
+                    <span class="sb-area-tag">${c.area}</span>
+                    <div class="sb-name">${c.name}</div>
+                    <div class="sb-party">${c.party}</div>
+                </div>
+            </div>`;
+    });
+    container.innerHTML = html || "डाटा उपलब्ध छैन";
+}
+
+// Multi-function: Search and dynamic update
+function sbMultiHandler(type) {
+    if(type === 'filter') {
+        const term = document.getElementById('sb-search-input').value.toLowerCase();
+        sbActive = sbRaw.filter(c => c.name.toLowerCase().includes(term) || c.area.toLowerCase().includes(term));
+        sbRender();
+    }
+}
+
+sbSync();
+</script>

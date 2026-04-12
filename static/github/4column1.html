@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+<link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+    .news-paper-box {
+        max-width: 1200px;
+        margin: 10px auto;
+        padding: 10px 20px 20px 20px;
+        background: #fff;
+        border: 1px solid #ddd;
+        font-family: 'Mukta', sans-serif;
+        color: #000;
+    }
+
+    /* हेडलाइन: डेस्कटप ७०, बोल्ड ९०० */
+    .news-headline {
+        font-weight: 900;
+        font-size: 70px;
+        text-align: center;
+        border-bottom: 2px solid #000;
+        margin: 0 0 15px 0;
+        padding: 0 0 2px 0;
+        line-height: 1.0;
+        letter-spacing: -1px;
+    }
+
+    /* डेस्कटपको लागि ४ कोलम ग्रिड */
+    .columns-container {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+    }
+
+    .column-part {
+        font-size: 16px;
+        line-height: 1.5em; 
+        overflow: hidden;
+        text-align: justify;
+    }
+
+    /* डेस्कटप कोलम हाइट */
+    .col-1 { height: calc(1.5em * 14); border-right: 1px solid #eee; padding-right: 10px; }
+    .col-4 { height: calc(1.5em * 13); }
+    .col-mid-text { height: calc(1.5em * 2); margin-top: 10px; }
+
+    /* फोटो सेक्सन */
+    .top-image-container {
+        grid-column: 2 / 4;
+        height: calc(1.5em * 11.5);
+        overflow: hidden;
+        border: 1px solid #eee;
+        margin-bottom: 5px;
+    }
+
+    .top-image-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .read-more-btn {
+        display: block;
+        height: 1.5em;
+        line-height: 1.5em;
+        color: #ce0000;
+        text-decoration: none;
+        font-weight: 800;
+        border-top: 1px dashed #ccc;
+        text-align: right;
+    }
+
+    /* ==========================================
+       मोबाइल रेस्पोन्सिभ सेटिङ्स (Mobile Layout)
+       ========================================== */
+    @media (max-width: 800px) {
+        .news-paper-box {
+            padding: 10px; /* मोबाइलमा प्याडिङ कम */
+            margin: 5px;
+        }
+
+        .news-headline {
+            font-size: 42px; /* मोबाइलमा हेडलाइन ४२px */
+            line-height: 1.1;
+            margin-bottom: 10px;
+        }
+
+        .columns-container {
+            grid-template-columns: 1fr; /* मोबाइलमा एउटै कोलम */
+            gap: 15px;
+        }
+
+        .column-part {
+            height: auto !important; /* मोबाइलमा हाइट फिक्स नगर्ने, सबै टेक्स्ट देखाउने */
+            border: none !important;
+            padding: 0 !important;
+            font-size: 17px; /* मोबाइलमा अक्षर अलि ठूलो र प्रस्ट */
+        }
+
+        .top-image-container {
+            grid-column: span 1; /* फोटोले पूरै चौडाइ ओगट्ने */
+            height: 250px; /* मोबाइलमा फोटोको निश्चित उचाइ */
+            order: -1; /* हेडलाइन पछि सिधै फोटो देखाउने (अप्शनल) */
+        }
+
+        .read-more-btn {
+            text-align: center;
+            background: #f9f9f9;
+            margin-top: 10px;
+            padding: 5px;
+        }
+    }
+</style>
+</head>
+<body>
+
+<div id="newspaper-layout">लोड हुँदैछ...</div>
+
+<script>
+function loadResponsiveLayout(json) {
+    if (!json.feed.entry) return;
+    
+    let entry = json.feed.entry[0];
+    let title = entry.title.$t;
+    let link = entry.link.find(l => l.rel === 'alternate').href;
+    let imgUrl = entry.media$thumbnail ? entry.media$thumbnail.url.replace('s72-c', 's1600') : 'https://via.placeholder.com/600x400';
+    
+    let tempDiv = document.createElement("div");
+    tempDiv.innerHTML = entry.content ? entry.content.$t : entry.summary.$t;
+    let fullText = tempDiv.textContent || tempDiv.innerText || "";
+    
+    fullText = fullText.replace(/^\w+, \d+ \w+\s।\s*/, "").trim();
+
+    // टेक्स्ट विभाजन
+    let col1Text = fullText.substring(0, 600);
+    let col2Text = fullText.substring(600, 680); 
+    let col3Text = fullText.substring(680, 760); 
+    let col4Text = fullText.substring(760, 1300);
+
+    document.getElementById('newspaper-layout').innerHTML = `
+    <div class="news-paper-box">
+        <h1 class="news-headline">${title}</h1>
+        <div class="columns-container">
+            <div class="column-part col-1">${col1Text}</div>
+            
+            <div style="grid-column: span 2;" class="mobile-media-group">
+                <div class="top-image-container">
+                    <img src="${imgUrl}" alt="News Image">
+                </div>
+                <div class="mid-text-wrap" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="column-part col-mid-text">${col2Text}</div>
+                    <div class="column-part col-mid-text">${col3Text}</div>
+                </div>
+            </div>
+
+            <div>
+                <div class="column-part col-4">${col4Text}...</div>
+                <a href="${link}" class="read-more-btn">थप पढ्नुहोस् ➔</a>
+            </div>
+        </div>
+    </div>
+    `;
+    
+    // मोबाइलमा २ र ३ कोलमलाई एउटै बनाउन थप CSS मिलाउने
+    if(window.innerWidth < 800) {
+        document.querySelector('.mid-text-wrap').style.gridTemplateColumns = '1fr';
+    }
+}
+</script>
+
+<script src="https://birgunj.eu.org/feeds/posts/default?alt=json-in-script&callback=loadResponsiveLayout&max-results=1"></script>
+
+</body>
+</html>
