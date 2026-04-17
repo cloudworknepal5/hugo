@@ -1,3 +1,19 @@
+./hugo new posts/nayan-samachar.md
+
+
+
+
+
+
+
+
+
+
+git init
+git remote add origin https://github.com/cloudworknepal5/hugo.git
+git branch -M main
+
+
 git add .
 git commit -m "fixed redirect_uri for custom domain"
 git push origin main
