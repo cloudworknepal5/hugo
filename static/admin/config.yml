@@ -2,8 +2,7 @@ backend:
   name: github
   repo: cloudworknepal5/hugo
   branch: main
-  # यसले गर्दा तपाईंलाई छुट्टै सर्भर चाहिँदैन
-  use_graphql: true 
+  base_url: https://proweb-auth.onrender.com # यो एउटा फ्री पब्लिक अथेन्टिकेटर हो
 
 media_folder: "static/img"
 public_folder: "/img"
