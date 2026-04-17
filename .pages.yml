@@ -1,0 +1,27 @@
+media:
+  input: static/img
+  output: /img
+
+collections:
+  - name: posts
+    label: News Posts
+    type: folder
+    path: content/posts
+    format: md
+    fields:
+      - name: title
+        label: Title
+        type: string
+      - name: date
+        label: Publish Date
+        type: datetime
+      - name: thumbnail
+        label: Featured Image
+        type: image
+      - name: draft
+        label: Draft
+        type: boolean
+        default: false
+      - name: body
+        label: Body
+        type: markdown
