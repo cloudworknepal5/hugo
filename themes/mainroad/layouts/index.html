@@ -1,24 +1,68 @@
 {{ define "main" }}
-<main class="main list" role="main">
-	{{- with .Content }}
-	<div class="content main__content clearfix">
-		{{ . }}
-	</div>
-	{{- end }}
-	{{ $paginator := .Paginate (where .Site.RegularPages "Type" "in" .Site.Params.mainSections) }}
-	{{- range $paginator.Pages }}
-		{{- .Render "summary" }}
-	{{- end }}
-	{{- if and (eq $paginator.TotalNumberOfElements 0) (not $.Content) }}
-		<div class="warning">
-			{{ partial "svg/files.svg" (dict "class" "warning__icon") }}
-			<h3 class="warning__headline">{{ T "noposts_warning_title" | safeHTML }}</h3>
-			<div class="warning__text">
-				<p class="warning__description">{{ T "noposts_warning_description" | safeHTML }}</p>
-				<p class="warning__tip">{{ T "noposts_warning_tip" | safeHTML }}</p>
-			</div>
-		</div>
-	{{ end }}
+
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  .perspective { perspective: 1200px; }
+  .card-3d {
+    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+    transform-style: preserve-3d;
+  }
+  .card-3d:hover {
+    transform: rotateX(8deg) rotateY(-8deg) scale(1.02);
+    box-shadow: 0 30px 60px rgba(0,0,0,0.15);
+  }
+  .inner-content { transform: translateZ(40px); }
+</style>
+
+<main class="bg-gray-50 py-10">
+    <div class="max-w-7xl mx-auto px-4">
+        
+        {{- with .Content }}
+        <div class="mb-12 p-6 bg-white rounded-xl shadow-sm border-l-4 border-blue-600">
+            {{ . }}
+        </div>
+        {{- end }}
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 perspective">
+            {{ $paginator := .Paginate (where .Site.RegularPages "Type" "in" .Site.Params.mainSections) }}
+            {{- range $paginator.Pages }}
+            <article class="card-3d bg-white rounded-2xl overflow-hidden shadow-md border border-gray-100 group">
+                
+                <div class="relative h-56 overflow-hidden">
+                    {{ if .Params.thumbnail }}
+                        <img src="{{ .Params.thumbnail | absURL }}" alt="{{ .Title }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                    {{ else }}
+                        <div class="w-full h-full bg-blue-100 flex items-center justify-center text-blue-400 font-bold">Neelam News</div>
+                    {{ end }}
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-60"></div>
+                </div>
+
+                <div class="p-6 inner-content">
+                    <span class="text-xs font-bold text-blue-600 uppercase tracking-widest">{{ .Type }}</span>
+                    <h2 class="text-xl font-bold mt-2 mb-3 leading-tight text-gray-800 hover:text-blue-700 transition-colors">
+                        <a href="{{ .Permalink }}">{{ .Title }}</a>
+                    </h2>
+                    <p class="text-gray-600 text-sm line-clamp-3 mb-4">
+                        {{ .Summary | truncate 120 }}
+                    </p>
+                    <div class="flex items-center justify-between pt-4 border-t border-gray-50">
+                        <span class="text-xs text-gray-400 italic">{{ .Date.Format "Jan 2, 2006" }}</span>
+                        <a href="{{ .Permalink }}" class="text-sm font-bold text-blue-500 hover:text-blue-800 transition-all">थप पढ्नुहोस् →</a>
+                    </div>
+                </div>
+            </article>
+            {{- end }}
+        </div>
+
+        <div class="mt-16 flex justify-center">
+            {{ partial "pagination.html" . }}
+        </div>
+
+        {{- if and (eq $paginator.TotalNumberOfElements 0) (not $.Content) }}
+            <div class="text-center py-20 bg-white rounded-3xl shadow-inner border-2 border-dashed border-gray-200">
+                <h3 class="text-2xl font-bold text-gray-400">अहिले कुनै समाचार फेला परेन।</h3>
+            </div>
+        {{ end }}
+    </div>
 </main>
-{{ partial "pagination.html" . }}
 {{ end }}
