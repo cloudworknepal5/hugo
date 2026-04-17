@@ -1,29 +1,108 @@
-<ul class="github-file-list">
-  {{ $path := "static/github" }}
-  {{ if (fileExists $path) }}
-    {{ range (readDir $path) }}
-      <li>
-        <a href="{{ if .IsDir }}#{{ else }}/github/{{ .Name }}{{ end }}" {{ if not .IsDir }}target="_blank"{{ end }}>
-          {{ if .IsDir }}
-            <i class="fa fa-folder" style="color: #f1c40f;"></i> 
-            <span style="color: #2c3e50;">{{ .Name }}/</span>
-          {{ else }}
-            <i class="fa fa-file" style="color: #3498db;"></i> 
-            {{ .Name }} 
-            <small style="color: #999; font-weight: normal;">({{ (div .Size 1024) }} KB)</small>
-          {{ end }}
-        </a>
-      </li>
+<div class="neelam-github-container">
+  <ul class="github-file-list">
+    {{ $path := "static/github" }}
+    
+    {{ if (fileExists $path) }}
+      {{ range (readDir $path) }}
+        <li class="file-item {{ if .IsDir }}is-folder{{ else }}is-file{{ end }}">
+          <a href="{{ if .IsDir }}/github/{{ .Name }}/{{ else }}/github/{{ .Name }}{{ end }}" 
+             {{ if not .IsDir }}target="_blank"{{ end }} 
+             class="file-link">
+            
+            <div class="icon-wrapper">
+              {{ if .IsDir }}
+                <i class="fa fa-folder text-yellow-500"></i>
+              {{ else }}
+                <i class="fa fa-file-alt text-blue-500"></i>
+              {{ end }}
+            </div>
+
+            <div class="info-wrapper">
+              <span class="file-name">{{ .Name }}{{ if .IsDir }}/{{ end }}</span>
+              {{ if not .IsDir }}
+                <span class="file-size">{{ (div .Size 1024) }} KB</span>
+              {{ else }}
+                <span class="file-size text-gray-400">Directory</span>
+              {{ end }}
+            </div>
+
+            {{ if .IsDir }}
+              <div class="chevron">
+                <i class="fa fa-chevron-right text-gray-300"></i>
+              </div>
+            {{ end }}
+          </a>
+        </li>
+      {{ end }}
+    {{ else }}
+      <div class="error-msg">
+        <i class="fa fa-exclamation-triangle"></i> फोल्डर "static/github" फेला परेन।
+      </div>
     {{ end }}
-  {{ else }}
-    <p>फोल्डर फेला परेन।</p>
-  {{ end }}
-</ul>
+  </ul>
+</div>
 
 <style>
-  .github-file-list { list-style: none; padding: 0; font-family: sans-serif; }
-  .github-file-list li { margin-bottom: 8px; padding: 8px; border-bottom: 1px solid #eee; transition: 0.3s; }
-  .github-file-list li:hover { background: #f9f9f9; }
-  .github-file-list a { text-decoration: none; color: #007bff; font-weight: bold; display: flex; align-items: center; gap: 10px; }
-  .github-file-list a:hover { color: #0056b3; }
+  .neelam-github-container {
+    background: #ffffff;
+    border-radius: 20px;
+    border: 1px solid #eee;
+    overflow: hidden;
+    margin: 20px 0;
+    font-family: 'Mukta', sans-serif;
+  }
+  .github-file-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .file-item {
+    border-bottom: 1px solid #f9f9f9;
+    transition: all 0.2s ease;
+  }
+  .file-item:last-child {
+    border-bottom: none;
+  }
+  .file-item:hover {
+    background-color: #f8fafc;
+  }
+  .file-link {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    text-decoration: none;
+    color: #1e293b;
+    gap: 15px;
+  }
+  .icon-wrapper {
+    font-size: 1.4rem;
+    width: 30px;
+    display: flex;
+    justify-content: center;
+  }
+  .text-yellow-500 { color: #f59e0b; }
+  .text-blue-500 { color: #3b82f6; }
+  
+  .info-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .file-name {
+    font-weight: 700;
+    font-size: 1.05rem;
+  }
+  .file-size {
+    font-size: 0.8rem;
+    color: #64748b;
+  }
+  .chevron {
+    font-size: 0.8rem;
+  }
+  .error-msg {
+    padding: 20px;
+    color: #ef4444;
+    text-align: center;
+    font-weight: bold;
+  }
 </style>
