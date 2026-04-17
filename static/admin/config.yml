@@ -1,9 +1,10 @@
 backend:
-  name: git-gateway
+  name: github
+  repo: cloudworknepal5/hugo
   branch: main
-  site_domain: musical-klepon-d9603a.netlify.app
-  
-  
+  # यसले गर्दा तपाईंलाई छुट्टै सर्भर चाहिँदैन
+  use_graphql: true 
+
 media_folder: "static/img"
 public_folder: "/img"
 
