@@ -1,96 +1,108 @@
-<div class="neelam-explorer">
-  <ul class="github-list">
+<div class="neelam-github-container">
+  <ul class="github-file-list">
     {{ $path := "static/github" }}
+    
     {{ if (fileExists $path) }}
       {{ range (readDir $path) }}
-        <li class="item-container">
-          {{ if .IsDir }}
-            <div class="folder-header" onclick="toggleFolder(this)">
-              <i class="fa fa-folder-open icon-folder"></i>
-              <span class="name">{{ .Name }}</span>
-              <i class="fa fa-chevron-down arrow"></i>
-            </div>
+        <li class="file-item {{ if .IsDir }}is-folder{{ else }}is-file{{ end }}">
+          <a href="{{ if .IsDir }}/github/{{ .Name }}/{{ else }}/github/{{ .Name }}{{ end }}" 
+             {{ if not .IsDir }}target="_blank"{{ end }} 
+             class="file-link">
             
-            <ul class="sub-folder hidden">
-              {{ $subPath := (printf "%s/%s" $path .Name) }}
-              {{ range (readDir $subPath) }}
-                <li>
-                  <a href="/github/{{ $.Name }}/{{ .Name }}" target="_blank" class="sub-file">
-                    <i class="fa fa-file-alt"></i> {{ .Name }}
-                    <span class="size">{{ (div .Size 1024) }} KB</span>
-                  </a>
-                </li>
+            <div class="icon-wrapper">
+              {{ if .IsDir }}
+                <i class="fa fa-folder text-yellow-500"></i>
+              {{ else }}
+                <i class="fa fa-file-alt text-blue-500"></i>
               {{ end }}
-              {{ if not (readDir $subPath) }}
-                <li class="empty-msg">यो फोल्डर खाली छ।</li>
-              {{ end }}
-            </ul>
+            </div>
 
-          {{ else }}
-            <a href="/github/{{ .Name }}" target="_blank" class="file-direct">
-              <i class="fa fa-file icon-file"></i>
-              <span class="name">{{ .Name }}</span>
-              <span class="size">{{ (div .Size 1024) }} KB</span>
-            </a>
-          {{ end }}
+            <div class="info-wrapper">
+              <span class="file-name">{{ .Name }}{{ if .IsDir }}/{{ end }}</span>
+              {{ if not .IsDir }}
+                <span class="file-size">{{ (div .Size 1024) }} KB</span>
+              {{ else }}
+                <span class="file-size text-gray-400">Directory</span>
+              {{ end }}
+            </div>
+
+            {{ if .IsDir }}
+              <div class="chevron">
+                <i class="fa fa-chevron-right text-gray-300"></i>
+              </div>
+            {{ end }}
+          </a>
         </li>
       {{ end }}
     {{ else }}
-      <p class="error">static/github फोल्डर पाइएन।</p>
+      <div class="error-msg">
+        <i class="fa fa-exclamation-triangle"></i> फोल्डर "static/github" फेला परेन।
+      </div>
     {{ end }}
   </ul>
 </div>
 
-<script>
-function toggleFolder(element) {
-    // क्लिक गरिएको फोल्डरको मुनि रहेको लिस्ट (ul) खोज्ने
-    const subFolder = element.nextElementSibling;
-    const arrow = element.querySelector('.arrow');
-    
-    // देखाउने वा लुकाउने (Toggle)
-    if (subFolder.classList.contains('hidden')) {
-        subFolder.classList.remove('hidden');
-        element.classList.add('active');
-        arrow.style.transform = 'rotate(180deg)';
-    } else {
-        subFolder.classList.add('hidden');
-        element.classList.remove('active');
-        arrow.style.transform = 'rotate(0deg)';
-    }
-}
-</script>
-
 <style>
-  .neelam-explorer { font-family: 'Mukta', sans-serif; max-width: 600px; margin: auto; }
-  .github-list { list-style: none; padding: 0; border: 1px solid #e2e8f0; border-radius: 15px; overflow: hidden; background: white; }
+  .neelam-github-container {
+    background: #ffffff;
+    border-radius: 20px;
+    border: 1px solid #eee;
+    overflow: hidden;
+    margin: 20px 0;
+    font-family: 'Mukta', sans-serif;
+  }
+  .github-file-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .file-item {
+    border-bottom: 1px solid #f9f9f9;
+    transition: all 0.2s ease;
+  }
+  .file-item:last-child {
+    border-bottom: none;
+  }
+  .file-item:hover {
+    background-color: #f8fafc;
+  }
+  .file-link {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    text-decoration: none;
+    color: #1e293b;
+    gap: 15px;
+  }
+  .icon-wrapper {
+    font-size: 1.4rem;
+    width: 30px;
+    display: flex;
+    justify-content: center;
+  }
+  .text-yellow-500 { color: #f59e0b; }
+  .text-blue-500 { color: #3b82f6; }
   
-  /* फोल्डर स्टाइल */
-  .folder-header { 
-    display: flex; align-items: center; padding: 15px; cursor: pointer; 
-    background: #fff; border-bottom: 1px solid #f1f5f9; transition: 0.2s;
+  .info-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
   }
-  .folder-header:hover { background: #f8fafc; }
-  .folder-header.active { background: #fffbeb; }
-  .icon-folder { color: #f59e0b; margin-right: 12px; font-size: 1.2rem; }
-  .name { font-weight: 700; flex: 1; color: #1e293b; }
-  .arrow { font-size: 0.8rem; color: #94a3b8; transition: 0.3s; }
-
-  /* भित्रका फाइलहरूको स्टाइल */
-  .sub-folder { list-style: none; padding-left: 0; background: #fefce8; border-bottom: 1px solid #f1f5f9; }
-  .sub-folder.hidden { display: none; }
-  .sub-file { 
-    display: flex; align-items: center; padding: 10px 15px 10px 45px; 
-    text-decoration: none; color: #475569; font-size: 0.9rem; border-bottom: 1px dashed #f1f5f9;
+  .file-name {
+    font-weight: 700;
+    font-size: 1.05rem;
   }
-  .sub-file:hover { color: #2563eb; background: #fff; }
-  .sub-file i { margin-right: 10px; opacity: 0.6; }
-
-  /* सिधै फाइल स्टाइल */
-  .file-direct { 
-    display: flex; align-items: center; padding: 15px; text-decoration: none; 
-    color: #1e293b; border-bottom: 1px solid #f1f5f9; 
+  .file-size {
+    font-size: 0.8rem;
+    color: #64748b;
   }
-  .icon-file { color: #3b82f6; margin-right: 12px; }
-  .size { font-size: 0.75rem; color: #94a3b8; margin-left: auto; }
-  .empty-msg { padding: 10px 45px; font-size: 0.8rem; color: #94a3b8; font-style: italic; }
+  .chevron {
+    font-size: 0.8rem;
+  }
+  .error-msg {
+    padding: 20px;
+    color: #ef4444;
+    text-align: center;
+    font-weight: bold;
+  }
 </style>
