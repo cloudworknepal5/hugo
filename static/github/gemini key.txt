@@ -1,0 +1,21 @@
+neelamb
+AIzaSyBNWjPUmKWnHcdlQrvAq7qRSKOdIt1APcM
+projects/762708436304
+762708436304
+
+
+curl "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent" \
+  -H 'Content-Type: application/json' \
+  -H 'X-goog-api-key: AIzaSyBNWjPUmKWnHcdlQrvAq7qRSKOdIt1APcM' \
+  -X POST \
+  -d '{
+    "contents": [
+      {
+        "parts": [
+          {
+            "text": "Explain how AI works in a few words"
+          }
+        ]
+      }
+    ]
+  }'
