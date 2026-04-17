@@ -1,5 +1,7 @@
 ./hugo new posts/nayan-samachar.md
 
+git add . && git commit -m "update" && git push origin main
+
 
 
 
