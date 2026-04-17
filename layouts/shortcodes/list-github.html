@@ -1,0 +1,24 @@
+<ul class="github-file-list">
+  {{ $path := "static/github" }}
+  {{ if (fileExists $path) }}
+    {{ range (readDir $path) }}
+      {{ if not .IsDir }}
+        <li>
+          <a href="/github/{{ .Name }}" target="_blank">
+            <i class="fa fa-file"></i> {{ .Name }} 
+            <small>({{ (div .Size 1024) }} KB)</small>
+          </a>
+        </li>
+      {{ end }}
+    {{ end }}
+  {{ else }}
+    <p>फोल्डर फेला परेन।</p>
+  {{ end }}
+</ul>
+
+<style>
+  .github-file-list { list-style: none; padding: 0; }
+  .github-file-list li { margin-bottom: 8px; padding: 5px; border-bottom: 1px solid #eee; }
+  .github-file-list a { text-decoration: none; color: #007bff; font-weight: bold; }
+  .github-file-list a:hover { color: #0056b3; }
+</style>
