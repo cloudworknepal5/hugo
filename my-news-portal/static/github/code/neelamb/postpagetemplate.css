@@ -1,0 +1,101 @@
+/* * Name: Post Page Template (Ratopati Inspired)
+ * Version: 1.0
+ * Function: Multi-device Responsive News Layout
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700;800&display=swap');
+
+:root {
+    --rp-main: #ed1c24; /* Ratopati Red */
+    --rp-text: #1a1a1a;
+    --rp-meta: #555555;
+    --rp-bg: #ffffff;
+}
+
+.post-page-wrapper {
+    max-width: 820px;
+    margin: 20px auto;
+    padding: 0 20px;
+    font-family: 'Mukta', sans-serif;
+    background: var(--rp-bg);
+}
+
+/* Headline Multi-function */
+.post-title-main {
+    font-size: clamp(45px, 5vw, 42px);
+    line-height: 1.25;
+    font-weight: 800;
+    color: var(--rp-text);
+    margin-bottom: 25px;
+    letter-spacing: -0.5px;
+}
+
+/* Author & Meta Section */
+.post-author-section {
+    display: flex;
+    align-items: center;
+    border-top: 3px solid var(--rp-main);
+    padding: 15px 0;
+    margin-bottom: 30px;
+}
+
+.author-thumb {
+    width: 65px;
+    height: 65px;
+    border-radius: 50%;
+    margin-right: 15px;
+    object-fit: cover;
+    border: 1px solid #ddd;
+}
+
+.author-details .name {
+    display: block;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--rp-main);
+}
+
+.author-details .location-date {
+    font-size: 15px;
+    color: var(--rp-meta);
+}
+
+/* Content Area */
+.post-body-content {
+    font-size: 21px;
+    line-height: 1.9;
+    color: #333;
+    text-align: justify;
+}
+
+.post-body-content p {
+    margin-bottom: 25px;
+}
+
+/* Social Sharing Buttons */
+.multi-share-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.share-btn {
+    padding: 10px 20px;
+    border-radius: 4px;
+    color: #fff !important;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    transition: 0.2s;
+}
+
+.share-fb { background: #3b5998; }
+.share-tw { background: #000000; }
+.share-wa { background: #25d366; }
+
+.share-btn:hover { opacity: 0.9; transform: translateY(-2px); }

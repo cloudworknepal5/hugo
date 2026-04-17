@@ -1,0 +1,238 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700;800&display=swap');
+    
+    .sidebar-wrapper {
+        font-family: 'Mukta', sans-serif;
+        max-width: 100%;
+        background: #ffffff;
+        padding: 12px;
+        border: 1px solid #e1e1e1;
+        border-radius: 12px;
+        box-sizing: border-box;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        margin: 5px auto;
+    }
+
+    /* डाउनलोड र सर्च बार */
+    .sb-download-box { text-align: right; margin-bottom: 10px; }
+    #sb-download-btn { background: #27ae60; color: white; border: none; padding: 8px 15px; border-radius: 5px; font-weight: 700; cursor: pointer; font-size: 13px; }
+    .sb-search-container { margin-bottom: 10px; }
+    #sb-search-input { width: 100%; padding: 8px 15px; border-radius: 25px; border: 2px solid #cc0000; font-size: 16px; outline: none; box-sizing: border-box; }
+    
+    /* लोगो र हेडर */
+    .sb-logo-area { text-align: center; margin-bottom: 5px; }
+    .sb-main-logo { width: 280px; height: auto; max-width: 85%; object-fit: contain; display: inline-block; }
+    .sb-header-box { background: #cc0000; padding: 10px; text-align: center; border-radius: 4px; margin-bottom: 15px; }
+    .sb-title-text { color: #fff; font-size: 20px; font-weight: 800; margin: 0; }
+
+    /* एरिया स्टाइल */
+    .sb-area-header { display: flex; align-items: center; text-align: center; margin: 15px 0 10px; }
+    .sb-area-header::before, .sb-area-header::after { content: ""; flex: 1; border-bottom: 2px solid #e74c3c; }
+    .sb-area-name { background: #e74c3c; color: #fff; padding: 4px 20px; font-size: 16px; font-weight: 700; border-radius: 50px; margin: 0 12px; white-space: nowrap; }
+
+    /* ग्रिड र कार्ड */
+    .sb-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; }
+    .sb-card { background: #fff; border: 1.5px solid #cc0000; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; position: relative; }
+    .sb-img-box { position: relative; width: 100%; height: 400px; overflow: hidden; background: #f0f0f0; }
+    .sb-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    
+    .sb-badge {
+        position: absolute; right: 8px; bottom: 8px; width: 45px; height: 45px; background: #ffffff;
+        border: 2px solid #cc0000; border-radius: 50%; padding: 3px; display: flex;
+        align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.2); z-index: 5;
+    }
+    .sb-badge img { width: 90%; height: 90%; object-fit: contain; }
+    
+    .sb-info { padding: 12px 4px; text-align: center; background: #fff; }
+    .sb-name { font-size: 18px; font-weight: 800; color: #1a1a1a; margin-bottom: 0; }
+
+    .sb-divider { border-bottom: 2px dashed #ffcccc; margin: 15px 0; width: 100%; }
+
+    /* फुटर */
+    .sb-block-footer { text-align: center; margin-top: 15px; padding-top: 10px; border-top: 1px solid #eee; }
+    .sb-web-container { display: flex; align-items: center; margin-bottom: 8px; }
+    .sb-web-container::before, .sb-web-container::after { content: ""; flex: 1; border-bottom: 2px solid #2c3e50; }
+    .sb-web-link { font-size: 16px; font-weight: 800; color: #2c3e50; text-decoration: none; margin: 0 10px; letter-spacing: 1px; }
+    
+    .sb-social-row { display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap; }
+    .sb-social-item { display: flex; align-items: center; gap: 5px; text-decoration: none; color: #333; font-weight: 700; font-size: 13px; }
+    .sb-social-item img { width: 18px; height: 18px; }
+
+    @media (max-width: 768px) {
+        .sb-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .sb-img-box { height: 250px; }
+    }
+    
+    /* बटन स्टाइल */
+    .sb-btn-group { display: flex; gap: 10px; margin-top: 15px; }
+    #sb-load-btn, #sb-prev-btn { flex: 1; border: none; padding: 12px; font-size: 14px; font-weight: 800; border-radius: 30px; cursor: pointer; color: #fff; }
+    #sb-load-btn { background: #2c3e50; }
+    #sb-prev-btn { background: #7f8c8d; }
+</style>
+
+<div class="sidebar-wrapper" id="capture-area">
+    <div class="sb-download-box">
+        <button id="sb-download-btn" onclick="downloadPNG()">Download PNG</button>
+    </div>
+    <div class="sb-search-container">
+        <input type="text" id="sb-search-input" placeholder="उम्मेदवार वा क्षेत्र खोज्नुहोस्..." oninput="sbMultiHandler('filter')">
+    </div>
+    
+    <div class="sb-logo-area" id="logo-container"></div>
+    
+    <div class="sb-header-box">
+        <div class="sb-title-text">प्रतिनिधिसभा निर्वाचन अपडेट: हेभिवेट उम्मेदवारहरू</div>
+    </div>
+    
+    <div id="sb-portal">लोड हुँदैछ...</div>
+
+    <div class="sb-block-footer">
+        <div class="sb-web-container">
+            <a href="https://ghantaghartv.com" target="_blank" class="sb-web-link">GHANTAGHARTV.COM</a>
+        </div>
+        <div class="sb-social-row">
+            <a href="https://facebook.com/ghantaghartv" target="_blank" class="sb-social-item">
+                <img src="https://cdn-icons-png.flaticon.com/512/124/124010.png" alt="FB"> घण्टाघरटिभी
+            </a>
+            <a href="https://youtube.com/ghantaghartv" target="_blank" class="sb-social-item">
+                <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" alt="YT"> घण्टाघरटिभी
+            </a>
+            <a href="https://tiktok.com/@ghantaghartv" target="_blank" class="sb-social-item">
+                <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png" alt="TK"> घण्टाघरटिभी
+            </a>
+        </div>
+    </div>
+
+    <div class="sb-btn-group">
+        <button id="sb-prev-btn" style="display:none;" onclick="sbMultiHandler('prev')">अघिल्लो (Previous)</button>
+        <button id="sb-load-btn" onclick="sbMultiHandler('next')">अर्को हेर्नुहोस् (Next Area)</button>
+    </div>
+</div>
+
+<script>
+let sbRaw = []; 
+let sbActive = []; 
+let sbCurrentIndex = 0; // कुन इन्डेक्सको डाटा देखाउने भन्ने ट्र्याक गर्न
+
+function getProxyUrl(url) { 
+    return url ? "https://images.weserv.nl/?url=" + encodeURIComponent(url.replace(/https?:\/\//, "")) : ""; 
+}
+
+const logoUrl = getProxyUrl("https://ghantaghartv.com/wp-content/uploads/2022/10/Ghantaghar-TV-banner-png-300.png");
+document.getElementById('logo-container').innerHTML = `<img src="${logoUrl}" class="sb-main-logo" crossorigin="anonymous">`;
+
+function downloadPNG() {
+    const btn = document.getElementById('sb-download-btn');
+    const search = document.querySelector('.sb-search-container');
+    const btnGroup = document.querySelector('.sb-btn-group');
+    
+    btn.style.display = "none"; 
+    search.style.display = "none"; 
+    btnGroup.style.display = "none";
+    
+    html2canvas(document.querySelector("#capture-area"), { 
+        scale: 3, 
+        useCORS: true, 
+        backgroundColor: "#ffffff" 
+    }).then(canvas => {
+        const link = document.createElement('a'); 
+        link.download = 'GhantagharTV_Report_2082.png'; 
+        link.href = canvas.toDataURL("image/png", 1.0); 
+        link.click();
+        
+        btn.style.display = "inline-block"; 
+        search.style.display = "block"; 
+        btnGroup.style.display = "flex";
+    });
+}
+
+function sbSync() {
+    const s = document.createElement('script');
+    s.src = "https://www.election.neelamb.com/feeds/posts/default?alt=json-in-script&callback=sbBuild&max-results=100&t=" + new Date().getTime();
+    document.body.appendChild(s);
+}
+
+function sbBuild(json) {
+    const entries = json.feed.entry || [];
+    const processed = entries.map(e => {
+        const labels = e.category ? e.category.map(cat => cat.term) : [];
+        let area = "अन्य क्षेत्र";
+        let aIdx = labels.findIndex(l => l.includes("क्षेत्र") || l.includes("निर्वाचन") || l.includes("काठमाडौं") || l.includes("मोरङ"));
+        if (aIdx !== -1) area = labels[aIdx];
+        else if (labels.length > 0) area = labels[0];
+
+        const photo = e.media$thumbnail ? e.media$thumbnail.url.replace('s72-c', 's1600') : '';
+        let sign = '';
+        if (e.content && e.content.$t) {
+            const div = document.createElement('div'); 
+            div.innerHTML = e.content.$t;
+            const imgs = div.getElementsByTagName('img'); 
+            if (imgs.length > 1) sign = imgs[1].src;
+        }
+        return { name: e.title.$t, area: area, photo: getProxyUrl(photo), sign: getProxyUrl(sign) };
+    });
+    
+    const grouped = {};
+    processed.forEach(item => { 
+        if (!grouped[item.area]) grouped[item.area] = []; 
+        grouped[item.area].push(item); 
+    });
+    
+    sbRaw = Object.keys(grouped).map(area => ({ area: area, candidates: grouped[area] }));
+    sbActive = [...sbRaw]; 
+    sbRender();
+}
+
+function sbRender() {
+    const container = document.getElementById('sb-portal');
+    const nextBtn = document.getElementById('sb-load-btn');
+    const prevBtn = document.getElementById('sb-prev-btn');
+    
+    let html = '';
+    
+    // वर्तमान इन्डेक्सको डाटा मात्र देखाउने (यसले गर्दा अघिल्लो लुक्छ)
+    if (sbActive.length > 0) {
+        const group = sbActive[sbCurrentIndex];
+        html += `<div class="sb-area-header"><div class="sb-area-name">${group.area}</div></div><div class="sb-grid">`;
+        group.candidates.forEach(c => {
+            html += `
+            <div class="sb-card">
+                <div class="sb-img-box">
+                    <img src="${c.photo}" class="sb-img" crossorigin="anonymous">
+                    ${c.sign ? `<div class="sb-badge"><img src="${c.sign}" crossorigin="anonymous"></div>` : ''}
+                </div>
+                <div class="sb-info">
+                    <div class="sb-name">${c.name}</div>
+                </div>
+            </div>`;
+        });
+        html += `</div>`;
+    }
+    
+    container.innerHTML = html || "डाटा फेला परेन";
+    
+    // बटनहरूको भिजिबिलिटी कन्ट्रोल गर्ने
+    if(prevBtn) prevBtn.style.display = (sbCurrentIndex > 0) ? 'block' : 'none';
+    if(nextBtn) nextBtn.style.display = (sbCurrentIndex < sbActive.length - 1) ? 'block' : 'none';
+}
+
+function sbMultiHandler(action) {
+    if(action === 'filter') {
+        const term = document.getElementById('sb-search-input').value.toLowerCase();
+        sbActive = sbRaw.filter(g => 
+            g.area.toLowerCase().includes(term) || 
+            g.candidates.some(c => c.name.toLowerCase().includes(term))
+        );
+        sbCurrentIndex = 0; // फिल्टर गर्दा सुरुबाट देखाउने
+    } else if(action === 'next') { 
+        if (sbCurrentIndex < sbActive.length - 1) sbCurrentIndex++; 
+    } else if(action === 'prev') {
+        if (sbCurrentIndex > 0) sbCurrentIndex--;
+    }
+    sbRender();
+}
+
+sbSync();
+</script>

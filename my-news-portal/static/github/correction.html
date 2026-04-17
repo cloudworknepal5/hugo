@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>नेपाली टेक्स्ट करेक्टर - Multi-Function</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; padding: 40px; color: #333; }
+        .wrapper { max-width: 850px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #1e3799; margin-bottom: 25px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        textarea { width: 100%; height: 180px; padding: 15px; border: 2px solid #dcdde1; border-radius: 10px; font-size: 18px; margin-bottom: 20px; box-sizing: border-box; transition: 0.3s; }
+        textarea:focus { border-color: #1e3799; outline: none; }
+        .controls { display: flex; gap: 12px; margin-bottom: 25px; }
+        button { flex: 1; padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; transition: 0.3s; }
+        .btn-run { background: #1e3799; color: white; }
+        .btn-run:hover { background: #0c2461; }
+        .btn-copy { background: #2ecc71; color: white; }
+        .btn-clear { background: #95a5a6; color: white; }
+        .result-area { background: #f8f9fa; border: 1px solid #e9ecef; padding: 20px; border-radius: 10px; min-height: 120px; font-size: 19px; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word; }
+        .label { font-weight: bold; margin-bottom: 8px; display: block; color: #555; }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <h2>🇳🇵 नेपाली टेक्स्ट करेक्सन (Multi-Function)</h2>
+    
+    <span class="label">यहाँ टेक्स्ट राख्नुहोस्:</span>
+    <textarea id="userInput" placeholder="यहाँ पेस्ट गर्नुहोस्..."></textarea>
+    
+    <div class="controls">
+        <button class="btn-run" onclick="executeAllFunctions()">सुधार गर्नुहोस्</button>
+        <button class="btn-copy" onclick="copyToClipboard()">कपी</button>
+        <button class="btn-clear" onclick="resetForm()">सफा गर्नुहोस्</button>
+    </div>
+
+    <span class="label">नतिजा:</span>
+    <div id="finalOutput" class="result-area">प्रतीक्षा गर्दै...</div>
+</div>
+
+<script>
+    // १. डाटा म्यापिङ (Correction Dictionary)
+    const dataMap = {
+        "सङ्ख्या": "संख्या",
+        "शत्री": "शत्रु",
+        "उच्छृङ्खल": "उच्छृंखल",
+        "ल्": "ल्",
+        "र्रु": "रु",
+        ";Î\\of": ";+Vof", 
+        "zqL": "zq'",
+        "pR5[În": "pR5[+vn", // तपाईंले भर्खरै माग्नुभएको नयाँ रुल
+        "?{": "¥",
+        "n\\": "N"
+    };
+
+    // २. Multi-function A: Word Replacement Logic
+    function replaceWords(text) {
+        let result = text;
+        // सबै mapping लाई पालैपालो बदल्ने
+        Object.entries(dataMap).forEach(([wrong, right]) => {
+            result = result.split(wrong).join(right);
+        });
+        return result;
+    }
+
+    // ३. Multi-function B: Extra Space & Formatting Fix
+    function cleanFormat(text) {
+        return text.replace(/\s\s+/g, ' ').trim();
+    }
+
+    // ४. Main Function: Execute all tasks
+    function executeAllFunctions() {
+        const input = document.getElementById('userInput').value;
+        if (!input) {
+            alert("कृपया केही लेख्नुहोस्!");
+            return;
+        }
+
+        // Processing through multiple functions
+        let step1 = replaceWords(input);
+        let step2 = cleanFormat(step1);
+
+        document.getElementById('finalOutput').innerText = step2;
+    }
+
+    // ५. Utility Functions
+    function copyToClipboard() {
+        const text = document.getElementById('finalOutput').innerText;
+        navigator.clipboard.writeText(text);
+        alert("कपी गरियो!");
+    }
+
+    function resetForm() {
+        document.getElementById('userInput').value = "";
+        document.getElementById('finalOutput').innerText = "प्रतीक्षा गर्दै...";
+    }
+</script>
+
+</body>
+</html>

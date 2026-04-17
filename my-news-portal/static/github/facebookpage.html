@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3-Column FB Pro Index</title>
+    <style>
+        :root {
+            --fb-blue: #1877F2;
+            --wa-green: #25D366;
+            --bg: #e9ebee;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 10px;
+        }
+
+        .container {
+            max-width: 1500px; /* ३ कोलमको लागि फराकिलो साइज */
+            margin: 0 auto;
+        }
+
+        /* Search Section - Sticky */
+        .search-wrapper {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            padding: 20px 0;
+            background: var(--bg);
+            text-align: center;
+        }
+
+        #searchInput {
+            width: 90%;
+            max-width: 550px;
+            padding: 15px 25px;
+            border-radius: 50px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            outline: none;
+        }
+
+        /* 3-Column Grid System */
+        .page-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        /* Responsive: Tablet मा २, Mobile मा १ कोलम */
+        @media (max-width: 1100px) { .page-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 750px) { .page-grid { grid-template-columns: 1fr; } }
+
+        /* Card Design - No Titles */
+        .fb-card {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            display: none; /* Load More Logic */
+            flex-direction: column;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 1px solid #ddd;
+        }
+
+        /* Iframe Container - Height 1200px for 20+ posts */
+        .fb-iframe-container {
+            width: 100%;
+            height: 1200px; 
+            border: none;
+            background: #fff;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Footer Buttons */
+        .btn-footer {
+            padding: 15px;
+            background: #fff;
+            display: flex;
+            justify-content: center;
+            border-top: 1px solid #eee;
+        }
+
+        .wa-btn {
+            background-color: var(--wa-green);
+            color: white;
+            text-decoration: none;
+            padding: 10px 25px;
+            border-radius: 30px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        .wa-btn:hover { background-color: #1ebd5b; transform: scale(1.03); }
+
+        /* Load More Button */
+        .load-more-wrapper {
+            text-align: center;
+            padding: 50px 0;
+        }
+
+        #loadMoreBtn {
+            background-color: var(--fb-blue);
+            color: white;
+            border: none;
+            padding: 16px 60px;
+            font-size: 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(24, 119, 242, 0.3);
+        }
+
+        #loadMoreBtn.hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="search-wrapper">
+        <input type="text" id="searchInput" placeholder="पेजको नाम खोज्नुहोस्..." onkeyup="filterPages()">
+    </div>
+
+    <div id="fb-grid" class="page-grid">
+        </div>
+
+    <div class="load-more-wrapper">
+        <button id="loadMoreBtn" onclick="showNextSet()">थप लोड गर्नुहोस् (Load More)</button>
+    </div>
+</div>
+
+<script>
+    // १. ५० वटा पेजको डाटा लिस्ट (लिङ्कहरू यहाँ थप्नुहोस्)
+    const fbPages = [
+        { name: "Ghantaghar TV Plus", url: "https://www.facebook.com/GhantaghartvPlus/" },
+        { name: "Abhi Tak Media", url: "https://www.facebook.com/Abhitakmedia" },
+        { name: "Janawaaz Khabar", url: "https://www.facebook.com/profile.php?id=61579787024606" },
+        { name: "Birgunj News", url: "https://www.facebook.com/TheBirgunjNewsTNB/" },
+        { name: "Nepal News HD", url: "https://www.facebook.com/Kalikatimes/" },
+        { name: "Global Media", url: "https://www.facebook.com/profile.php?id=61559619185702" },
+        { name: "Pradesh News", url: "https://www.facebook.com/yatradaily/" },
+        { name: "Local Updates", url: "https://www.facebook.com/satyaaasthakhabar/" }
+        // यहाँ ५० वटा पुर्याउनुहोला...
+    ];
+
+    const grid = document.getElementById('fb-grid');
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
+    let shownCount = 0;
+    const itemsPerLoad = 6; // एक पटकमा ६ वटा (२ लाइन) देखाउने
+
+    // २. कार्ड बनाउने फङ्सन (No Title, High Capacity)
+    function createCards() {
+        fbPages.forEach(page => {
+            const card = document.createElement('div');
+            card.className = 'fb-card';
+            card.setAttribute('data-name', page.name.toLowerCase());
+            
+            // tabs=timeline सँगै height=1200 राखिएको छ धेरै पोस्ट देखाउन
+            card.innerHTML = `
+                <div class="fb-iframe-container">
+                    <iframe src="https://www.facebook.com/plugins/page.php?href=${encodeURIComponent(page.url)}&tabs=timeline&width=500&height=1200&small_header=false&adapt_container_width=true&hide_cover=false&show_facepile=true&appId" 
+                        scrolling="yes" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share">
+                    </iframe>
+                </div>
+                <div class="btn-footer">
+                    <a href="https://api.whatsapp.com/send?text=${encodeURIComponent(page.url)}" target="_blank" class="wa-btn">
+                        WhatsApp Share
+                    </a>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    // ३. ६-६ वटा लोड गर्ने Logic
+    function showNextSet() {
+        const cards = document.querySelectorAll('.fb-card');
+        const nextLimit = shownCount + itemsPerLoad;
+        for (let i = shownCount; i < nextLimit && i < cards.length; i++) {
+            cards[i].style.display = 'flex';
+        }
+        shownCount = nextLimit;
+        if (shownCount >= cards.length) loadMoreBtn.classList.add('hidden');
+    }
+
+    // ४. Filter Logic
+    function filterPages() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const cards = document.querySelectorAll('.fb-card');
+        if (query) {
+            loadMoreBtn.classList.add('hidden');
+            cards.forEach(c => c.style.display = c.getAttribute('data-name').includes(query) ? 'flex' : 'none');
+        } else {
+            shownCount = 0;
+            cards.forEach(c => c.style.display = 'none');
+            showNextSet();
+            loadMoreBtn.classList.remove('hidden');
+        }
+    }
+
+    createCards();
+    showNextSet();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,106 @@
+<?php
+session_start();
+
+// --- सुरक्षा सेटिङ ---
+$admin_password = "तपाईंको_नयाँ_पासवर्ड"; // यहाँ आफ्नो बलियो पासवर्ड राख्नुहोस्
+
+// लगआउट प्रक्रिया
+if (isset($_GET['action']) && $_GET['action'] == 'logout') {
+    session_destroy();
+    header("Location: index.php");
+    exit;
+}
+
+// लगइन चेक
+if (isset($_POST['password'])) {
+    if ($_POST['password'] === $admin_password) {
+        $_SESSION['loggedin'] = true;
+    } else {
+        $error = "गलत पासवर्ड! कृपया फेरि प्रयास गर्नुहोस्।";
+    }
+}
+
+// यदि लगइन भएको छैन भने लगइन फर्म देखाउने
+if (!isset($_SESSION['loggedin'])): 
+?>
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - News Manager</title>
+    <style>
+        body { font-family: sans-serif; background: #2c3e50; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-box { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; }
+        input[type="password"] { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background: #3498db; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px; width: 100%; }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <h2>प्रणाली लगइन</h2>
+        <?php if(isset($error)) echo "<p style='color:red;'>$error</p>"; ?>
+        <form method="POST">
+            <input type="password" name="password" placeholder="पासवर्ड हाल्नुहोस्" required>
+            <button type="submit">पहुँच प्राप्त गर्नुहोस्</button>
+        </form>
+    </div>
+</body>
+</html>
+<?php exit; endif; ?>
+
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <style>
+        /* अघिल्लो डिजाइनका CSS यहाँ राख्नुहोस् */
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #3498db; margin-bottom: 20px; padding-bottom: 10px; }
+        .logout { color: #e74c3c; text-decoration: none; font-weight: bold; }
+        textarea, input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn-publish { background: #27ae60; color: white; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h2>📰 समाचार व्यवस्थापन</h2>
+        <a href="?action=logout" class="logout">लगआउट (Logout)</a>
+    </div>
+
+    <label>समाचार शीर्षक:</label>
+    <input type="text" id="title" placeholder="शीर्षक...">
+
+    <label>समाचार विवरण:</label>
+    <textarea id="content" rows="10" placeholder="यहाँ समाचार लेख्नुहोस्..."></textarea>
+
+    <div style="display: flex; gap: 10px;">
+        <button class="btn btn-publish" onclick="syncNews()">सबै साइटमा पठाउनुहोस् (Push to All)</button>
+    </div>
+
+    <div id="status" style="margin-top:20px; font-family: monospace; background: #eee; padding: 10px;">सञ्चालनको प्रतीक्षामा...</div>
+</div>
+
+<script>
+    async function syncNews() {
+        const title = document.getElementById('title').value;
+        const content = document.getElementById('content').value;
+        const statusDiv = document.getElementById('status');
+
+        if(!title || !content) { alert("विवरण खाली छ!"); return; }
+
+        statusDiv.innerHTML = "प्रक्रिया सुरु हुँदैछ...";
+        
+        // यहाँ तपाईंको 'API Connector' सँग जोड्न सकिन्छ
+        setTimeout(() => {
+            statusDiv.innerHTML = "✅ सफलतापूर्वक सबै साइटमा अपडेट भयो!";
+        }, 2000);
+    }
+</script>
+
+</body>
+</html>

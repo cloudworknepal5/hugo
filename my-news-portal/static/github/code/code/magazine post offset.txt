@@ -1,0 +1,77 @@
+
+
+
+
+
+
+
+<div class="magpost-header">
+  <div class="magpost-line"></div>
+  <div class="magpost-pill">नयाँ समाचार</div>
+  <div class="magpost-line"></div>
+</div>
+
+<link href='https://cdn.jsdelivr.net/gh/designers2077/code/magpost-style.css' rel='stylesheet' type='text/css'/>
+
+<div id="magpost-grid-box">लोड हुँदैछ...</div>
+
+<script src='https://cdn.jsdelivr.net/gh/designers2077/code/magpost-script.js' type='text/javascript'></script>
+
+<script src="/feeds/posts/default/-/news?alt=json-in-script&callback=renderMagPosts&max-results=9&start-index=2"></script>
+
+
+
+
+
+
+
+
+<script src="/feeds/posts/default/-/news?alt=json-in-script&callback=renderMagPosts&max-results=9"></script>
+
+
+<script src="/feeds/posts/default/-/news?alt=json-in-script&callback=renderMagPosts&max-results=9&start-index=2"></script>
+
+
+
+
+
+
+<script type='text/javascript'>
+//<![CDATA[
+  // पोस्ट भित्रका सबै इमेजको साइज 's320' बाट 's1600' बनाउने
+  $('.post-body img').each(function() {
+    $(this).attr('src', function(i, src) {
+      return src.replace('/s320/', '/s1600/');
+    });
+  });
+//]]>
+</script>
+
+
+
+
+
+<script type='text/javascript'>
+//<![CDATA[
+document.addEventListener("DOMContentLoaded", function() {
+    var images = document.querySelectorAll('.post-body img');
+    for (var i = 0; i < images.length; i++) {
+        var src = images[i].getAttribute('src');
+        // s320, s400, s640 आदिलाई s1600 (Original) मा बदल्ने
+        if (src.indexOf('/s1600/') === -1) {
+            var newSrc = src.replace(/\/s[0-9]+(-c)?\//, '/s1600/');
+            images[i].setAttribute('src', newSrc);
+        }
+        // इमेजको चौडाइ र उचाइ हटाउने ताकि CSS ले काम गरोस्
+        images[i].removeAttribute('width');
+        images[i].removeAttribute('height');
+    }
+});
+//]]>
+</script>
+
+
+
+
+
+<script src='https://cdn.jsdelivr.net/gh/designers2077/code/image-optimizer.js' type='text/javascript'></script>

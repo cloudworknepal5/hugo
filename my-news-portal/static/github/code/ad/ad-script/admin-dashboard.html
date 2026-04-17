@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NeelamB Admin Analytics</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #f4f4f4; padding: 20px; text-align: center; }
+        .box { background: white; padding: 20px; border-radius: 10px; display: inline-block; width: 300px; margin: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .num { font-size: 30px; font-weight: bold; color: #1a73e8; }
+        #chart-wrap { max-width: 800px; margin: 30px auto; background: white; padding: 20px; border-radius: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Ad Engine Analytics</h1>
+    <div class="box"><div>Total Views</div><div class="num" id="v">0</div></div>
+    <div class="box"><div>Total Clicks</div><div class="num" id="c" style="color:#ff4757">0</div></div>
+    <div id="chart-wrap"><canvas id="myChart"></canvas></div>
+
+    <script>
+        const api = 'https://script.google.com/macros/s/AKfycbwB_iRaRUPTLAyW1rND4kyaVxmkfW1KIB2CucqMqzZ4PKmOscxFEby3OPHeCTuLiClx/exec';
+        async function load() {
+            const res = await fetch(api);
+            const data = await res.json();
+            let vn = 0, cn = 0;
+            data.forEach(d => { if(d.type==='VIEW') vn++; if(d.type==='CLICK') cn++; });
+            document.getElementById('v').innerText = vn;
+            document.getElementById('c').innerText = cn;
+            
+            new Chart(document.getElementById('myChart'), {
+                type: 'bar',
+                data: { labels: ['Views', 'Clicks'], datasets: [{ label: 'Stats', data: [vn, cn], backgroundColor: ['#1a73e8', '#ff4757'] }] }
+            });
+        }
+        load();
+    </script>
+</body>
+</html>

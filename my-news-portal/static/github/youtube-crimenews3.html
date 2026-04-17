@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Video Feed</title>
+    <style>
+        body {
+            background-color: #000000;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        /* ३-कलम ग्रिड लेआउट */
+        #video-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        .video-item {
+            background-color: #111;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #333;
+        }
+        .video-item iframe {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            border: none;
+        }
+        .video-title {
+            padding: 10px;
+            font-size: 14px;
+            text-decoration: none;
+            color: #fff;
+            display: block;
+            font-weight: bold;
+        }
+        /* मोबाइल रेस्पोन्सिभ */
+        @media (max-width: 768px) {
+            #video-container { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div id="video-container">
+            <p id="loading-text" style="text-align: center; grid-column: 1/-1;">भिडियो लोड हुँदैछ...</p>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * १. कन्फिगरेसन
+         */
+        const YT_CONFIG = {
+            key: 'AIzaSyAh5DKuOvbRcLEF3IFdq_XjeFGseKy5LWk',
+            channelId: 'UCnaM-zAbh_-I4Bsd9Yqyjvg',
+            results: 6
+        };
+
+        /**
+         * २. भिडियो कार्ड बनाउने फङ्सन (UI Template)
+         */
+        function buildVideoHTML(videoId, title) {
+            return `
+                <div class="video-item">
+                    <iframe 
+                        src="https://www.youtube.com/embed/${videoId}" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen>
+                    </iframe>
+                    <a class="video-title" href="https://www.youtube.com/watch?v=${videoId}" target="_blank">${title}</a>
+                </div>`;
+        }
+
+        /**
+         * ३. डेटा फेच गर्ने फङ्सन
+         */
+        async function startYouTubeFeed() {
+            const container = document.getElementById('video-container');
+            const loadingText = document.getElementById('loading-text');
+            
+            // API URL (HTTPS अनिवार्य छ)
+            const apiURL = `https://www.googleapis.com/youtube/v3/search?key=${YT_CONFIG.key}&channelId=${YT_CONFIG.channelId}&part=snippet,id&order=date&maxResults=${YT_CONFIG.results}&type=video`;
+
+            try {
+                const response = await fetch(apiURL);
+                const data = await response.json();
+
+                if (data.items && data.items.length > 0) {
+                    loadingText.style.display = 'none'; // लोड भइसकेपछि टेक्स्ट हटाउने
+                    
+                    let finalHTML = '';
+                    data.items.forEach(item => {
+                        if (item.id && item.id.videoId) {
+                            finalHTML += buildVideoHTML(item.id.videoId, item.snippet.title);
+                        }
+                    });
+                    container.innerHTML = finalHTML;
+                } else {
+                    console.log("Data error:", data);
+                    loadingText.innerText = "कुनै भिडियो भेटिएन। API Key वा Channel ID चेक गर्नुहोस्।";
+                }
+            } catch (error) {
+                console.error("Fetch Error:", error);
+                loadingText.innerText = "इन्टरनेट वा CORS समस्याका कारण लोड हुन सकेन।";
+            }
+        }
+
+        // लोड भएपछि सुरु गर्ने
+        window.onload = startYouTubeFeed;
+    </script>
+</body>
+</html>

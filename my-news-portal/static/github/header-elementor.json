@@ -1,0 +1,28 @@
+{
+    "elType": "widget",
+    "widgetType": "heading",
+    "settings": {
+        "title": "IRAN WAR: MORE COVERAGE >",
+        "header_size": "h2",
+        "typography_font_family": "Arial",
+        "typography_font_weight": "800",
+        "typography_text_transform": "uppercase",
+        "typography_font_size": { "size": 18, "unit": "px" },
+        "border_border": "solid",
+        "border_width": {
+            "top": "4",
+            "right": "0",
+            "bottom": "0",
+            "left": "0",
+            "isLinked": false
+        },
+        "border_color": "#000000",
+        "padding": {
+            "top": "15",
+            "right": "0",
+            "bottom": "10",
+            "left": "0",
+            "isLinked": false
+        }
+    }
+}

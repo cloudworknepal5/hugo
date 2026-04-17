@@ -1,0 +1,59 @@
+<div id="nepali-clock-container" style="font-family: 'Arial'; background: #f4f4f4; padding: 10px; border-radius: 5px; display: inline-block;">
+    <span id="nepali-date"></span> | <span id="nepali-time" style="font-weight: bold; color: #d32f2f;"></span>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/nepali-date-converter/dist/nepali-date-converter.umd.js"></script>
+
+<script>
+const NepaliLiveClock = {
+    // १. अंकलाई नेपालीमा बदल्ने फङ्सन
+    toNepaliDigits: function(num) {
+        const digits = ['०', '१', '२', '३', '४', '५', '६', '७', '८', '९'];
+        return num.toString().split('').map(d => digits[d] || d).join('');
+    },
+
+    // २. रियल-टाइम समय अपडेट गर्ने फङ्सन
+    updateTime: function() {
+        const now = new Date();
+        let hours = now.getHours();
+        let minutes = now.getMinutes();
+        let seconds = now.getSeconds();
+        let ampm = hours >= 12 ? 'अपराह्न' : 'पूर्वाह्न';
+
+        hours = hours % 12;
+        hours = hours ? hours : 12; // ० लाई १२ बनाउने
+        
+        // फर्म्याटिङ र नेपालीमा परिवर्तन
+        const timeString = `${this.toNepaliDigits(hours)}:${this.toNepaliDigits(minutes < 10 ? '0'+minutes : minutes)}:${this.toNepaliDigits(seconds < 10 ? '0'+seconds : seconds)} ${ampm}`;
+        
+        document.getElementById('nepali-time').innerText = timeString;
+    },
+
+    // ३. मिति प्रदर्शन गर्ने फङ्सन
+    showDate: function() {
+        try {
+            const today = new NepaliDate();
+            const dayName = today.format('dddd'); // सोमबार...
+            const monthName = today.format('MMMM'); // वैशाख...
+            const year = this.toNepaliDigits(today.getYear());
+            const date = this.toNepaliDigits(today.getDate());
+
+            document.getElementById('nepali-date').innerText = `${dayName}, ${date} ${monthName} ${year}`;
+        } catch (e) {
+            console.error("Date Error:", e);
+        }
+    },
+
+    // ४. सबै फङ्सनहरूलाई सुरु गर्ने (Main Init)
+    init: function() {
+        this.showDate(); // मिति एक पटक देखाउने
+        this.updateTime(); // समय तुरुन्त देखाउने
+        setInterval(() => this.updateTime(), 1000); // प्रत्येक सेकेन्ड अपडेट गर्ने
+    }
+};
+
+// पेज लोड भएपछि सिस्टम एक्टिभ गर्ने
+document.addEventListener("DOMContentLoaded", function() {
+    NepaliLiveClock.init();
+});
+</script>

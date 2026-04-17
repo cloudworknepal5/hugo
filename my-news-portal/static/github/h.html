@@ -1,0 +1,128 @@
+<div id="gh-recent-posts"></div>
+
+<style>
+/* १. मुख्य फ्रेम र बोर्डर डिजाइन */
+.gh-frame {
+    position: relative;
+    border: 3px solid #ed1c24; /* रातो बाहिरी बोर्डर */
+    padding: 25px 15px 15px;
+    margin: 20px auto;
+    max-width: 1000px;
+    background: #fff;
+    font-family: 'Mukta', sans-serif;
+}
+
+/* बीचको वेवसाइट लिंक पट्टी */
+.gh-watermark {
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #ed1c24;
+    color: white;
+    padding: 2px 15px;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+/* पोस्ट कार्डहरूको ग्रिड */
+#gh-post-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
+}
+
+.gh-card {
+    width: calc(33.33% - 15px);
+    min-width: 280px;
+    text-align: center;
+}
+
+.gh-image {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.gh-title {
+    display: block;
+    font-size: 18px;
+    color: #ed1c24; /* फोटोको जस्तै रातो अक्षर */
+    font-weight: bold;
+    margin: 10px 0;
+    text-decoration: none;
+    line-height: 1.4;
+}
+
+/* तलको निलो बटन पट्टी */
+.gh-footer-link {
+    background: #002e5b;
+    color: white !important;
+    display: block;
+    padding: 8px;
+    margin-top: 10px;
+    text-decoration: none;
+    font-size: 14px;
+    border-radius: 2px;
+}
+
+/* मोबाइलको लागि मिलाइएको */
+@media (max-width: 768px) {
+    .gh-card { width: 100%; }
+}
+</style>
+
+<script>
+/**
+ * २. Multi-function Logic:
+ * - renderPosts: HTML स्ट्रक्चर बनाउने फसन
+ * - fetchFeed: ब्लगर फिडबाट डेटा तान्ने फसन
+ */
+
+function renderPosts(json) {
+    const entries = json.feed.entry;
+    let htmlContent = '<div class="gh-frame">';
+    htmlContent += '<div class="gh-watermark">www.ghantaghartv.com</div>';
+    htmlContent += '<div id="gh-post-container">';
+
+    for (let i = 0; i < entries.length; i++) {
+        const entry = entries[i];
+        let title = entry.title.$t;
+        let postUrl = "";
+        
+        for (let k = 0; k < entry.link.length; k++) {
+            if (entry.link[k].rel == 'alternate') {
+                postUrl = entry.link[k].href;
+                break;
+            }
+        }
+
+        // थम्बनेल इमेज निकाल्ने (High Quality)
+        let imgUrl = entry.media$thumbnail ? entry.media$thumbnail.url.replace('s72-c', 'w600-h400-c') : 'https://via.placeholder.com/600x400';
+
+        htmlContent += `
+            <div class="gh-card">
+                <a href="${postUrl}"><img class="gh-image" src="${imgUrl}" alt="${title}"></a>
+                <a href="${postUrl}" class="gh-title">${title}</a>
+                <a href="${postUrl}" class="gh-footer-link">पूरा विवरण कमेन्टमा लिंक गरिएको छ</a>
+            </div>
+        `;
+    }
+
+    htmlContent += '</div></div>';
+    document.getElementById('gh-recent-posts').innerHTML = htmlContent;
+}
+
+function fetchFeed(count) {
+    const script = document.createElement('script');
+    script.src = `https://www.birgunj.eu.org/feeds/posts/default?alt=json-in-script&callback=renderPosts&max-results=${count}`;
+    document.body.appendChild(script);
+}
+
+// कार्यान्वयन: ३ वटा पोष्ट देखाउने
+fetchFeed(3);
+</script>

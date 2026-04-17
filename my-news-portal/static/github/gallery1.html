@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <title>Ultimate Photo Editor - Frames & Fonts</title>
+    <style>
+        /* सबै फन्टहरू लोड गर्ने */
+        @font-face { font-family: 'Deepmani'; src: url('Deepmani.ttf'); font-weight: normal; font-style: normal; }
+        @font-face { font-family: 'Ganesh'; src: url('Ganesh.ttf'); font-weight: normal; font-style: normal; }
+        @font-face { font-family: 'Aakar'; src: url('Aakar.ttf'); font-weight: normal; font-style: normal; }
+        @font-face { font-family: 'HimalB'; src: url('Himal B.ttf'); font-weight: normal; font-style: normal; }
+
+        body { font-family: 'Segoe UI', sans-serif; background: #eceff1; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); max-width: 950px; width: 100%; text-align: center; }
+        
+        .upload-section { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        .box { border: 2px dashed #0984e3; padding: 10px; border-radius: 10px; background: #f0f7ff; }
+        
+        .controls { 
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; 
+            background: #f1f2f6; padding: 15px; border-radius: 10px; text-align: left; 
+        }
+        .full { grid-column: span 4; }
+        
+        /* इनपुट बक्समा डिफाल्ट नेपाली फन्ट */
+        #captionInput { 
+            width: 100%; padding: 12px; border-radius: 5px; border: 2px solid #0984e3; 
+            font-family: 'Deepmani', Arial, sans-serif; /* Deepmani लाई default */
+            font-size: 22px; box-sizing: border-box; 
+        }
+
+        label { font-size: 11px; font-weight: bold; text-transform: uppercase; color: #636e72; margin-bottom: 3px; display: block;}
+        input[type="range"], select, input[type="color"] { width: 100%; padding: 5px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; }
+
+        #canvas-wrapper { 
+            position: relative; margin: 20px auto; background: #000;
+            /* बोर्डरको सट्टा फ्रेमले कभर गर्नेछ */
+            width: fit-content; line-height: 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+        canvas { width: 100%; height: auto; display: block; cursor: crosshair; }
+
+        .btn-group { display: flex; gap: 10px; grid-column: span 4; margin-top: 15px; }
+        .btn { flex: 1; padding: 14px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-save { background: #00b894; color: white; }
+        .btn-reset { background: #d63031; color: white; }
+        .btn:hover { filter: brightness(1.1); }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2 style="font-family: 'Deepmani', sans-serif; margin-bottom: 10px;">अल्टिमेट फोटो इडिटर (फ्रेम र फन्ट सहित)</h2>
+    
+    <div class="upload-section">
+        <div class="box">
+            <label>मुख्य फोटोहरू (१-४ सम्म):</label>
+            <input type="file" id="photoPicker" accept="image/*" multiple onchange="loadImages()">
+        </div>
+        <div class="box">
+            <label>लोगो थप्नुहोस् (PNG):</label>
+            <input type="file" id="logoPicker" accept="image/*" onchange="loadLogo()">
+        </div>
+    </div>
+
+    <div class="controls">
+        <div class="full">
+            <label>यहाँ टाइप गर्नुहोस् (नेपालीमा):</label>
+            <input type="text" id="captionInput" placeholder="klkdf] k|of]u u/L n]Vg'xf];\ .." oninput="drawAll()">
+        </div>
+        
+        <div>
+            <label>फन्ट छान्नुहोस्:</label>
+            <select id="fontSelect" onchange="drawAll()">
+                <option value="Deepmani">Deepmani</option>
+                <option value="Ganesh">Ganesh</option>
+                <option value="Aakar">Aakar</option>
+                <option value="HimalB">Himal B</option>
+            </select>
+        </div>
+        <div>
+            <label>अक्षर साइज: <span id="fSizeVal">45</span>px</label>
+            <input type="range" id="fontSizeRange" min="10" max="150" value="45" oninput="drawAll()">
+        </div>
+        <div>
+            <label>अक्षर रङ:</label>
+            <input type="color" id="textColor" value="#ffffff" oninput="drawAll()">
+        </div>
+        <div>
+            <label>Bg. Opacity: <span id="bgOpacityVal">0</span>%</label>
+            <input type="range" id="bgOpacity" min="0" max="100" value="0" oninput="drawAll()">
+        </div>
+
+        <div>
+            <label>लोगो साइज: <span id="lSizeVal">100</span>px</label>
+            <input type="range" id="logoSizeRange" min="30" max="300" value="100" oninput="drawAll()">
+        </div>
+        <div>
+            <label>ब्राइटनेस: <span id="bVal">120</span>%</label>
+            <input type="range" id="brightRange" min="50" max="200" value="120" oninput="drawAll()">
+        </div>
+        <div>
+            <label>फिल्टर:</label>
+            <select id="filterSelect" onchange="drawAll()">
+                <option value="none">Normal</option>
+                <option value="grayscale(100%)">Black & White</option>
+                <option value="sepia(100%)">Sepia</option>
+                <option value="saturate(200%)">Vivid</option>
+            </select>
+        </div>
+        <div>
+            <label>फ्रेम छान्नुहोस्:</label>
+            <select id="frameSelect" onchange="loadFrame()">
+                <option value="none">कुनै पनि छैन</option>
+                <option value="png/birthday.png">Birthday Frame</option>
+                <option value="png/anniversary.png">Anniversary Frame</option>
+            </select>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn btn-save" onclick="downloadJPG()">डाउनलोड (JPG)</button>
+            <button class="btn btn-reset" onclick="resetAll()">रिसेट</button>
+        </div>
+    </div>
+
+    <div id="canvas-wrapper">
+        <canvas id="mainCanvas"></canvas>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('mainCanvas');
+    const ctx = canvas.getContext('2d');
+    const CW = 800, CH = 450;
+    canvas.width = CW; canvas.height = CH;
+
+    let imgObjects = [];
+    let textObj = { text: "", x: 400, y: 380, isDragging: false };
+    let logoObj = { img: null, x: 20, y: 20, w: 100, h: 100, isDragging: false };
+    let frameImg = null; // फ्रेमको लागि नयाँ अब्जेक्ट
+
+    let isDraggingImg = false, selectedImgIdx = -1, startX, startY;
+
+    // सबै फन्टहरू लोड भएपछि ड्र गर्ने
+    Promise.all([
+        document.fonts.load("20px 'Deepmani'"),
+        document.fonts.load("20px 'Ganesh'"),
+        document.fonts.load("20px 'Aakar'"),
+        document.fonts.load("20px 'HimalB'")
+    ]).then(function() {
+        console.log("All fonts loaded!");
+        drawAll();
+    }).catch(function(err) {
+        console.error("Font loading error:", err);
+    });
+
+    async function loadImages() {
+        const files = document.getElementById('photoPicker').files;
+        if (!files.length) return;
+        imgObjects = [];
+        const count = Math.min(files.length, 4);
+        for (let i = 0; i < count; i++) {
+            const img = await new Promise(res => {
+                const im = new Image(); im.onload = () => res(im);
+                im.src = URL.createObjectURL(files[i]);
+            });
+            let cellW = CW, cellH = CH;
+            if (count === 2) cellW = CW / 2;
+            else if (count >= 3) { cellW = CW / 2; cellH = CH / 2; }
+            const scale = Math.max(cellW / img.width, cellH / img.height);
+            imgObjects.push({ img, x: 0, y: 0, scale, cellW, cellH });
+        }
+        drawAll();
+    }
+
+    function loadLogo() {
+        const file = document.getElementById('logoPicker').files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => { logoObj.img = img; drawAll(); };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // नयाँ: फ्रेम लोड गर्ने फङ्सन
+    function loadFrame() {
+        const framePath = document.getElementById('frameSelect').value;
+        if (framePath === "none") {
+            frameImg = null;
+            drawAll();
+            return;
+        }
+        const img = new Image();
+        img.onload = () => {
+            frameImg = img;
+            drawAll();
+        };
+        img.onerror = () => {
+            console.error("Failed to load frame:", framePath);
+            alert(`Error loading frame: ${framePath}. Make sure the 'png' folder and file exist.`);
+            frameImg = null; // फ्रेम लोड नभए नल गर्ने
+            drawAll();
+        };
+        img.src = framePath;
+    }
+
+    function drawAll() {
+        // स्लाइडरका भ्यालुहरू अपडेट गर्ने
+        document.getElementById('bVal').innerText = document.getElementById('brightRange').value;
+        document.getElementById('fSizeVal').innerText = document.getElementById('fontSizeRange').value;
+        document.getElementById('lSizeVal').innerText = document.getElementById('logoSizeRange').value;
+        document.getElementById('bgOpacityVal').innerText = document.getElementById('bgOpacity').value;
+        
+        ctx.clearRect(0, 0, CW, CH);
+        
+        // १. फोटोहरू ड्र गर्ने (फिल्टर र ब्राइटनेस सहित)
+        const filterStr = document.getElementById('filterSelect').value;
+        const brightStr = `brightness(${document.getElementById('brightRange').value}%)`;
+        ctx.filter = `${filterStr} ${brightStr}`;
+
+        imgObjects.forEach((obj, i) => {
+            let dx = 0, dy = 0;
+            if (imgObjects.length === 2) dx = i * obj.cellW;
+            else if (imgObjects.length >= 3) { dx = (i % 2) * obj.cellW; dy = Math.floor(i / 2) * obj.cellH; }
+            ctx.save();
+            ctx.beginPath(); ctx.rect(dx, dy, obj.cellW, obj.cellH); ctx.clip();
+            ctx.drawImage(obj.img, dx + obj.x, dy + obj.y, obj.img.width * obj.scale, obj.img.height * obj.scale);
+            ctx.restore();
+        });
+
+        ctx.filter = 'none'; // अब अन्य तत्वमा फिल्टर लागू नहोस्
+
+        // २. लोगो ड्र गर्ने
+        if (logoObj.img) {
+            const lSize = document.getElementById('logoSizeRange').value;
+            const ratio = logoObj.img.width / logoObj.img.height;
+            logoObj.w = lSize; logoObj.h = lSize / ratio; // लोगोको साइज र अनुपात मिलाउने
+            ctx.drawImage(logoObj.img, logoObj.x, logoObj.y, logoObj.w, logoObj.h);
+        }
+
+        // ३. क्याप्सन ड्र गर्ने
+        textObj.text = document.getElementById('captionInput').value;
+        if (textObj.text) {
+            const fSize = parseInt(document.getElementById('fontSizeRange').value);
+            const selectedFont = document.getElementById('fontSelect').value; // छनोट गरिएको फन्ट
+            ctx.font = `${fSize}px '${selectedFont}'`;
+            ctx.textAlign = "center";
+            
+            // ब्याकग्राउन्ड रङ (Opacity सहित)
+            const op = document.getElementById('bgOpacity').value / 100;
+            if (op > 0) {
+                const tWidth = ctx.measureText(textObj.text).width;
+                const paddingX = 20, paddingY = 15;
+                ctx.globalAlpha = op;
+                ctx.fillStyle = "black"; // ब्याकग्राउन्डको रङ कालो
+                ctx.fillRect(textObj.x - tWidth/2 - paddingX, textObj.y - fSize - paddingY/2, tWidth + paddingX*2, fSize + paddingY);
+                ctx.globalAlpha = 1.0;
+            }
+
+            ctx.lineWidth = fSize/8;
+            ctx.strokeStyle = "black"; // अक्षरको बोर्डर
+            ctx.strokeText(textObj.text, textObj.x, textObj.y);
+            ctx.fillStyle = document.getElementById('textColor').value; // अक्षरको रङ
+            ctx.fillText(textObj.text, textObj.x, textObj.y);
+        }
+
+        // ४. फ्रेम ड्र गर्ने (सबैभन्दा माथि)
+        if (frameImg) {
+            ctx.drawImage(frameImg, 0, 0, CW, CH); // फ्रेमलाई क्यानभासमा फिट गर्ने
+        }
+    }
+
+    // ड्र्याग एण्ड ड्रप लजिक (लोगो, टेक्स्ट, फोटो)
+    canvas.onmousedown = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mx = (e.clientX - rect.left) * (CW / rect.width);
+        const my = (e.clientY - rect.top) * (CH / rect.height);
+
+        if (logoObj.img && mx > logoObj.x && mx < logoObj.x + logoObj.w && my > logoObj.y && my < logoObj.y + logoObj.h) {
+            logoObj.isDragging = true;
+            canvas.style.cursor = 'grabbing';
+        } else {
+            const tWidth = ctx.measureText(textObj.text).width;
+            const fSize = parseInt(document.getElementById('fontSizeRange').value);
+            // टेक्स्टको हिट एरिया अलि ठूलो बनाइएको
+            if (mx > textObj.x - tWidth/2 - 30 && mx < textObj.x + tWidth/2 + 30 && my > textObj.y - fSize - 10 && my < textObj.y + 30) {
+                textObj.isDragging = true;
+                canvas.style.cursor = 'grabbing';
+            } else {
+                imgObjects.forEach((obj, i) => {
+                    let dx = 0, dy = 0;
+                    if (imgObjects.length === 2) dx = i * obj.cellW;
+                    else if (imgObjects.length >= 3) { dx = (i % 2) * obj.cellW; dy = Math.floor(i / 2) * obj.cellH; }
+                    if (mx >= dx && mx <= dx + obj.cellW && my >= dy && my <= dy + obj.cellH) selectedImgIdx = i;
+                });
+                isDraggingImg = true;
+                canvas.style.cursor = 'grabbing';
+            }
+        }
+        startX = mx; startY = my;
+    };
+
+    window.onmousemove = (e) => {
+        if (!logoObj.isDragging && !textObj.isDragging && (!isDraggingImg || selectedImgIdx === -1)) {
+             canvas.style.cursor = 'crosshair'; // कुनै पनि ड्र्याग नभएको बेला क्रसहेयर
+             return;
+        }
+        const rect = canvas.getBoundingClientRect();
+        const mx = (e.clientX - rect.left) * (CW / rect.width);
+        const my = (e.clientY - rect.top) * (CH / rect.height);
+        const dx = mx - startX, dy = my - startY;
+
+        if (logoObj.isDragging) { logoObj.x += dx; logoObj.y += dy; }
+        else if (textObj.isDragging) { textObj.x += dx; textObj.y += dy; }
+        else { imgObjects[selectedImgIdx].x += dx; imgObjects[selectedImgIdx].y += dy; }
+        
+        startX = mx; startY = my; drawAll();
+    };
+
+    window.onmouseup = () => { 
+        logoObj.isDragging = false; 
+        textObj.isDragging = false; 
+        isDraggingImg = false; 
+        selectedImgIdx = -1; 
+        canvas.style.cursor = 'crosshair'; // माउस छोड्दा क्रसहेयर
+    };
+
+    // सबै सेटिङ रिसेट गर्ने फङ्सन (पेज रिफ्रेस गर्दा)
+    function resetAll() { location.reload(); }
+
+    function downloadJPG() {
+        let q = 0.9;
+        const save = () => {
+            canvas.toBlob(blob => {
+                if (blob.size > 200 * 1024 && q > 0.2) { q -= 0.05; save(); }
+                else {
+                    const link = document.createElement('a');
+                    link.download = `Ultimate_Photo_Edit.jpg`;
+                    link.href = URL.createObjectURL(blob); link.click();
+                }
+            }, 'image/jpeg', q);
+        };
+        save();
+    }
+</script>
+
+</body>
+</html>

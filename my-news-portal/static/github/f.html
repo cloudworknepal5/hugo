@@ -1,0 +1,173 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700;800&display=swap');
+    
+    .sidebar-wrapper {
+        font-family: 'Mukta', sans-serif;
+        max-width: 100%;
+        background: #ffffff;
+        padding: 20px 0;
+        border-radius: 12px;
+        box-sizing: border-box;
+        margin: 5px auto;
+        overflow: hidden;
+    }
+
+    /* हेडर डिजाइन */
+    .sb-header-box { 
+        background: #cc0000; 
+        padding: 10px; 
+        text-align: center; 
+        margin: 0 15px 20px 15px;
+        border-radius: 8px; 
+    }
+    .sb-title-text { color: #fff; font-size: 20px; font-weight: 800; margin: 0; }
+
+    /* स्लाइडर कन्टेनर */
+    .sb-slider-container {
+        width: 100%;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .sb-track {
+        display: flex;
+        width: max-content;
+        animation: scroll-right 35s linear infinite;
+    }
+
+    /* माउस लैजाँदा स्लाइडर रोकिने (Multi-function behavior) */
+    .sb-track:hover {
+        animation-play-state: paused;
+    }
+
+    @keyframes scroll-right {
+        0% { transform: translateX(-50%); }
+        100% { transform: translateX(0); }
+    }
+
+    /* कार्ड डिजाइन */
+    .sb-card { 
+        background: #fff; 
+        border: 1.5px solid #cc0000; 
+        border-radius: 10px; 
+        overflow: hidden; 
+        display: flex; 
+        flex-direction: column; 
+        width: 210px; 
+        margin: 0 10px;
+        flex-shrink: 0;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    }
+
+    .sb-img-box { position: relative; width: 100%; height: 260px; overflow: hidden; background: #f0f0f0; }
+    .sb-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    
+    .sb-badge {
+        position: absolute; right: 8px; bottom: 8px; width: 42px; height: 42px; background: #ffffff;
+        border: 2px solid #cc0000; border-radius: 50%; padding: 3px; display: flex;
+        align-items: center; justify-content: center; z-index: 5;
+    }
+    .sb-badge img { width: 85%; height: 85%; object-fit: contain; }
+    
+    .sb-info { padding: 10px 5px; text-align: center; }
+    /* यहाँ अब ब्लगरको लेबल देखिनेछ */
+    .sb-area-tag { 
+        font-size: 13px; 
+        color: #fff; 
+        background: #e74c3c;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-weight: 700; 
+        display: inline-block; 
+        margin-bottom: 5px; 
+    }
+    .sb-name { font-size: 17px; font-weight: 800; color: #1a1a1a; line-height: 1.2; }
+
+</style>
+
+<div class="sidebar-wrapper" id="capture-area">
+    <div class="sb-header-box">
+        <div class="sb-title-text">प्रतिनिधिसभा निर्वाचन २०८२: उम्मेदवारहरू</div>
+    </div>
+    
+    <div class="sb-slider-container">
+        <div id="sb-portal" class="sb-track">
+            लोड हुँदैछ...
+        </div>
+    </div>
+</div>
+
+<script>
+let sbRaw = [];
+
+// Multi-function: Image Proxy to ensure images load correctly in canvas
+function getProxyUrl(url) { 
+    return url ? "https://images.weserv.nl/?url=" + encodeURIComponent(url.replace(/https?:\/\//, "")) : ""; 
+}
+
+function sbSync() {
+    const s = document.createElement('script');
+    s.src = "https://www.election.neelamb.com/feeds/posts/default?alt=json-in-script&callback=sbBuild&max-results=50&t=" + new Date().getTime();
+    document.body.appendChild(s);
+}
+
+function sbBuild(json) {
+    const entries = json.feed.entry || [];
+    sbRaw = entries.map(e => {
+        const labels = e.category ? e.category.map(cat => cat.term) : [];
+        
+        // Multi-function: लेबलहरूबाट क्षेत्र पहिचान गर्ने लजिक
+        // क्षेत्र, निर्वाचन, वा स्थानको नाम भएको पहिलो लेबललाई एरिया मान्ने
+        let dynamicArea = "विवरण उपलब्ध छैन";
+        if (labels.length > 0) {
+            let foundArea = labels.find(l => l.includes("क्षेत्र") || l.includes("निर्वाचन") || l.includes("नं"));
+            dynamicArea = foundArea ? foundArea : labels[0];
+        }
+
+        const photo = e.media$thumbnail ? e.media$thumbnail.url.replace('s72-c', 's1600') : '';
+        let sign = '';
+        if (e.content && e.content.$t) {
+            const div = document.createElement('div'); 
+            div.innerHTML = e.content.$t;
+            const imgs = div.getElementsByTagName('img'); 
+            if (imgs.length > 1) sign = imgs[1].src;
+        }
+        return { 
+            name: e.title.$t, 
+            area: dynamicArea, 
+            photo: getProxyUrl(photo), 
+            sign: getProxyUrl(sign) 
+        };
+    });
+    
+    sbRender();
+}
+
+function sbRender() {
+    const container = document.getElementById('sb-portal');
+    let html = '';
+    
+    // अनन्त स्लाइडका लागि डाटालाई दोहोर्याउने
+    const displayList = sbRaw.length > 0 ? [...sbRaw, ...sbRaw] : [];
+
+    displayList.forEach(c => {
+        html += `
+            <div class="sb-card">
+                <div class="sb-img-box">
+                    <img src="${c.photo}" class="sb-img" crossorigin="anonymous">
+                    ${c.sign ? `<div class="sb-badge"><img src="${c.sign}" crossorigin="anonymous"></div>` : ''}
+                </div>
+                <div class="sb-info">
+                    <span class="sb-area-tag">${c.area}</span>
+                    <div class="sb-name">${c.name}</div>
+                </div>
+            </div>`;
+    });
+    
+    container.innerHTML = html || "डाटा फेला परेन";
+}
+
+sbSync();
+</script>

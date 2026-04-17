@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+<style>
+    .news-paper-box {
+        max-width: 1200px;
+        margin: 20px auto;
+        padding: 20px;
+        background: #fff;
+        border: 1px solid #000;
+        font-family: 'Mukti', 'Arial', sans-serif;
+        color: #000;
+    }
+
+    .news-headline {
+        font-size: 50px;
+        font-weight: 900;
+        text-align: center;
+        border-bottom: 3px solid #000;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        line-height: 1.2;
+    }
+
+    .columns-container {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+    }
+
+    /* Multi-function Text Control */
+    .column-part {
+        font-size: 16px;
+        line-height: 1.5em;
+        overflow: hidden;
+        text-align: justify;
+    }
+
+    /* कोलम १: १० लाइन */
+    .col-1 { 
+        height: calc(1.5em * 10); 
+        border-right: 1px solid #eee; 
+        padding-right: 10px; 
+    }
+
+    /* कोलम २ र ३ (बीचमा): इमेजको मुनि २ लाइन टेक्स्ट */
+    .col-mid-text { 
+        height: calc(1.5em * 2); 
+        margin-top: 10px;
+    }
+
+    /* कोलम ४: ९ लाइन */
+    .col-4 { 
+        height: calc(1.5em * 9); 
+    }
+
+    /* इमेज सेक्सन: माथि २ कोलम ओगट्ने गरी */
+    .top-image-container {
+        grid-column: 2 / 4; /* दोस्रो र तेस्रो कोलमको माथिल्लो भाग */
+        height: calc(1.5em * 7.5); /* ८ लाइन बराबरको उचाइ */
+        overflow: hidden;
+        border: 1px solid #ddd;
+        margin-bottom: 5px;
+    }
+
+    .top-image-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* मिडिल कोलमहरूको र्यापर */
+    .mid-wrapper {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .read-more-btn {
+        display: block;
+        height: 1.5em;
+        line-height: 1.5em;
+        color: #ce0000;
+        text-decoration: none;
+        font-weight: bold;
+        border-top: 1px dashed #ccc;
+        text-align: right;
+    }
+
+    @media (max-width: 800px) {
+        .columns-container { grid-template-columns: 1fr; }
+        .top-image-container { grid-column: span 1; height: auto; }
+        .col-1, .col-mid-text, .col-4 { height: auto; border: none; }
+    }
+</style>
+</head>
+<body>
+
+<div id="newspaper-layout">लोड हुँदैछ...</div>
+
+<script>
+function loadTopImageLayout(json) {
+    if (!json.feed.entry) return;
+    
+    let entry = json.feed.entry[0];
+    let title = entry.title.$t;
+    let link = entry.link.find(l => l.rel === 'alternate').href;
+    let imgUrl = entry.media$thumbnail ? entry.media$thumbnail.url.replace('s72-c', 's1600') : 'https://via.placeholder.com/600x400';
+    
+    let tempDiv = document.createElement("div");
+    tempDiv.innerHTML = entry.content ? entry.content.$t : entry.summary.$t;
+    let fullText = tempDiv.textContent || tempDiv.innerText || "";
+    
+    // मिति हटाउने र स्निपेट विभाजन
+    fullText = fullText.replace(/^\w+, \d+ \w+\s।\s*/, "");
+
+    let col1Text = fullText.substring(0, 350);
+    let col2Text = fullText.substring(350, 420); 
+    let col3Text = fullText.substring(420, 490); 
+    let col4Text = fullText.substring(490, 850);
+
+    document.getElementById('newspaper-layout').innerHTML = `
+    <div class="news-paper-box">
+        <h1 class="news-headline">${title}</h1>
+        <div class="columns-container">
+            <div class="column-part col-1">${col1Text}</div>
+            
+            <div style="grid-column: span 2;">
+                <div class="top-image-container">
+                    <img src="${imgUrl}" alt="News Image">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="column-part col-mid-text">${col2Text}</div>
+                    <div class="column-part col-mid-text">${col3Text}</div>
+                </div>
+            </div>
+
+            <div>
+                <div class="column-part col-4">${col4Text}...</div>
+                <a href="${link}" class="read-more-btn">थप पढ्नुहोस् ➔</a>
+            </div>
+        </div>
+    </div>
+    `;
+}
+</script>
+
+<script src="https://birgunj.eu.org/feeds/posts/default?alt=json-in-script&callback=loadTopImageLayout&max-results=1"></script>
+
+</body>
+</html>

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <title>Nepali Mega News Engine 2026 - Final Pro</title>
+    
+    <script src="./index_files/common.download"></script>
+    <script src="./index_files/convert.download"></script>
+    <script src="./index_files/kantipur.js.download"></script>
+
+    <style>
+        :root {
+            --nav-bg: #1a1c23; --bg-color: #f0f2f5; --accent: #4e73df;
+            --card-bg: #ffffff; --text-color: #333; --primary: #e74c3c;
+        }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg-color); display: flex; height: 100vh; overflow: hidden; }
+
+        /* Sidebar - Auto Sorted Sites */
+        .sidebar { width: 260px; background: var(--nav-bg); color: white; display: flex; flex-direction: column; border-right: 1px solid #333; }
+        .sidebar h2 { padding: 15px; font-size: 14px; background: #000; margin: 0; color: var(--primary); text-align: center; cursor: pointer; }
+        #site-list { flex-grow: 1; overflow-y: auto; }
+        .site-item { padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #2c3e50; font-size: 11px; display: flex; justify-content: space-between; align-items: center; }
+        .site-item:hover, .site-item.active { background: var(--primary); }
+        .update-time { font-size: 9px; opacity: 0.7; }
+
+        /* Headlines Column */
+        .headlines-col { width: 350px; background: white; border-right: 1px solid #ddd; display: flex; flex-direction: column; }
+        .headlines-col h3 { padding: 15px; margin: 0; border-bottom: 2px solid var(--primary); font-size: 15px; background: #fff; }
+        #headline-list { overflow-y: auto; flex-grow: 1; }
+        .news-card { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; transition: 0.2s; }
+        .news-card.active { border-left: 5px solid var(--primary); background: #fff5f5; }
+
+        /* Main Dashboard Area */
+        .main-engine { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+        .converter-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .card h3 { font-size: 14px; margin: 0; color: var(--accent); }
+        textarea { width: 100%; height: 180px; border: 1px solid #ccc; border-radius: 5px; padding: 10px; font-size: 16px; margin-top: 10px; resize: none; }
+        
+        .btn-group { display: flex; gap: 5px; margin-top: 10px; }
+        button { cursor: pointer; padding: 8px 12px; border: none; border-radius: 4px; background: var(--accent); color: white; font-size: 11px; font-weight: bold; flex: 1; }
+        .btn-transfer { background: #f39c12 !important; font-size: 14px; padding: 12px; }
+        
+        .article-preview { background: white; padding: 20px; border-radius: 10px; border: 1px solid #ddd; }
+        .f-img { width: 100%; max-height: 400px; object-fit: cover; border-radius: 8px; margin-bottom: 15px; display: none; }
+        
+        .loader { border: 3px solid #f3f3f3; border-top: 3px solid var(--primary); border-radius: 50%; width: 25px; height: 25px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2 onclick="location.reload()">🔄 ७४ पोर्टल (ताजा अपडेट)</h2>
+        <div id="site-list"></div>
+    </div>
+
+    <div class="headlines-col">
+        <h3 id="current-title">फिड लोड हुँदैछ...</h3>
+        <div id="headline-list"></div>
+    </div>
+
+    <div class="main-engine">
+        <div class="converter-grid">
+            <div class="card">
+                <h3>१. Unicode (Append Mode)</h3>
+                <textarea id="unicode_text" placeholder="कपी गरिएका समाचार यहाँ थपिँदै जानेछन्..."></textarea>
+                <div class="btn-group">
+                    <button onclick="document.getElementById('unicode_text').value=''">Clear</button>
+                    <button class="btn-transfer" style="background:#27ae60 !important" onclick="copyText('unicode_text')">Copy All</button>
+                </div>
+            </div>
+            <div class="card">
+                <h3>२. Preeti Output</h3>
+                <textarea id="legacy_text" style="font-family: 'preeti';" placeholder="Preeti..."></textarea>
+                <div class="btn-group">
+                    <button onclick="do_convert_to_preeti()">Manual Convert</button>
+                </div>
+            </div>
+            <div class="card">
+                <h3>३. Himalb Result</h3>
+                <textarea id="himalb_output" style="font-family: 'himalb';" placeholder="Himalb..."></textarea>
+                <div class="btn-group">
+                    <button onclick="downloadRTF()">RTF Download</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="article-preview" id="article-view" style="display:none;">
+            <button class="btn-transfer" id="main-copy-btn" onclick="copyAndTransfer()">📋 यो समाचार कपी र कन्भर्ट गर्नुहोस् (Append)</button>
+            <h1 id="f-title" style="margin-top:15px;"></h1>
+            <img id="f-img" class="f-img">
+            <div id="f-content"></div>
+        </div>
+    </div>
+
+<script>
+    // ७४ वटा फिडहरूको लिष्ट (यसले स्वतः सबै लिङ्कहरू प्रोसेस गर्छ)
+    const rawSites = [
+        { name: "Public Readers", url: "https://publicreaders.com/feed/" },
+        { name: "Bara Update", url: "https://baraupdate.com.np/feed/" },
+        { name: "Rato News", url: "https://ratonews.com/feed/" },
+        { name: "Madhesh Sanchar", url: "https://madheshsanchar.com/feed" },
+        { name: "Prateek Daily", url: "https://www.eprateekdaily.com/feed" },
+        { name: "Nepal Press", url: "https://nepalpress.eu.org/feed/" },
+        { name: "Ratopati", url: "https://www.ratopati.com/feed/" },
+        { name: "Education Nepal", url: "https://educationnepal.eu.org/feed/" },
+        { name: "Birgunj Sanjal", url: "https://birgunjsanjal.com/feed/" },
+        { name: "Janakpur Today", url: "https://ejanakpurtoday.com/feed/" },
+        { name: "eShilalekh", url: "https://www.eshilalekh.com/feed" }
+        // थप लिङ्कहरू यहाँ थप्दै जान सकिन्छ...
+    ];
+
+    let siteMeta = [];
+
+    async function init() {
+        const promises = rawSites.map(async (site) => {
+            try {
+                const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(site.url)}`);
+                const data = await res.json();
+                if (data.status === 'ok' && data.items.length > 0) {
+                    siteMeta.push({ ...site, lastUpdate: new Date(data.items[0].pubDate), items: data.items });
+                }
+            } catch (e) {}
+        });
+        await Promise.all(promises);
+        siteMeta.sort((a, b) => b.lastUpdate - a.lastUpdate);
+        renderSidebar();
+        if(siteMeta.length > 0) renderHeadlines(siteMeta[0].items, siteMeta[0].name);
+    }
+
+    function renderSidebar() {
+        const list = document.getElementById('site-list');
+        list.innerHTML = "";
+        siteMeta.forEach(s => {
+            const div = document.createElement('div');
+            div.className = 'site-item';
+            div.innerHTML = `<span>${s.name}</span> <span class="update-time">${s.lastUpdate.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</span>`;
+            div.onclick = () => renderHeadlines(s.items, s.name);
+            list.appendChild(div);
+        });
+    }
+
+    function renderHeadlines(items, source) {
+        document.getElementById('current-title').innerText = source;
+        const list = document.getElementById('headline-list');
+        list.innerHTML = "";
+        items.forEach((item, index) => {
+            const card = document.createElement('div');
+            card.className = 'news-card';
+            card.innerHTML = `<b>${index+1}.</b> ${item.title} <br><small>${new Date(item.pubDate).toLocaleTimeString()}</small>`;
+            card.onclick = () => showNews(item, card);
+            list.appendChild(card);
+        });
+    }
+
+    // १. APPEND MODE: समाचार कपी गर्ने र कन्भर्ट गर्ने (No Alert)
+    async function copyAndTransfer() {
+        const title = document.getElementById('f-title').innerText;
+        const content = document.getElementById('f-content').innerText;
+        const unicodeBox = document.getElementById('unicode_text');
+        
+        const timestamp = new Date().toLocaleTimeString();
+        const separator = `\n\n==============================\n📌 ${title} (${timestamp})\n`;
+        const newEntry = separator + content;
+
+        // पुरानोमा नयाँ थप्ने (Append)
+        unicodeBox.value = unicodeBox.value + newEntry;
+
+        // स्वतः कन्भर्ट
+        do_convert_to_preeti();
+        setTimeout(() => {
+            do_convert_to_himalb();
+            // पपअपको सट्टा बटनको रङ परिवर्तन गरेर 'भिजुअल फिडब्याक' दिने
+            const btn = document.getElementById('main-copy-btn');
+            btn.style.background = "#2ecc71"; 
+            btn.innerText = "✅ थपियो (Append भयो)";
+            setTimeout(() => {
+                btn.style.background = "#f39c12";
+                btn.innerText = "📋 यो समाचार कपी र कन्भर्ट गर्नुहोस् (Append)";
+            }, 800);
+        }, 300);
+    }
+
+    function showNews(item, card) {
+        document.querySelectorAll('.news-card').forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        document.getElementById('article-view').style.display = 'block';
+        document.getElementById('f-title').innerText = item.title;
+        
+        let fullContent = (item.content || item.description);
+        document.getElementById('f-content').innerHTML = fullContent;
+
+        // जबरजस्ती फोटो तान्ने
+        let img = item.thumbnail || "";
+        if(!img) { const m = fullContent.match(/<img.*?src=["'](.*?)["']/i); img = m ? m[1] : ""; }
+        const imgEl = document.getElementById('f-img');
+        if(img) { imgEl.src = img; imgEl.style.display = 'block'; } else { imgEl.style.display = 'none'; }
+        
+        document.querySelector('.main-engine').scrollTop = 0;
+    }
+
+    // कन्भर्टर लोजिक
+    function do_convert_to_preeti() { if (typeof convert_to_Preeti === "function") convert_to_Preeti(); }
+    function do_convert_to_himalb() {
+        let p = document.getElementById('legacy_text').value;
+        if (p && typeof kantipurConfigToUnicode === "function") {
+            document.getElementById('himalb_output').value = kantipurConfigToUnicode(p);
+        }
+    }
+    function copyText(id) { document.getElementById(id).select(); document.execCommand('copy'); }
+    function downloadRTF() {
+        const t = document.getElementById('himalb_output').value;
+        const blob = new Blob([t], {type: 'application/rtf'});
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob); a.download = "news_append.rtf"; a.click();
+    }
+
+    init();
+</script>
+</body>
+</html>

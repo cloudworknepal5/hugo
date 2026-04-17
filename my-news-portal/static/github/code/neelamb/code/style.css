@@ -1,0 +1,62 @@
+/* Label Post Container */
+.lp-container {
+    width: 100%;
+    margin: 0 auto;
+    font-family: 'Arial', sans-serif;
+}
+
+/* Featured (First) Post */
+.lp-featured {
+    margin-bottom: 25px;
+    text-align: center;
+}
+.lp-featured h2 {
+    font-size: 25px;
+    margin-bottom: 10px;
+}
+.lp-featured img {
+    width: 100%;
+    height: auto;
+    max-height: 350px;
+    object-fit: cover;
+    border: 1px solid #ddd;
+}
+.lp-snippet {
+    font-size: 15px;
+    color: #555;
+    margin-top: 10px;
+    line-height: 1.6;
+}
+
+/* Grid (Second and Third) Posts */
+.lp-grid {
+    display: flex;
+    flex-wrap: nowrap; /* मोबाइलमा पनि नखुम्चिने गरि */
+    gap: 15px;
+}
+.lp-item {
+    width: 50%; /* मोबाइलमा पनि ५०% नै राख्ने */
+    display: flex;
+    flex-direction: column;
+}
+.lp-item img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border: 1px solid #ddd;
+}
+.lp-item h3 {
+    font-size: 25px;
+    margin-top: 8px;
+    line-height: 1.4;
+    font-weight: 800px;
+}
+
+/* Links */
+.lp-container a {
+    text-decoration: none;
+    color: #333;
+}
+.lp-container a:hover {
+    color: #e74c3c;
+}

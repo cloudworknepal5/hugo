@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nepal24News - Smart News Editor 2026</title>
+    <script src="https://ad.neelamb.com/feeds/index_files/jquery.download"></script>
+    <script src="https://ad.neelamb.com/feeds/index_files/jquery_002.download"></script>
+    <script src="https://ad.neelamb.com/feeds/index_files/common.download"></script>
+    <script src="https://ad.neelamb.com/feeds/index_files/convert.download"></script>
+    <script src="https://ad.neelamb.com/feeds/index_files/kantipur.js.download"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://educationnepal.eu.org/weather.css" />
+
+    <style>
+        :root { --primary: #e74c3c; --accent: #4e73df; --bg: #f4f7f6; --dark: #2c3e50; --rtf: #8e44ad; --gmail: #d44638; --correct-color: #27ae60; --google-blue: #4285F4; }
+        
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        /* New Top Nav for Widgets */
+        .top-nav { background: #fff; display: flex; justify-content: space-between; align-items: center; padding: 5px 20px; border-bottom: 1px solid #ddd; flex-shrink: 0; }
+        #weather-widget { scale: 0.8; margin-right: -20px; }
+
+        /* Top Editor Section */
+        .top-editor { background: white; padding: 10px; border-bottom: 3px solid var(--primary); flex-shrink: 0; z-index: 100; }
+        .converter-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        textarea { width: 100%; height: 110px; border: 1px solid #ccc; border-radius: 5px; padding: 8px; font-size: 15px; box-sizing: border-box; resize: none; transition: 0.3s; }
+        textarea:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 5px rgba(78,115,223,0.2); }
+        h3 { font-size: 11px; margin: 0 0 5px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        /* Tool Buttons */
+        .btn-row { display: flex; gap: 4px; margin-top: 5px; flex-wrap: wrap; }
+        .btn-tool { flex: 1; padding: 6px; font-size: 10px; border: none; border-radius: 3px; cursor: pointer; color: white; font-weight: bold; min-width: 45px; transition: 0.2s; }
+        .btn-tool:hover { opacity: 0.8; }
+        .btn-conv { background: var(--accent); }
+        .btn-copy { background: var(--correct-color); }
+        .btn-clear { background: #7f8c8d; }
+        .btn-rtf { background: var(--rtf); }
+        .btn-correct { background: var(--correct-color); }
+
+        /* Navigation Bar / Control Panel */
+        .control-panel { background: var(--dark); padding: 8px 15px; display: flex; gap: 10px; justify-content: center; flex-shrink: 0; align-items: center; flex-wrap: wrap; }
+        .input-box { padding: 7px 12px; border-radius: 4px; border: none; font-size: 13px; width: 160px; outline: none; }
+        .btn-action { background: var(--correct-color); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; transition: 0.2s; }
+        .btn-action:hover { transform: translateY(-1px); }
+        .btn-blue { background: #3498db; }
+        .btn-rss { background: #f39c12; }
+        .btn-gmail { background: var(--gmail); }
+
+        /* Google Search Bar in Nav */
+        .nav-search-group { display: flex; gap: 0; background: #fff; border-radius: 4px; overflow: hidden; border: 2px solid var(--google-blue); }
+        .nav-google-input { border: none; padding: 6px 12px; width: 180px; font-size: 13px; outline: none; }
+        .btn-google { background: var(--google-blue); color: white; border: none; padding: 0 15px; cursor: pointer; font-weight: bold; }
+
+        /* Layout Panels */
+        .split-view { display: flex; flex: 1; overflow: hidden; }
+        .left-panel { width: 38%; background: white; overflow-y: auto; padding: 15px; border-right: 2px solid #ddd; }
+        .right-panel { width: 62%; background: #f0f0f0; overflow-y: auto; display: flex; flex-direction: column; }
+        
+        .embed-card { background: white; border-radius: 8px; padding: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 15px; border-top: 3px solid #ddd; }
+        .embed-card h2 { font-size: 15px; margin: 0 0 12px 0; color: var(--dark); border-left: 4px solid var(--primary); padding-left: 10px; }
+        .embed-container { width: 100%; border: 1px solid #eee; border-radius: 5px; overflow: hidden; background: #fff; }
+        
+        .browser-section { height: 600px; width: 100%; border-top: 4px solid var(--dark); background: #fff; }
+        iframe { width: 100%; height: 100%; border: none; }
+
+        /* News Grid Styles */
+        .news-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .post-card { border: 1px solid #eee; padding: 10px; border-radius: 8px; background: #fff; transition: 0.3s; }
+        .post-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .f-img { width: 100%; height: 90px; object-fit: cover; border-radius: 5px; margin-bottom: 8px; }
+        .post-title { font-size: 12px; font-weight: bold; color: #333; height: 35px; overflow: hidden; text-decoration: none; display: block; line-height: 1.4; }
+        .btn-add { background: var(--correct-color); color: white; border: none; padding: 7px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; width: 100%; margin-top: 5px; }
+
+        #copy-status { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--dark); color: white; padding: 10px 25px; border-radius: 50px; display: none; z-index: 9999; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+    </style>
+</head>
+<body>
+
+<div id="copy-status">Copied! ✅</div>
+
+<nav class="top-nav">
+    <div id="np_widget_wiz1" widget="day-sm" style="width: 300px;"></div>
+    <script async="async" src="https://educationnepal.eu.org/nepalipatro.js" id="wiz1"></script>
+    
+    <div id="weather-widget">
+        <div class="weather-icon" id="icon"></div>
+        <div class="weather-info">
+            <span class="city">Birgunj</span>
+            <span class="temp" id="temp">--°C</span>
+            <span class="desc" id="description">Loading...</span>
+        </div>
+    </div>
+</nav>
+
+<div class="top-editor">
+    <div class="converter-grid">
+        <div class="card">
+            <h3>१. Unicode</h3>
+            <textarea id="unicode_text" oninput="autoProcess()" placeholder="यहाँ टाइप गर्नुहोस् वा समाचार थप्नुहोस्..."></textarea>
+            <div class="btn-row">
+                <button class="btn-tool btn-conv" onclick="autoProcess()">Convert</button>
+                <button class="btn-tool btn-copy" onclick="copyTool('unicode_text')">Copy</button>
+                <button class="btn-tool btn-clear" onclick="clearAllTools()">Clear</button>
+            </div>
+        </div>
+        <div class="card">
+            <h3>२. Preeti</h3>
+            <textarea id="legacy_text" style="font-family:'preeti';" placeholder="प्रीति फन्ट यहाँ..."></textarea>
+            <div class="btn-row">
+                <button class="btn-tool btn-conv" onclick="autoProcess()">Convert</button>
+                <button class="btn-tool btn-copy" onclick="copyTool('legacy_text')">Copy</button>
+                <button class="btn-tool btn-clear" onclick="clearAllTools()">Clear</button>
+            </div>
+        </div>
+        <div class="card">
+            <h3>३. Himalb (Auto)</h3>
+            <textarea id="himalb_output" style="font-family:'himalb';" placeholder="हिमाल बी फन्ट..."></textarea>
+            <div class="btn-row">
+                <button class="btn-tool btn-conv" onclick="autoProcess()">Convert</button>
+                <button class="btn-tool btn-copy" onclick="copyTool('himalb_output')">Copy</button>
+                <button class="btn-tool btn-clear" onclick="clearAllTools()">Clear</button>
+            </div>
+        </div>
+        <div class="card">
+            <h3>४. Word Correction</h3>
+            <textarea id="corrected_output" style="font-family:'himalb';" placeholder="सुधारिएको टेक्स्ट यहाँ..."></textarea>
+            <div class="btn-row">
+                <button class="btn-tool btn-correct" onclick="applyFinalCorrection()">Correct</button>
+                <button class="btn-tool btn-rtf" onclick="downloadRTF()">RTF</button>
+                <button class="btn-tool btn-copy" onclick="copyTool('corrected_output')">Copy</button>
+                <button class="btn-tool btn-clear" onclick="document.getElementById('corrected_output').value=''">Clear</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="control-panel">
+    <button class="btn-action btn-rss" onclick="openRSSPopup()"><i class="fas fa-list"></i> RSS POPUP</button>
+    
+    <input type="text" id="custom_rss" class="input-box" placeholder="RSS Link...">
+    <button class="btn-action" onclick="fetchFeed(document.getElementById('custom_rss').value)">लोड फिड</button>
+    
+    <input type="text" id="browser_url" class="input-box" placeholder="URL यहाँ...">
+    <button class="btn-action btn-blue" onclick="loadBrowser()">वेबसाइट</button>
+
+    <div class="nav-search-group">
+        <input type="text" id="nav_google_input" class="nav-google-input" placeholder="फोटो सर्च (Unicode)..." oninput="if(this.value.length > 2) triggerNavSearch(this.value)">
+        <button class="btn-google" onclick="triggerNavSearch(document.getElementById('nav_google_input').value)">
+            <i class="fab fa-google"></i>
+        </button>
+    </div>
+
+    <button class="btn-action btn-gmail" onclick="window.open('https://mail.google.com/mail/u/0/?ui=2&fs=1&tf=cm', '_blank')">GMAIL</button>
+</div>
+
+<div class="feed-shortcuts" id="feed-buttons" style="background:#fff; padding:5px; border-bottom:1px solid #ddd; display:flex; flex-wrap:wrap; gap:5px; justify-content:center;"></div>
+
+<div class="split-view">
+    <div class="left-panel">
+        <div id="news-grid" class="news-grid">
+            <p style="text-align:center; grid-column:span 2; padding:40px; color:#999;">फिड लोड गर्नुहोस्।</p>
+        </div>
+        <div style="text-align:center; margin-top:20px;">
+            <button id="load-more-btn" class="btn-action btn-blue" style="display:none;" onclick="displayMore()">थप समाचार लोड गर्नुहोस् ⬇</button>
+        </div>
+    </div>
+    
+    <div class="right-panel">
+        <div style="padding:15px;">
+             <div class="embed-card">
+                <h2>Preeti to Unicode Auto</h2>
+                <div class="embed-container" style="height: 450px;">
+                    <embed src="https://designers2077.github.io/PreetiToUnicodeAuto/" width="100%" height="100%">
+                </div>
+             </div>
+             
+             <div class="embed-card">
+                <h2>Himalb Converter</h2>
+                <div class="embed-container" style="height: 350px;">
+                    <embed src="https://ad.neelamb.com/himalb.html" width="100%" height="100%">
+                </div>
+             </div>
+
+             <div class="card"><h2>News Editor</h2><div class="embed-container" style="height: 400px;"><embed src="https://designers2077.github.io/newseditor/" width="100%" height="100%"></div></div>
+        </div>
+        
+        <div class="browser-section">
+            <iframe id="web_frame" name="web_frame" src="about:blank"></iframe>
+        </div>
+    </div>
+</div>
+
+<script>
+// --- GOOGLE IMAGE SEARCH LOGIC ---
+function triggerNavSearch(val) {
+    if (val.trim().length > 1) {
+        var url = "https://www.google.com/search?q=" + encodeURIComponent(val) + "&tbm=isch";
+        window.open(url, '_blank');
+        setTimeout(() => { 
+            document.getElementById('nav_google_input').value = ''; 
+        }, 1500);
+    }
+}
+
+// --- CONVERTER & CORRECTION LOGIC ---
+const correctionMap = {
+    "सङ्ख्या": "संख्या", "शत्री": "शत्रु", "उच्छृङ्खल": "उच्छृंखल", "ल्": "ल्", "र्रु": "रु",
+    ";Î\\of": ";+Vof", "zqL": "zq'", "pR5[În": "pR5[+vn", "?{": "¥", ";Í]t": ";+s]t", "zÎ": "z+v", "n\\": "N"
+};
+
+function clearAllTools() {
+    document.getElementById('unicode_text').value = "";
+    document.getElementById('legacy_text').value = "";
+    document.getElementById('himalb_output').value = "";
+    document.getElementById('corrected_output').value = "";
+}
+
+function copyTool(id) {
+    const box = document.getElementById(id);
+    if (box.value.length > 0) {
+        box.select();
+        document.execCommand('copy');
+        const status = document.getElementById('copy-status');
+        status.style.display = 'block';
+        setTimeout(() => { status.style.display = 'none'; }, 2000);
+    }
+}
+
+function applyFinalCorrection() {
+    const himalbVal = document.getElementById('himalb_output').value;
+    const unicodeVal = document.getElementById('unicode_text').value;
+    let sourceText = himalbVal || unicodeVal;
+    if(!sourceText) return;
+    let result = sourceText;
+    Object.entries(correctionMap).forEach(([wrong, right]) => {
+        result = result.split(wrong).join(right);
+    });
+    document.getElementById('corrected_output').value = result;
+}
+
+function autoProcess() {
+    if (typeof convert_to_Preeti === "function") convert_to_Preeti(); 
+    setTimeout(() => {
+        const preetiVal = document.getElementById('legacy_text').value;
+        if (typeof kantipurConfigToUnicode === "function" && preetiVal) {
+            document.getElementById('himalb_output').value = kantipurConfigToUnicode(preetiVal);
+            applyFinalCorrection();
+        }
+    }, 450);
+}
+
+function downloadRTF() {
+    const text = document.getElementById('corrected_output').value || document.getElementById('himalb_output').value;
+    if(!text) return alert("टेक्स्ट छैन।");
+    const rtfHeader = "{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Himalb;}}\n{\\f0\n";
+    const rtfFooter = "\n}}";
+    const blob = new Blob([rtfHeader + text + rtfFooter], {type: 'application/rtf'});
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = "News_Report_" + Date.now() + ".rtf";
+    link.click();
+}
+
+// --- FEED LOGIC ---
+const feeds = [
+    { name: "Nepal Post", url: "https://nepalpostdaily.com/feed/" },
+    { name: "Madhes Khabar", url: "https://feeds.feedburner.com/madheskhabar/pLihKdgaoDx" },
+    { name: "Race Khabar", url: "https://racekhabar.com/feed/" },
+    { name: "E-Shilalekh", url: "https://www.eshilalekh.com/feed" },
+    { name: "Madhesh Sanchar", url: "https://madheshsanchar.com/feed" },
+    { name: "Chandra Surya", url: "https://feeds.feedburner.com/chandrasuryawani/8iC1d0yoofl" },
+    { name: "Desh Madhesh", url: "https://deshmadhesh.com/feed/" },
+    { name: "Bara Update", url: "https://baraupdate.com.np/feed/" },
+    { name: "Ghantaghar TV", url: "https://ghantaghartv.com/feed/" },
+    { name: "Gopyakhabar", url: "https://www.gopyakhabar.com/feed/" },
+    { name: "deshsanchar", url: "https://deshsanchar.com/feed/" },
+    { name: "satyadarshan", url: "https://satyadarsan.com/feed/" },
+    { name: "nepaltopkhabar", url: "https://nepaltopkhabar.com/feed/" }
+];
+
+let allItems = []; let currentIndex = 0; const itemsPerPage = 10;
+const btnContainer = document.getElementById('feed-buttons');
+
+feeds.forEach(f => {
+    const btn = document.createElement('button');
+    btn.style.cssText = "background:#f8f9fa; border:1px solid #ddd; padding:4px 10px; border-radius:15px; cursor:pointer; font-size:11px;";
+    btn.innerText = f.name;
+    btn.onclick = () => fetchFeed(f.url);
+    btnContainer.appendChild(btn);
+});
+
+async function fetchFeed(url) {
+    if(!url) return;
+    const grid = document.getElementById('news-grid');
+    grid.innerHTML = "<p style='grid-column: span 2; text-align:center;'>लोड हुँदैछ...</p>";
+    try {
+        const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}&cache_boost=${Date.now()}`);
+        const data = await res.json();
+        if (data.status === "ok") { allItems = data.items; currentIndex = 0; grid.innerHTML = ""; displayMore(); }
+    } catch (e) { grid.innerHTML = "Error loading feed!"; }
+}
+
+function displayMore() {
+    const grid = document.getElementById('news-grid');
+    const loadBtn = document.getElementById('load-more-btn');
+    const nextItems = allItems.slice(currentIndex, currentIndex + itemsPerPage);
+    
+    nextItems.forEach((item, i) => {
+        const globalIdx = currentIndex + i;
+        const img = item.thumbnail || "https://via.placeholder.com/150x90?text=News";
+        grid.innerHTML += `
+            <div class="post-card">
+                <img src="${img}" class="f-img">
+                <a href="${item.link}" target="web_frame" class="post-title" id="t-${globalIdx}">${item.title}</a>
+                <div id="c-${globalIdx}" style="display:none;">${(item.content || item.description || "").replace(/<[^>]*>?/gm, '')}</div>
+                <button class="btn-add" onclick="appendToEditor('t-${globalIdx}', 'c-${globalIdx}')">थप्नुहोस् +</button>
+            </div>`;
+    });
+    
+    currentIndex += itemsPerPage;
+    loadBtn.style.display = (currentIndex < allItems.length) ? 'inline-block' : 'none';
+}
+
+function appendToEditor(titleId, contentId) {
+    const title = document.getElementById(titleId).innerText;
+    const content = document.getElementById(contentId).innerText;
+    const box = document.getElementById('unicode_text');
+    box.value += (box.value ? "\n\n━━━━━━━━━\n\n" : "") + `📌 ${title}\n\n${content}`;
+    autoProcess();
+}
+
+function openRSSPopup() { window.open("http://rssnepal.org.np/headlineNews/list?type=TEXT_NEPALI", 'RSS', 'width=1000,height=600'); }
+function loadBrowser() { let url = document.getElementById('browser_url').value.trim(); if(!url) return; if(!url.startsWith('http')) url = 'https://' + url; document.getElementById('web_frame').src = url; }
+
+// --- WEATHER FETCH LOGIC (Birgunj) ---
+async function fetchWeather() {
+    try {
+        const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=27.01&longitude=84.87&current_weather=true');
+        const data = await res.json();
+        document.getElementById('temp').innerText = data.current_weather.temperature + "°C";
+        document.getElementById('description').innerText = "Clear Sky";
+        document.getElementById('icon').innerHTML = "☀️";
+    } catch (e) { console.log("Weather Error"); }
+}
+fetchWeather();
+</script>
+
+</body>
+</html>

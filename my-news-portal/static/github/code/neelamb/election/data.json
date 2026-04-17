@@ -1,0 +1,8 @@
+[
+    { "name": "नेपाली कांग्रेस", "fptp": 60, "pr": 35, "symbol": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Nepali_Congress_Flag.svg/800px-Nepali_Congress_Flag.svg.png", "photo": "https://via.placeholder.com/30/007bff/ffffff?text=NC", "color": "#007bff" },
+    { "name": "नेकपा (एमाले)", "fptp": 50, "pr": 30, "symbol": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/CPN-UML_Flag.svg/800px-CPN-UML_Flag.svg.png", "photo": "https://via.placeholder.com/30/ff0000/ffffff?text=UML", "color": "#ff0000" },
+    { "name": "नेकपा (माओवादी केन्द्र)", "fptp": 20, "pr": 15, "symbol": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/CPN_Maoist_Centre.svg/800px-CPN_Maoist_Centre.svg.png", "photo": "https://via.placeholder.com/30/ff5722/ffffff?text=MC", "color": "#ff5722" },
+    { "name": "राष्ट्रिय स्वतन्त्र पार्टी", "fptp": 15, "pr": 12, "symbol": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/RSP_Nepal_Flag.svg/800px-RSP_Nepal_Flag.svg.png", "photo": "https://via.placeholder.com/30/00bcd4/ffffff?text=RSP", "color": "#00bcd4" },
+    { "name": "राष्ट्रिय प्रजातन्त्र पार्टी", "fptp": 7, "pr": 5, "symbol": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Rastriya_Prajatantra_Party_flag.svg/800px-Rastriya_Prajatantra_Party_flag.svg.png", "photo": "https://via.placeholder.com/30/f7931a/ffffff?text=RPP", "color": "#f7931a" },
+    { "name": "अन्य", "fptp": 8, "pr": 3, "symbol": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Flag_of_Nepal.svg/1000px-Flag_of_Nepal.svg.png", "photo": "https://via.placeholder.com/30/607d8b/ffffff?text=Other", "color": "#607d8b" }
+]

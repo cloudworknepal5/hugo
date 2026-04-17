@@ -1,0 +1,79 @@
+
+api
+AIzaSyAh5DKuOvbRcLEF3IFdq_XjeFGseKy5LWk 
+
+
+channel id
+UCnaM-zAbh_-I4Bsd9Yqyjvg
+
+
+UC3-zHSIXFWEC-NgrTL98uXg
+
+
+UC3v3VpUyf34SLfN1IyUlMeA
+
+
+api youtube news
+
+
+samachar
+UC09hwXZEtHcScFWebDsj7cA
+
+
+officialbaraupdate@gmail.com
+
+BijayNagar#@2079
+
+
+
+<script src="https://ad.neelamb.com/video-ad.js"></script>
+
+<div id="my-video-grid">Loading 9 latest videos...</div>
+
+<script>
+  // Parameters: ChannelID, API Key, Container ID
+  showVideoGrid('UC09hwXZEtHcScFWebDsj7cA', 'AIzaSyAh5DKuOvbRcLEF3IFdq_XjeFGseKy5LWk', 'my-video-grid');
+</script>
+
+
+
+<script src="https://ad.neelamb.com/video-ad.js"></script>
+
+<div id="latest-video">Loading latest video...</div>
+
+<script>
+  // Use your Channel ID and Google API Key
+  embedLatestFromChannel('UC09hwXZEtHcScFWebDsj7cA', 'AIzaSyAh5DKuOvbRcLEF3IFdq_XjeFGseKy5LWk', 'latest-video');
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script src="https://ad.neelamb.com/video-ad.js"></script>
+
+<div id="my-video-grid">Loading 9 latest videos...</div>
+
+<script>
+  // Parameters: ChannelID, API Key, Container ID
+  showVideoGrid('UC09hwXZEtHcScFWebDsj7cA', 'AIzaSyAh5DKuOvbRcLEF3IFdq_XjeFGseKy5LWk', 'my-video-grid');
+</script>

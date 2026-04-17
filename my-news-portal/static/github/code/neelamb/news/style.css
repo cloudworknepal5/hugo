@@ -1,0 +1,54 @@
+body {
+    font-family: 'Mukta', sans-serif;
+    background-color: #f4f4f4;
+    padding: 15px;
+}
+
+.news-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.news-card {
+    background: #fff;
+    border-radius: 5px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.news-card a {
+    text-decoration: none; /* लिंकको अन्डरलाइन हटाउन */
+    color: inherit;
+}
+
+.news-card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    display: block;
+}
+
+.headline {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 10px;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* २ लाइन मात्र */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* मोबाइलको लागि २x२ कोलम */
+@media (max-width: 600px) {
+    .news-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    .headline {
+        font-size: 16px; /* मोबाइलमा अलि सानो देखियोस् भनेर */
+    }
+}

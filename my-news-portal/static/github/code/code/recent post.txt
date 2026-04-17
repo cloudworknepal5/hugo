@@ -1,0 +1,6 @@
+<div id="recent-posts-box">Loading posts...</div>
+<link rel="stylesheet" href="https://educationnepal.eu.org/code/style.css"/>
+
+<script src="https://educationnepal.eu.org/code/script.js"></script>
+
+<script src="/feeds/posts/default/-/news?alt=json-in-script&callback=renderRecentByLabel&max-results=3"></script>

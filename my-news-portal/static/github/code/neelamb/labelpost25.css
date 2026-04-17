@@ -1,0 +1,70 @@
+/* Blogger Advanced Loop Style */
+.featured-loop-item {
+    font-family: 'Helvetica', 'Arial', sans-serif;
+    margin-bottom: 40px;
+    text-align: center;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.tag-label {
+    background: #d32f2f;
+    color: #fff;
+    padding: 4px 12px;
+    font-size: 12px;
+    text-transform: uppercase;
+    display: inline-block;
+    margin-bottom: 12px;
+    font-weight: bold;
+}
+
+.featured-title {
+    font-size: 32px;
+    font-weight: 800;
+    margin: 10px 0;
+    line-height: 1.3;
+}
+
+.featured-title a {
+    color: #111;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.featured-title a:hover {
+    color: #d32f2f;
+}
+
+.featured-meta {
+    font-size: 14px;
+    color: #777;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.featured-meta img {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+}
+
+.featured-img-wrap {
+    overflow: hidden;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.featured-img {
+    width: 100%;
+    height: auto;
+    display: block;
+    transition: transform 0.5s ease;
+}
+
+.featured-img:hover {
+    transform: scale(1.03);
+}

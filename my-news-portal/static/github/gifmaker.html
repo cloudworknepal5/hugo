@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animation to GIF - Multi Tool</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gifshot/0.4.5/gifshot.min.js"></script>
+    <style>
+        :root { --primary: #ef4444; --bg: #f8fafc; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .container { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 800px; }
+        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; background: #f1f5f9; padding: 20px; border-radius: 12px; }
+        .input-group { display: flex; flex-direction: column; gap: 4px; }
+        label { font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; }
+        input { padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; }
+        
+        /* Display & Preview Area */
+        #canvas-container { 
+            position: relative; 
+            width: 100%; 
+            max-width: 600px; 
+            height: 400px; 
+            margin: 0 auto;
+            border: 4px solid #fff;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            background: #1e293b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        #bg-preview { position: absolute; width: 100%; height: 100%; object-fit: cover; z-index: 1; opacity: 0.8; display: none; }
+        #text-overlay { position: relative; z-index: 2; font-weight: 800; text-align: center; white-space: pre-wrap; line-height: 1.2; }
+        .cursor { border-right: 4px solid; animation: blink 0.7s infinite; margin-left: 2px; }
+        @keyframes blink { 50% { border-color: transparent; } }
+
+        .btn-box { grid-column: span 2; display: flex; gap: 10px; margin-top: 10px; }
+        button { flex: 1; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; color: white; transition: 0.3s; }
+        .btn-gen { background: #10b981; }
+        .btn-reset { background: #3b82f6; }
+        #status { text-align: center; margin-top: 10px; color: #ef4444; font-weight: bold; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2 style="text-align: center;">Typing GIF Maker</h2>
+
+    <div class="controls">
+        <div class="input-group" style="grid-column: span 2;">
+            <label>१. फोटो चयन (Photo):</label>
+            <input type="file" id="image-upload" accept="image/*" onchange="loadPhoto()">
+        </div>
+
+        <div class="input-group" style="grid-column: span 2;">
+            <label>२. टेक्स्ट लेख्नुहोस्:</label>
+            <input type="text" id="user-text" value="नमस्ते साथीहरू!" oninput="resetTyping()">
+        </div>
+
+        <div class="input-group">
+            <label>साइज (Size):</label>
+            <input type="range" id="font-size" min="20" max="80" value="40" oninput="updateStyle()">
+        </div>
+
+        <div class="input-group">
+            <label>रंग (Color):</label>
+            <input type="color" id="text-color" value="#ffffff" oninput="updateStyle()">
+        </div>
+
+        <div class="input-group">
+            <label>स्ट्रोक मोटाई:</label>
+            <input type="range" id="stroke-width" min="0" max="5" step="0.5" value="1.5" oninput="updateStyle()">
+        </div>
+
+        <div class="input-group">
+            <label>गति (Typing Speed):</label>
+            <input type="range" id="type-speed" min="100" max="600" value="200" oninput="resetTyping()">
+        </div>
+
+        <div class="btn-box">
+            <button class="btn-reset" onclick="resetTyping()">एनिमेसन रिसेट</button>
+            <button class="btn-gen" onclick="generateGIF()">GIF डाउनलोड गर्नुहोस्</button>
+        </div>
+    </div>
+
+    <div id="status">GIF बन्दैछ... कृपया केही बेर पर्खनुहोस्।</div>
+
+    <div id="canvas-container">
+        <img id="bg-preview" src="">
+        <div id="text-overlay"><span id="typewriter"></span><span class="cursor" id="cursor-el"></span></div>
+    </div>
+</div>
+
+<script>
+    let i = 0;
+    let isDeleting = false;
+    let timer;
+    const textEl = document.getElementById('typewriter');
+    const bgImg = document.getElementById('bg-preview');
+
+    function loadPhoto() {
+        const file = document.getElementById('image-upload').files[0];
+        const reader = new FileReader();
+        reader.onload = (e) => { bgImg.src = e.target.result; bgImg.style.display = 'block'; };
+        if(file) reader.readAsDataURL(file);
+    }
+
+    function updateStyle() {
+        const size = document.getElementById('font-size').value;
+        const color = document.getElementById('text-color').value;
+        const sWidth = document.getElementById('stroke-width').value;
+        const overlay = document.getElementById('text-overlay');
+        overlay.style.fontSize = size + "px";
+        overlay.style.color = color;
+        overlay.style.webkitTextStroke = `${sWidth}px #000`;
+        document.getElementById('cursor-el').style.borderColor = color;
+    }
+
+    function handleTyping() {
+        const fullText = document.getElementById('user-text').value;
+        const speed = parseInt(document.getElementById('type-speed').value);
+        
+        textEl.innerHTML = fullText.substring(0, i);
+
+        if (!isDeleting && i <= fullText.length) {
+            i++;
+            timer = setTimeout(handleTyping, speed);
+        } else if (isDeleting && i >= 0) {
+            i--;
+            timer = setTimeout(handleTyping, speed/2);
+        }
+
+        if (i > fullText.length) { isDeleting = true; timer = setTimeout(handleTyping, 1500); }
+        else if (i < 0) { isDeleting = false; i = 0; timer = setTimeout(handleTyping, 500); }
+    }
+
+    function resetTyping() {
+        clearTimeout(timer);
+        i = 0; isDeleting = false;
+        updateStyle();
+        handleTyping();
+    }
+
+    // --- GIF Generation Logic ---
+    function generateGIF() {
+        const status = document.getElementById('status');
+        status.style.display = 'block';
+        
+        const fullText = document.getElementById('user-text').value;
+        const frames = [];
+        const totalFrames = 20; // फ्रेम संख्या (यसलाई बढाउँदा गुणस्तर राम्रो हुन्छ तर फाइल ठूलो हुन्छ)
+
+        gifshot.createGIF({
+            images: [bgImg.src || 'https://via.placeholder.com/600x400/1e293b/ffffff?text=Background'],
+            text: fullText,
+            fontWeight: 'bold',
+            fontSize: document.getElementById('font-size').value + 'px',
+            fontColor: document.getElementById('text-color').value,
+            textAlign: 'center',
+            numFrames: 20,
+            frameDuration: 2,
+            sampleInterval: 10,
+            gifWidth: 600,
+            gifHeight: 400
+        }, function (obj) {
+            if (!obj.error) {
+                const link = document.createElement('a');
+                link.href = obj.image;
+                link.download = 'animated_text.gif';
+                link.click();
+                status.style.display = 'none';
+            }
+        });
+    }
+
+    window.onload = resetTyping;
+</script>
+</body>
+</html>

@@ -1,0 +1,134 @@
+<style>
+    .election-portal { font-family: 'Segoe UI', 'Mukta', sans-serif; max-width: 1100px; margin: auto; padding: 10px; background: #f9f9f9; border-radius: 12px; }
+    .tab-wrapper { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 12px; justify-content: center; }
+    .tab-btn { 
+        padding: 10px 18px; border: none; background: #fff; cursor: pointer; border-radius: 6px; 
+        font-weight: bold; color: #57606f; transition: 0.3s; font-size: 14px; border: 1px solid #ddd;
+    }
+    .tab-btn.active { background: #1e3799; color: white; border-color: #1e3799; box-shadow: 0 4px 10px rgba(30,55,153,0.3); }
+    
+    .area-content { display: none; }
+    .area-content.active { display: grid; grid-template-columns: repeat(1, 1fr); gap: 15px; }
+    @media (min-width: 768px) { .area-content.active { grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width: 1100px) { .area-content.active { grid-template-columns: repeat(3, 1fr); } }
+
+    .c-card {
+        background: #fff; border: 1px solid #ddd; border-radius: 10px;
+        display: flex; padding: 15px; gap: 15px; align-items: center;
+        position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: 0.2s;
+    }
+    .c-card:hover { transform: translateY(-3px); box-shadow: 0 5px 12px rgba(0,0,0,0.1); }
+    .c-img { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 3px solid #f1f1f1; flex-shrink: 0; }
+    
+    .c-info { flex: 1; overflow: hidden; }
+    .c-name { font-size: 17px; font-weight: bold; color: #1a1a1a; margin: 0 0 5px 0; }
+    
+    .party-row { display: flex; align-items: center; gap: 10px; margin-top: 5px; }
+    .c-party { font-size: 13px; font-weight: bold; color: #555; }
+    .c-sign { width: 40px; height: 40px; object-fit: contain; background: #fff; border: 1px solid #eee; border-radius: 5px; padding: 2px; }
+
+    /* प्रोग्रेस बार अब सानो देखिन्छ किनकि मत संख्या छैन */
+    .c-bar-bg { height: 4px; background: #eee; border-radius: 10px; margin-top: 8px; width: 80%; }
+    .c-bar-fill { height: 100%; border-radius: 10px; }
+</style>
+
+<div class="election-portal">
+    <div class="tab-wrapper">
+        <button class="tab-btn active" onclick="openArea(event, 'area1')">पर्सा १</button>
+        <button class="tab-btn" onclick="openArea(event, 'area2')">पर्सा २</button>
+        <button class="tab-btn" onclick="openArea(event, 'area3')">पर्सा ३</button>
+        <button class="tab-btn" onclick="openArea(event, 'area4')">पर्सा ४</button>
+    </div>
+
+    <div id="area1" class="area-content active">डाटा लोड हुँदैछ...</div>
+    <div id="area2" class="area-content">डाटा लोड हुँदैछ...</div>
+    <div id="area3" class="area-content">डाटा लोड हुँदैछ...</div>
+    <div id="area4" class="area-content">डाटा लोड हुँदैछ...</div>
+</div>
+
+<script>
+// Multi-function: ट्याब स्विच गर्ने रङ र डाटा व्यवस्थापन
+function openArea(evt, areaId) {
+    let contents = document.getElementsByClassName("area-content");
+    for (let i = 0; i < contents.length; i++) contents[i].classList.remove("active");
+    let tabs = document.getElementsByClassName("tab-btn");
+    for (let i = 0; i < tabs.length; i++) tabs[i].classList.remove("active");
+    document.getElementById(areaId).classList.add("active");
+    evt.currentTarget.classList.add("active");
+}
+
+function getVotes(content) {
+    const match = content.replace(/<[^>]*>/g, "").match(/\d+/);
+    return match ? parseInt(match[0]) : 0;
+}
+
+function getColor(p) {
+    p = p.toLowerCase();
+    if (p.includes("कांग्रेस")) return "#27ae60";
+    if (p.includes("एमाले") || p.includes("नेकपा")) return "#e74c3c";
+    if (p.includes("जनमत")) return "#f1c40f";
+    if (p.includes("जसपा") || p.includes("समाजवादी")) return "#e67e22";
+    if (p.includes("रास्वपा")) return "#2980b9";
+    return "#3498db";
+}
+
+function renderResults(entries, areaLabel, containerId) {
+    let filtered = entries.filter(e => e.category && e.category.some(c => c.term === areaLabel))
+    .map(e => {
+        let symbolImg = 'https://via.placeholder.com/50?text=Logo';
+        if (e.content && e.content.$t) {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = e.content.$t;
+            const imgs = tempDiv.getElementsByTagName('img');
+            if (imgs.length > 1) symbolImg = imgs[1].src;
+        }
+        const partyLabel = e.category.find(c => c.term !== areaLabel && !c.term.includes("Parsa"))?.term || "स्वतन्त्र";
+        return {
+            name: e.title.$t,
+            party: partyLabel,
+            votes: getVotes(e.summary ? e.summary.$t : (e.content ? e.content.$t : "")),
+            photo: e.media$thumbnail ? e.media$thumbnail.url.replace('s72-c', 's400') : 'https://via.placeholder.com/150',
+            sign: symbolImg
+        };
+    });
+
+    filtered.sort((a, b) => b.votes - a.votes);
+
+    let html = '';
+    const topV = filtered.length > 0 ? (filtered[0].votes || 1) : 1;
+
+    filtered.forEach((c, i) => {
+        const color = getColor(c.party);
+        const width = (c.votes / topV) * 100;
+        html += `
+        <div class="c-card">
+            <img src="${c.photo}" class="c-img">
+            <div class="c-info">
+                <h4 class="c-name">${c.name}</h4>
+                <div class="party-row">
+                    <img src="${c.sign}" class="c-sign" alt="${c.party}">
+                    <span class="c-party" style="color:${color}">${c.party}</span>
+                </div>
+                <div class="c-bar-bg"><div class="c-bar-fill" style="width:${width}%; background:${color}"></div></div>
+            </div>
+        </div>`;
+    });
+
+    document.getElementById(containerId).innerHTML = html || "<p style='text-align:center; grid-column: 1/-1; padding:20px;'>डाटा उपलब्ध छैन...</p>";
+}
+
+function initPortal(json) {
+    const entries = json.feed.entry || [];
+    renderResults(entries, "Parsa-1", "area1");
+    renderResults(entries, "Parsa-2", "area2");
+    renderResults(entries, "Parsa-3", "area3");
+    renderResults(entries, "Parsa-4", "area4");
+}
+
+(function() {
+    const script = document.createElement('script');
+    // नोट: यो URL तपाईंको ब्लगरको डोमेन अनुसार हुनुपर्छ
+    script.src = 'https://www.election.neelamb.com/feeds/posts/default?alt=json-in-script&callback=initPortal&max-results=150';
+    document.body.appendChild(script);
+})();
+</script>

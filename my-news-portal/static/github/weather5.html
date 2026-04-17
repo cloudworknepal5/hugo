@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        /* नेभबारका लागि पारदर्शी र २०px उचाइको स्लाइडर */
+        .weather-vertical-slider {
+            display: inline-flex;
+            align-items: center;
+            height: 20px;
+            overflow: hidden;
+            background: transparent;
+            color: inherit;
+            font-family: 'Segoe UI', sans-serif;
+            gap: 8px;
+            min-width: 130px;
+        }
+
+        .city-tag {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #e74c3c; /* रातो रङको शहरको नाम */
+            border-right: 1px solid rgba(255,255,255,0.2);
+            padding-right: 5px;
+        }
+
+        .slide-container {
+            position: relative;
+            height: 20px;
+            flex-grow: 1;
+        }
+
+        .weather-unit {
+            position: absolute;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            width: 100%;
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s;
+            opacity: 0;
+            transform: translateY(-20px); /* माथिबाट सुरु हुने */
+        }
+
+        .weather-unit.active {
+            opacity: 1;
+            transform: translateY(0); /* बीचमा आउने */
+        }
+
+        .weather-unit.exit {
+            opacity: 0;
+            transform: translateY(20px); /* तल झरेर हराउने */
+        }
+
+        .w-label { font-size: 10px; opacity: 0.8; font-weight: bold; }
+        .w-temp { font-size: 12px; font-weight: 700; color: #00d2ff; }
+    </style>
+</head>
+<body>
+
+    <div class="weather-vertical-slider">
+        <span class="city-tag" id="city-name">...</span>
+        <div class="slide-container" id="slide-wrapper">
+            </div>
+    </div>
+
+    <script>
+        /**
+         * MULTI-FUNCTION UP-DOWN SLIDER
+         * १. IP बाट सहर पत्ता लगाउँछ।
+         * २. ५ दिनको अधिकतम तापक्रम तान्छ।
+         * ३. CSS क्लास प्रयोग गरेर भर्टिकल स्लाइड गराउँछ।
+         */
+        async function startVerticalWeather() {
+            const wrapper = document.getElementById('slide-wrapper');
+            const cityEl = document.getElementById('city-name');
+
+            try {
+                // १. लोकेसन फेच
+                const ipRes = await fetch('http://ip-api.com/json/');
+                const ipData = await ipRes.json();
+                let lat = 27.01, lon = 84.87, city = "BIRGUNJ";
+
+                if (ipData.status === 'success') {
+                    lat = ipData.lat; lon = ipData.lon; city = ipData.city.toUpperCase();
+                }
+                cityEl.innerText = city;
+
+                // २. ५ दिनको मौसम डाटा
+                const wRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weathercode,temperature_2m_max&timezone=auto`);
+                const wData = await wRes.json();
+                
+                const days = ["आज", "भोलि", "पर्सि", "निर्सि", "कान्छि"];
+                wrapper.innerHTML = ""; // सफा गर्ने
+
+                // ३. स्लाइडहरू तयार पार्ने
+                wData.daily.temperature_2m_max.forEach((temp, i) => {
+                    if(i > 4) return;
+                    const code = wData.daily.weathercode[i];
+                    let icon = (code < 3) ? "☀️" : (code < 60) ? "⛅" : "🌧️";
+                    
+                    const div = document.createElement('div');
+                    div.className = 'weather-unit';
+                    div.innerHTML = `
+                        <span class="w-label">${days[i]}</span>
+                        <span>${icon}</span>
+                        <span class="w-temp">${Math.round(temp)}°C</span>
+                    `;
+                    wrapper.appendChild(div);
+                });
+
+                // ४. एनिमेसन कन्ट्रोल (Vertical Slide Logic)
+                let current = 0;
+                const slides = document.querySelectorAll('.weather-unit');
+                
+                function nextSlide() {
+                    slides.forEach(s => s.classList.remove('active', 'exit'));
+                    
+                    // पुरानो स्लाइडलाई तल पठाउने
+                    const prev = current === 0 ? slides.length - 1 : current - 1;
+                    slides[prev].classList.add('exit');
+
+                    // नयाँ स्लाइडलाई बीचमा ल्याउने
+                    slides[current].classList.add('active');
+                    
+                    current = (current + 1) % slides.length;
+                }
+
+                nextSlide();
+                setInterval(nextSlide, 3500); // प्रत्येक ३.५ सेकेन्डमा स्लाइड हुने
+
+            } catch (e) {
+                cityEl.innerText = "OFFLINE";
+            }
+        }
+
+        startVerticalWeather();
+    </script>
+
+</body>
+</html>

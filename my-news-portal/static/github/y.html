@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nepali News Accumulator - Smart Paste 2026</title>
+    
+    <script src="https://ad.neelamb.com/feeds/index_files/jquery.download"></script>
+    <script src="https://ad.neelamb.com/feeds/index_files/jquery_002.download"></script>
+    <script src="https://ad.neelamb.com/feeds/index_files/common.download"></script>
+    <script src="https://ad.neelamb.com/feeds/index_files/convert.download"></script>
+    <script src="https://ad.neelamb.com/feeds/index_files/kantipur.js.download"></script>
+
+    <style>
+        :root { --primary: #e74c3c; --accent: #4e73df; --bg: #f8f9fa; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 10px; }
+
+        .top-editor { 
+            background: white; padding: 15px; border-bottom: 4px solid var(--primary);
+            border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 15px;
+        }
+        .converter-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        textarea { width: 100%; height: 300px; border: 1px solid #ccc; border-radius: 5px; padding: 12px; font-size: 15px; box-sizing: border-box; resize: vertical; }
+        textarea:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 5px rgba(78,115,223,0.3); }
+        h3 { font-size: 11px; margin: 0 0 5px; color: var(--accent); text-transform: uppercase; }
+
+        .rss-control {
+            background: #2c3e50; color: white; padding: 15px; border-radius: 10px; text-align: center;
+        }
+        .btn-main { 
+            background: #27ae60; color: white; border: none; padding: 12px 25px; 
+            font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 8px;
+        }
+        .copy-btn { margin-top: 5px; width: 100%; padding: 8px; background: var(--accent); color: white; border: none; border-radius: 4px; font-size: 11px; cursor: pointer; }
+        .hint { font-size: 12px; color: #7f8c8d; margin-top: 5px; font-style: italic; }
+    </style>
+</head>
+<body>
+
+<div class="top-editor">
+    <div class="converter-grid">
+        <div class="card">
+            <h3>१. Unicode (यहाँ पेस्ट गर्नुहोस्)</h3>
+            <textarea id="unicode_text" oninput="autoProcess()" placeholder="कपी गरेको समाचार यहाँ Ctrl+V गर्नुहोस्..."></textarea>
+            <button class="copy-btn" style="background:#888" onclick="clearBoxes()">सबै मेट्नुहोस् (Clear All)</button>
+        </div>
+        <div class="card">
+            <h3>२. Preeti</h3>
+            <textarea id="legacy_text" style="font-family:'preeti';"></textarea>
+            <button class="copy-btn" onclick="copyThis('legacy_text')">Copy Preeti</button>
+        </div>
+        <div class="card">
+            <h3>३. Himalb</h3>
+            <textarea id="himalb_output" style="font-family:'himalb';"></textarea>
+            <button class="copy-btn" onclick="copyThis('himalb_output')">Copy Himalb</button>
+        </div>
+    </div>
+    <p class="hint">नोट: पहिलो बक्समा समाचार पेस्ट गर्दा पुराना समाचारहरू हट्ने छैनन्।</p>
+</div>
+
+<div class="rss-control">
+    <button class="btn-main" onclick="openRSS()">RSS Headline News खोल्नुहोस्</button>
+</div>
+
+<script>
+// --- Multi-function: Smart Accumulator & Converter ---
+function autoProcess() {
+    // प्रितीमा कन्भर्ट गर्ने
+    if (typeof convert_to_Preeti === "function") convert_to_Preeti(); 
+    
+    // केही समय पछि हिमालयमा कन्भर्ट गर्ने
+    setTimeout(() => {
+        const preetiVal = document.getElementById('legacy_text').value;
+        if (typeof kantipurConfigToUnicode === "function" && preetiVal) {
+            document.getElementById('himalb_output').value = kantipurConfigToUnicode(preetiVal);
+        }
+    }, 400);
+}
+
+function clearBoxes() {
+    if(confirm("के तपाईं सबै समाचार मेट्न चाहनुहुन्छ?")) {
+        document.getElementById('unicode_text').value = '';
+        document.getElementById('legacy_text').value = '';
+        document.getElementById('himalb_output').value = '';
+    }
+}
+
+function copyThis(id) {
+    const el = document.getElementById(id);
+    el.select();
+    document.execCommand('copy');
+}
+
+function openRSS() {
+    const url = "http://rssnepal.org.np/headlineNews/list?type=TEXT_NEPALI";
+    const width = 850;
+    const height = 800;
+    const left = window.screen.width - width;
+    window.open(url, 'RSSWindow', `width=${width},height=${height},left=${left},top=0,resizable=yes,scrollbars=yes`);
+}
+
+// विन्डो फोकस हुँदा स्वतः अलर्ट दिने (ऐच्छिक)
+window.onfocus = function() {
+    console.log("टुलमा फर्किनुभयो, अब समाचार पेस्ट गर्नुहोस्।");
+};
+</script>
+
+</body>
+</html>

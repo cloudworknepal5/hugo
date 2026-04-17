@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        /* सबै मार्जिन र प्याडिङ हटाउन */
+        .weather-tight-widget {
+            display: inline-flex;
+            align-items: center;
+            height: 20px; /* एकदमै सानो उचाइ */
+            padding: 0;
+            margin: 0;
+            background: transparent;
+            font-family: 'Segoe UI', sans-serif;
+            overflow: hidden;
+        }
+
+        .weather-vertical-slider {
+            display: flex;
+            align-items: center;
+            height: 20px;
+            gap: 6px;
+            min-width: 140px;
+        }
+
+        .city-tag {
+            font-size: 10px;
+            font-weight: 800;
+            color: #e74c3c;
+            text-transform: uppercase;
+            border-right: 1px solid rgba(0,0,0,0.1);
+            padding-right: 5px;
+            line-height: 20px;
+            display: inline-block;
+        }
+
+        .slide-container {
+            position: relative;
+            height: 20px;
+            flex-grow: 1;
+        }
+
+        .weather-unit {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            width: 100%;
+            transition: all 0.5s ease-in-out;
+            opacity: 0;
+            transform: translateY(10px); /* अलि कम दुरीबाट स्लाइड हुने */
+        }
+
+        .weather-unit.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .weather-unit.exit {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        .w-label { font-size: 10px; font-weight: bold; color: #333; }
+        .w-temp { font-size: 11px; font-weight: 700; color: #2980b9; }
+    </style>
+</head>
+<body style="margin:0; padding:0;"> <div class="weather-tight-widget">
+        <div class="weather-vertical-slider">
+            <span class="city-tag" id="city-name">...</span>
+            <div class="slide-container" id="slide-wrapper"></div>
+        </div>
+    </div>
+
+    <script>
+        async function startTightWeather() {
+            const wrapper = document.getElementById('slide-wrapper');
+            const cityEl = document.getElementById('city-name');
+            let lat = 27.01, lon = 84.87, city = "BIRGUNJ";
+
+            try {
+                const ipRes = await fetch('https://ipapi.co/json/');
+                if (ipRes.ok) {
+                    const ipData = await ipRes.json();
+                    lat = ipData.latitude; lon = ipData.longitude;
+                    city = (ipData.city || "NEPAL").toUpperCase();
+                }
+            } catch (err) { console.warn("Location error"); }
+
+            cityEl.innerText = city;
+
+            try {
+                const wRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weathercode,temperature_2m_max&timezone=auto`);
+                const wData = await wRes.json();
+                const days = ["आज", "भोलि", "पर्सि", "निर्सि", "कान्छि"];
+                wrapper.innerHTML = ""; 
+
+                wData.daily.temperature_2m_max.forEach((temp, i) => {
+                    if(i > 4) return;
+                    const code = wData.daily.weathercode[i];
+                    let icon = (code === 0) ? "☀️" : (code < 4) ? "⛅" : "🌧️";
+                    
+                    const div = document.createElement('div');
+                    div.className = 'weather-unit';
+                    div.innerHTML = `<span class="w-label">${days[i]}</span><span>${icon}</span><span class="w-temp">${Math.round(temp)}°C</span>`;
+                    wrapper.appendChild(div);
+                });
+
+                const slides = document.querySelectorAll('.weather-unit');
+                let current = 0;
+                function rotate() {
+                    if (slides.length === 0) return;
+                    slides.forEach((s, idx) => {
+                        s.classList.remove('active', 'exit');
+                        if (idx === current) s.classList.add('active');
+                        else if (idx === (current === 0 ? slides.length - 1 : current - 1)) s.classList.add('exit');
+                    });
+                    current = (current + 1) % slides.length;
+                }
+                rotate();
+                setInterval(rotate, 3500);
+            } catch (e) { cityEl.innerText = "ERROR"; }
+        }
+        window.onload = startTightWeather;
+    </script>
+</body>
+</html>

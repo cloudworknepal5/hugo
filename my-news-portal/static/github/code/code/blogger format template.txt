@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html>
+<html b:css='false' b:defaultwidgetversion='2' b:layoutsversion='3' xmlns='http://www.w3.org/1999/xhtml' xmlns:b='http://www.google.com/schemas/google/b/2013' xmlns:data='http://www.google.com/schemas/blogger/data/2008' xmlns:expr='http://www.google.com/schemas/blogger/widgets/expression'>
+  <head>
+    <meta content='width=device-width, initial-scale=1' name='viewport'/>
+    <title><data:view.title.escaped/></title>
+    <b:skin><![CDATA[
+      /* १. बेसिक रिसेट र मोबाइल रेस्पोन्सिभ सेटिङ */
+      body {
+          margin: 0;
+          padding: 0;
+          font-family: 'Mukta', sans-serif;
+          background-color: #f4f4f4;
+          color: #333;
+          line-height: 1.6;
+      }
+
+      /* २. 'Subscribe to' लिंक हटाउनुहोस् */
+      .feed-links, .blog-feeds, .post-feeds {
+          display: none !important;
+      }
+
+      /* ३. कन्टेनर सेटिङ */
+      #main-wrapper {
+          max-width: 1000px;
+          margin: 0 auto;
+          padding: 15px;
+      }
+
+      /* ४. मोबाइलको लागि विशेष सुधार (Multi-function Compatibility) */
+      @media screen and (max-width: 768px) {
+          #main-wrapper {
+              padding: 10px;
+          }
+          .v-mini-grid {
+              padding: 5px;
+          }
+      }
+
+      /* ५. इमेजहरू रेस्पोन्सिभ बनाउनुहोस् */
+      img {
+          max-width: 100%;
+          height: auto;
+      }
+    ]]></b:skin>
+  </head>
+  <body>
+    <div id='main-wrapper'>
+      <b:section id='main' showaddelement='yes'>
+        <b:widget id='Blog1' locked='true' title='Blog Posts' type='Blog' visible='yes'>
+        </b:widget>
+      </b:section>
+    </div>
+  </body>
+</html>

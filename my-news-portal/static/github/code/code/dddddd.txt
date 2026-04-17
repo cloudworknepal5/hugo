@@ -1,0 +1,106 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<div style="text-align:center; margin: 20px 0;">
+    <button id="superBtn" onclick="initSuperDrag()" style="background: #1877F2; color: white; padding: 15px 30px; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; font-size: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+       🎯 एरिया ड्र्याग गरी फोटोसहित सेयर गर्नुहोस्
+    </button>
+</div>
+
+<div id="super-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:9999999; touch-action: none;">
+    <div id="super-box" style="border:2px solid #00ff00; background:rgba(0,255,0,0.1); position:absolute; pointer-events:none;"></div>
+    <div style="position:absolute; top:15%; width:100%; text-align:center; color:white; font-size:18px; font-weight:bold; pointer-events:none;">
+        औंलाले थिचेर तान्नुहोस् (Drag to Select)
+    </div>
+</div>
+
+<script>
+let active = false;
+let startX, startY, currentArea = {};
+const overlay = document.getElementById('super-overlay');
+const box = document.getElementById('super-box');
+
+function initSuperDrag() {
+    overlay.style.display = 'block';
+    
+    const start = (e) => {
+        active = true;
+        const p = e.touches ? e.touches[0] : e;
+        startX = p.clientX; startY = p.clientY;
+        box.style.left = startX + 'px'; box.style.top = startY + 'px';
+        box.style.width = '0'; box.style.height = '0';
+    };
+
+    const move = (e) => {
+        if (!active) return;
+        if (e.cancelable) e.preventDefault();
+        const p = e.touches ? e.touches[0] : e;
+        currentArea = {
+            x: Math.min(p.clientX, startX),
+            y: Math.min(p.clientY, startY),
+            w: Math.abs(p.clientX - startX),
+            h: Math.abs(p.clientY - startY)
+        };
+        box.style.left = currentArea.x + 'px'; box.style.top = currentArea.y + 'px';
+        box.style.width = currentArea.w + 'px'; box.style.height = currentArea.h + 'px';
+    };
+
+    const end = async () => {
+        if (!active) return;
+        active = false;
+        overlay.style.display = 'none';
+        if (currentArea.w > 30) await finalCapture(currentArea);
+    };
+
+    overlay.onmousedown = start; window.onmousemove = move; window.onmouseup = end;
+    overlay.ontouchstart = start; overlay.ontouchmove = move; overlay.ontouchend = end;
+}
+
+async function finalCapture(r) {
+    try {
+        // Multi-function: फोटोलाई 'Internal' डाटामा बदल्ने (The Real Fix)
+        const imgs = document.getElementsByTagName('img');
+        for (let img of imgs) {
+            if (img.src && img.src.includes('googleusercontent')) {
+                // Proxy प्रयोग गरेर फोटो तान्ने (CORS Bypass)
+                const proxyUrl = 'https://images.weserv.nl/?url=' + encodeURIComponent(img.src.replace(/^https?:\/\//, ''));
+                img.src = proxyUrl;
+                img.crossOrigin = "anonymous";
+            }
+        }
+
+        // थोरै समय दिने ताकि प्रोक्सी फोटो लोड होस्
+        await new Promise(res => setTimeout(res, 1000));
+
+        const canvas = await html2canvas(document.body, {
+            x: r.x + window.scrollX,
+            y: r.y + window.scrollY,
+            width: r.w,
+            height: r.h,
+            useCORS: true,
+            allowTaint: false,
+            scale: 2
+        });
+
+        const imgData = canvas.toDataURL("image/png");
+        
+        // १. डाउनलोड
+        const link = document.createElement('a');
+        link.href = imgData;
+        link.download = 'Result-Share.png';
+        link.click();
+
+        // २. सामाजिक सेयरिङ मेनु
+        const choice = confirm("फोटो डाउनलोड भयो!\n\nOK = Facebook | Cancel = WhatsApp");
+        const pageUrl = encodeURIComponent(window.location.href);
+
+        if (choice) {
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${pageUrl}`, '_blank');
+        } else {
+            window.open(`https://api.whatsapp.com/send?text=ताजा निर्वाचन अपडेट: ${pageUrl}`, '_blank');
+        }
+
+    } catch (err) {
+        alert("त्रुटि: फोटो लोड हुन सकेन।");
+    }
+}
+</script>

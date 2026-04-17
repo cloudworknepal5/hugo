@@ -1,0 +1,206 @@
+<div id="gh-final-master-widget"></div>
+
+<link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;700;800;900&amp;display=swap" rel="stylesheet" />
+
+<style>
+    /* Desktop Layout - 1300px Wide */
+    .gh-master-wrap { 
+        max-width: 1300px; 
+        margin: 0 auto 30px; 
+        font-family: 'Mukta', sans-serif; 
+        text-align: center; 
+        padding: 0 15px; 
+    }
+    
+    /* Extra Large Bold Headline */
+    .gh-headline-top { 
+        display: block; 
+        font-size: 75px; 
+        font-weight: 900; 
+        color: #ed1c24; 
+        margin: 0 auto 10px; 
+        text-decoration: none; 
+        line-height: 1.1; 
+        letter-spacing: -1px;
+    }
+    .gh-headline-top:hover { color: #111; }
+
+    /* Meta Info */
+    .gh-meta-info { 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        gap: 12px; 
+        margin-bottom: 15px; 
+        font-size: 18px; 
+        border-top: 1px solid #eee; 
+        border-bottom: 1px solid #eee; 
+        padding: 8px 0; 
+    }
+    .gh-author-img { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 2px solid #ed1c24; }
+    .location-date { color: #ed1c24; font-weight: 800; }
+
+    /* Large Image Frame */
+    .gh-img-frame { 
+        position: relative; 
+        width: 100%; 
+        border-radius: 12px; 
+        overflow: hidden; 
+        background: #f4f4f4; 
+        margin-bottom: 20px; 
+        box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+    }
+    .gh-img-frame img { width: 100%; height: auto; display: block; }
+    
+    .gh-overlay-border { 
+        position: absolute; 
+        top: 15px; 
+        left: 15px; 
+        right: 15px; 
+        bottom: 15px; 
+        border: 4px solid rgba(255,255,255,0.5); 
+        z-index: 5; 
+        pointer-events: none; 
+        border-radius: 8px;
+    }
+    .gh-label-ribbon { 
+        position: absolute; 
+        top: 0; 
+        left: 50%; 
+        transform: translateX(-50%); 
+        background: #ed1c24; 
+        color: #fff; 
+        padding: 4px 25px; 
+        font-size: 16px; 
+        font-weight: 800; 
+        z-index: 10; 
+        border-radius: 0 0 10px 10px; 
+    }
+
+    /* Social Icons Overlay */
+    .gh-social-overlay-center { 
+        position: absolute; 
+        bottom: 30px; 
+        left: 50%; 
+        transform: translateX(-50%); 
+        z-index: 10; 
+        display: flex; 
+        gap: 15px; 
+    }
+    .gh-social-overlay-center img { 
+        width: 32px; 
+        height: 32px; 
+        background: #fff; 
+        padding: 6px; 
+        border-radius: 50%; 
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    /* Snippet & Read More */
+    .gh-snippet { font-size: 22px; color: #333; max-width: 950px; margin: 0 auto 15px; line-height: 1.6; }
+    .gh-read-more { 
+        display: inline-block; 
+        color: #fff !important; 
+        background: #002e5b; 
+        padding: 10px 45px; 
+        border-radius: 4px; 
+        text-decoration: none; 
+        font-weight: 800; 
+        font-size: 18px; 
+    }
+
+    .gh-divider { border: 0; border-top: 1px solid #ddd; margin: 30px auto; max-width: 600px; }
+
+    /* MOBILE VIEW OPTIMIZATION */
+    @media (max-width: 768px) {
+        .gh-headline-top { 
+            font-size: 42px !important; 
+            font-weight: 900 !important;
+            margin: 5px 0; 
+        }
+        .gh-master-wrap { margin-bottom: 20px; }
+        
+        .gh-overlay-border { top: 8px !important; left: 8px !important; right: 8px !important; bottom: 8px !important; border-width: 2px !important; }
+        .gh-social-overlay-center { bottom: 15px !important; gap: 8px !important; }
+        .gh-social-overlay-center img { width: 22px !important; height: 22px !important; padding: 5px !important; }
+
+        .gh-label-ribbon { font-size: 12px !important; padding: 2px 15px !important; }
+        .gh-meta-info { font-size: 14px !important; }
+        .gh-snippet { font-size: 17px !important; line-height: 1.4; }
+        .gh-read-more { padding: 8px 30px !important; font-size: 16px !important; }
+    }
+</style>
+
+<script>
+// Multi-function: HD Image Filter
+function getClearHDImage(url) {
+    if (!url) return 'https://via.placeholder.com/1300x700?text=No+Image';
+    let hd = url.replace(/\/s[0-9]+(-[a-z0-9-]+)?\//, '/s1600/');
+    hd = hd.replace(/\/w[0-9]+-h[0-9]+(-[a-z0-9-]+)?\//, '/s1600/');
+    if(hd.indexOf('=s') > -1) hd = hd.split('=s')[0] + '=s1600';
+    return hd;
+}
+
+// Multi-function: Nepali Date Formatter
+function formatDate(iso) { 
+    return new Date(iso).toLocaleDateString('ne-NP', {year:'numeric', month:'long', day:'numeric'}); 
+}
+
+// Multi-function: HTML Construction
+function createPostHTML(post) {
+    const title = post.title.$t;
+    const link = post.link.find(l => l.rel === 'alternate').href;
+    const authorName = post.author[0].name.$t;
+    const authorPic = post.author[0].gd$image.src.replace('/s35-c/','/s120-c/');
+    const thumb = post.media$thumbnail ? getClearHDImage(post.media$thumbnail.url) : 'https://via.placeholder.com/1300x700?text=Birgunj+News';
+    
+    let contentStr = post.content ? post.content.$t : (post.summary ? post.summary.$t : "");
+    const snip = contentStr.replace(/<[^>]*>?/gm, '').trim().split(/\s+/).slice(0, 25).join(" ") + "...";
+    const label = post.category ? post.category[0].term : "ताजा समाचार";
+
+    return `
+        <article class="gh-master-wrap">
+            <a href="${link}" class="gh-headline-top">${title}</a>
+            <div class="gh-meta-info">
+                <img src="${authorPic}" class="gh-author-img" alt="${authorName}">
+                <span><b>${authorName}</b></span>
+                <span style="color:#ddd">|</span>
+                <span class="location-date">वीरगञ्ज</span>
+                <span style="color:#ddd">|</span>
+                <span class="gh-pub-date">${formatDate(post.published.$t)}</span>
+            </div>
+            <div class="gh-img-frame">
+                <div class="gh-label-ribbon">${label}</div>
+                <div class="gh-social-overlay-center">
+                    <a href="https://www.facebook.com/sharer/sharer.php?u=${link}" target="_blank"><img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="FB"></a>
+                    <a href="https://api.whatsapp.com/send?text=${title}%20${link}" target="_blank"><img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" alt="WA"></a>
+                    <a href="https://twitter.com/intent/tweet?text=${title}&url=${link}" target="_blank"><img src="https://cdn-icons-png.flaticon.com/512/3256/3256013.png" alt="TW"></a>
+                </div>
+                <div class="gh-overlay-border"></div>
+                <a href="${link}"><img src="${thumb}" alt="${title}" loading="lazy"></a>
+            </div>
+            <p class="gh-snippet">${snip}</p>
+            <a href="${link}" class="gh-read-more">पूरा पढ्नुहोस्</a>
+            <hr class="gh-divider">
+        </article>
+    `;
+}
+
+// Multi-function: JSON Callback
+window.ghFeedCallback = function(json) { 
+    const container = document.getElementById('gh-final-master-widget');
+    const posts = json.feed.entry || []; 
+    if(posts.length > 0) {
+        let htmlBuffer = "";
+        posts.forEach(p => htmlBuffer += createPostHTML(p));
+        container.innerHTML = htmlBuffer;
+    }
+};
+
+// Pulling only the latest 3 posts
+(function() {
+    const script = document.createElement('script');
+    script.src = `https://www.birgunj.eu.org/feeds/posts/default?alt=json-in-script&callback=ghFeedCallback&max-results=3`;
+    document.body.appendChild(script);
+})();
+</script>

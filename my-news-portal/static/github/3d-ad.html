@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Carousel 200x120 - AdNP</title>
+    <style>
+        body { font-family: sans-serif; height: 2000px; background: #f0f2f5; }
+
+        /* विज्ञापन बस्ने मुख्य फ्रेम */
+        #ad-3d-wrapper {
+            position: fixed;
+            right: 50px;
+            top: 40%;
+            width: 220px;
+            height: 140px;
+            perspective: 1000px; /* ३डी इफेक्टको गहिराइ */
+            z-index: 9999;
+        }
+
+        /* क्यारोसेल कन्टेनर */
+        .carousel-3d {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            transform-style: preserve-3d;
+            animation: rotateCarousel 12s infinite linear;
+        }
+
+        @keyframes rotateCarousel {
+            from { transform: rotateY(0deg); }
+            to { transform: rotateY(360deg); }
+        }
+
+        /* प्रत्येक इमेजको स्टायल (२००x१२० पिक्सल) */
+        .ad-slice {
+            position: absolute;
+            width: 200px;
+            height: 120px;
+            left: 10px;
+            top: 10px;
+            border: 1px solid #ddd;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            background: white;
+            border-radius: 6px;
+            overflow: hidden;
+            backface-visibility: visible;
+        }
+
+        .ad-slice img { 
+            width: 200px; 
+            height: 120px; 
+            object-fit: cover; 
+            display: block;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: -20px;
+            right: 0px;
+            background: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            z-index: 10002;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ad-3d-wrapper">
+        <button class="close-btn" onclick="this.parentElement.remove()">×</button>
+        <div id="adnp-carousel" class="carousel-3d">
+            </div>
+    </div>
+
+    <script>
+    (function() {
+        const cloudURL = 'https://script.google.com/macros/s/AKfycbwIEUX7nS_iBTJfwG4G6RVnalfNLracsAQZlZl9m78M3_Fkmwug63h8QnfrgA2xQ-8azA/exec';
+        const adnpLink = 'https://adnp.neelamb.com';
+
+        // Multi-function 1: Geo Data Fetcher
+        const getGeo = async () => {
+            try {
+                const res = await fetch('https://freeipapi.com/api/json');
+                const d = await res.json();
+                return { ip: d.ipAddress, co: d.countryName, ct: d.cityName };
+            } catch (e) { return { ip: "Private", co: "Global", ct: "Unknown" }; }
+        };
+
+        // Multi-function 2: Tracking Helper
+        window.trackAd = async (type, info) => {
+            const geo = await getGeo();
+            const payload = {
+                event: type, adId: info.id, imageUrl: info.src, targetUrl: info.link,
+                ip: geo.ip, country: geo.co, city: geo.ct, platform: navigator.platform
+            };
+            fetch(cloudURL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+        };
+
+        // Multi-function 3: 3D Slice Logic (२००px विड्थको लागि अप्टिमाइज्ड)
+        const get200x120SliceHTML = (src, link, index, total, pageId) => {
+            const angle = (360 / total) * index;
+            // २००px विड्थको लागि सन्तुलित दूरी
+            const translateZ = total > 2 ? Math.round(100 / Math.tan(Math.PI / total)) : 110;
+
+            return `
+                <div class="ad-slice" style="transform: rotateY(${angle}deg) translateZ(${translateZ}px);">
+                    <a href="${link}" target="_blank" onclick="trackAd('CLICK', {id:'${pageId}', src:'${src}', link:'${link}'})">
+                        <img src="${src}">
+                    </a>
+                </div>`;
+        };
+
+        // Main Renderer
+        window.renderAdNP3D = function(cfg) {
+            const container = document.getElementById(cfg.containerId);
+            if (!container) return;
+
+            const cb = 'cb_' + cfg.containerId.replace(/-/g, '_');
+            window[cb] = function(json) {
+                if(!json.feed.entry) return;
+                const entry = json.feed.entry.find(e => e.link.find(l => l.rel === 'alternate').href.toLowerCase().includes(cfg.pageId.toLowerCase()));
+                if (!entry) return;
+
+                const doc = new DOMParser().parseFromString(entry.content.$t, 'text/html');
+                const imgs = Array.from(doc.querySelectorAll('img'));
+                const total = imgs.length;
+                
+                let html = '';
+                imgs.forEach((img, index) => {
+                    let src = img.src.replace(/\/s[0-9]+(-c)?\//, '/s1600/');
+                    let link = img.alt && img.alt.startsWith('http') ? img.alt : cfg.link;
+                    
+                    trackAd('VIEW', { id: cfg.pageId, src: src, link: link });
+                    html += get200x120SliceHTML(src, link, index, total, cfg.pageId);
+                });
+                
+                container.innerHTML = html;
+            };
+
+            const s = document.createElement('script');
+            s.src = `https://adnp.neelamb.com/feeds/pages/default?alt=json-in-script&callback=${cb}`;
+            document.body.appendChild(s);
+        };
+    })();
+
+    // विज्ञापन सुचारु गर्ने (आफ्नो Page ID यहाँ राख्नुहोस्)
+    renderAdNP3D({
+        containerId: 'adnp-carousel',
+        pageId: '3d-ad', 
+        link: 'https://example.com'
+    });
+    </script>
+
+</body>
+</html>

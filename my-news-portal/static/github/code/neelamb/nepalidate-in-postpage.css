@@ -1,0 +1,18 @@
+/**
+ * Name: nepalidate-in-postpage.css
+ * Feature: Minimalist Nepali Date Styling
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Mukta:wght@600;700&display=swap');
+
+.location-date {
+    font-family: 'Mukta', sans-serif;
+    display: inline-block;
+    color: #ce1212;
+    font-size: 16px;
+    font-weight: 700;
+    padding: 2px 0; /* साइड प्याडिङ हटाइएको छ */
+    background: transparent; /* ब्याकग्राउन्ड हटाइएको छ */
+    border-left: none; /* बोर्डर हटाइएको छ */
+    margin: 5px 0;
+}

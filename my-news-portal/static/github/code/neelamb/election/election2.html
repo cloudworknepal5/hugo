@@ -1,0 +1,117 @@
+<div class="election-dashboard-modern">
+    <div class="main-header">
+        <div class="header-info">
+            <span class="dist">पर्सा जिल्ला</span>
+            <span class="sub-title">प्रतिनिधि सभा सदस्य निर्वाचन २०८२</span>
+        </div>
+        <div class="live-status"><span class="pulse"></span> लाइभ अपडेट</div>
+    </div>
+
+    <div class="constituency-grid">
+        <div class="const-col" id="area-1"><div class="area-title">क्षेत्र नं. १</div><div class="content"></div></div>
+        <div class="const-col" id="area-2"><div class="area-title">क्षेत्र नं. २</div><div class="content"></div></div>
+        <div class="const-col" id="area-3"><div class="area-title">क्षेत्र नं. ३</div><div class="content"></div></div>
+        <div class="const-col" id="area-4"><div class="area-title">क्षेत्र नं. ४</div><div class="content"></div></div>
+    </div>
+</div>
+
+<style>
+    :root { --red: #d32f2f; --blue: #0078FF; --bg: #f9f9f9; --border: #ececec; }
+    .election-dashboard-modern { max-width: 1400px; margin: auto; border: 1px solid #ddd; background: #fff; font-family: 'Segoe UI', Arial, sans-serif; }
+    
+    .main-header { display: flex; justify-content: space-between; padding: 15px 20px; background: var(--bg); border-bottom: 2px solid var(--red); }
+    .dist { font-weight: 800; font-size: 20px; display: block; color: #222; }
+    .sub-title { font-size: 13px; color: #666; }
+    .live-status { color: var(--red); font-weight: bold; font-size: 13px; display: flex; align-items: center; gap: 6px; }
+    .pulse { width: 10px; height: 10px; background: var(--red); border-radius: 50%; animation: blink 1.2s infinite; }
+    @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+    .constituency-grid { display: grid; grid-template-columns: repeat(4, 1fr); }
+    .const-col { border-right: 1px solid var(--border); }
+    .const-col:last-child { border-right: none; }
+    .area-title { background: #f1f1f1; padding: 12px; font-weight: bold; text-align: center; border-bottom: 1px solid var(--border); }
+
+    .cand-card { padding: 15px; border-bottom: 1px solid #f9f9f9; }
+    .card-top { display: flex; justify-content: space-between; align-items: center; }
+    
+    .profile-info { display: flex; align-items: center; gap: 12px; }
+    .cand-img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 1px solid #ddd; }
+    
+    .name-party-box { display: flex; flex-direction: column; }
+    .name-text { font-weight: bold; font-size: 15px; color: #222; margin-bottom: 2px; }
+    
+    /* लोगो र पार्टीको नामलाई एकै लाइनमा राख्ने स्टाइल */
+    .party-row { display: flex; align-items: center; gap: 6px; }
+    .party-logo-small { width: 18px; height: 18px; object-fit: contain; border: 0.5px solid #eee; padding: 1px; border-radius: 2px; }
+    .party-name-text { font-size: 11px; color: #666; font-weight: 500; }
+
+    .vote-info { text-align: right; }
+    .vote-num { font-size: 20px; font-weight: 800; color: #333; }
+
+    .prog-bg { width: 100%; height: 5px; background: #eee; border-radius: 10px; margin-top: 12px; overflow: hidden; }
+    .prog-fill { height: 100%; transition: width 1s ease-in-out; }
+
+    @media (max-width: 1100px) { .constituency-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 600px) { .constituency-grid { grid-template-columns: 1fr; } .const-col { border-right: none; border-bottom: 1px solid #eee; } }
+</style>
+
+<script>
+    const partyColours = {
+        "नेपाली कांग्रेस": "#0078FF", "नेकपा (एमाले)": "#DE211C",
+        "नेकपा (माओवादी केन्द्र)": "#FF5722", "जनता समाजवादी पार्टी": "#689F38",
+        "लोकतान्त्रिक समाजवादी पार्टी": "#FFC107", "अन्य": "#9E9E9E"
+    };
+
+    async function fetchElectionResults() {
+        try {
+            const res = await fetch('https://educationnepal.eu.org/election/data2.json');
+            const data = await res.json();
+            
+            // कोलमहरू रिसेट
+            for(let i=1; i<=4; i++) {
+                const col = document.querySelector(`#area-${i} .content`);
+                if(col) col.innerHTML = '';
+            }
+
+            // मत अनुसार क्रमबद्ध
+            data.sort((a, b) => (b.fptp + b.pr) - (a.fptp + a.pr));
+            const maxVotes = Math.max(...data.map(o => o.fptp + o.pr));
+
+            data.forEach(item => {
+                const area = item.area || 1;
+                const container = document.querySelector(`#area-${area} .content`);
+                if(!container) return;
+
+                const total = item.fptp + item.pr;
+                const color = partyColours[item.party] || partyColours['अन्य'];
+                const barWidth = (total / maxVotes) * 100;
+
+                container.innerHTML += `
+                    <div class="cand-card">
+                        <div class="card-top">
+                            <div class="profile-info">
+                                <img src="${item.photo}" class="cand-img">
+                                <div class="name-party-box">
+                                    <span class="name-text">${item.name}</span>
+                                    <div class="party-row">
+                                        <img src="${item.symbol}" class="party-logo-small">
+                                        <span class="party-name-text">${item.party || 'उम्मेदवार'}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="vote-info">
+                                <span class="vote-num">${total.toLocaleString('ne-NP')}</span>
+                            </div>
+                        </div>
+                        <div class="prog-bg">
+                            <div class="prog-fill" style="width:${barWidth}%; background:${color}"></div>
+                        </div>
+                    </div>
+                `;
+            });
+        } catch (e) { console.error("Error:", e); }
+    }
+
+    fetchElectionResults();
+    setInterval(fetchElectionResults, 60000);
+</script>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <title>Advanced News Hub (Updated)</title>
+    <style>
+        :root { --primary: #d93025; --secondary: #1a73e8; --success: #28a745; --bg: #f8f9fa; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; height: 100vh; display: flex; justify-content: center; align-items: center; }
+        .dashboard { background: white; width: 1450px; height: 98vh; padding: 20px; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); display: flex; flex-direction: column; box-sizing: border-box; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
+        .main-content { display: flex; gap: 20px; flex: 1; overflow: hidden; }
+        
+        /* Sidebar */
+        .left-panel { flex: 1.1; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; }
+        .section-box { background: #fff; padding: 15px; border-radius: 10px; border: 1px solid #ddd; }
+        .list-container { max-height: 300px; overflow-y: auto; border: 1px solid #eee; margin-top: 10px; border-radius: 5px; }
+        .email-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #f1f1f1; font-size: 12px; }
+        .email-item:hover { background: #f0f7ff; }
+
+        /* Editor */
+        .right-panel { flex: 2; display: flex; flex-direction: column; gap: 10px; }
+        .subject-preview { background: #e8f0fe; padding: 12px; border-radius: 8px; border-left: 5px solid var(--secondary); font-weight: bold; color: #1967d2; }
+        textarea { flex: 1; padding: 15px; border: 2px solid #dadce0; border-radius: 10px; font-size: 18px; line-height: 1.6; resize: none; outline: none; }
+        
+        .action-bar { display: flex; justify-content: space-between; align-items: center; background: #fffde7; padding: 10px; border-radius: 8px; border: 1px solid #ffe57f; }
+        .btn-compose { background: var(--primary); color: white; width: 100%; font-size: 22px; height: 70px; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 15px rgba(217, 48, 37, 0.3); }
+        .btn-compose:hover { background: #c5221f; transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+
+<div class="dashboard">
+    <div class="header">
+        <h2 style="margin:0;">📰 News Hub <span style="color:var(--secondary); font-size: 14px;">(Multi-Function Mode)</span></h2>
+        <div>
+            <button onclick="selectAll()" style="padding:7px 15px; cursor:pointer; background:var(--secondary); color:white; border:none; border-radius:5px;">Select All</button>
+            <button onclick="resetSelection()" style="padding:7px 15px; cursor:pointer; background:#666; color:white; border:none; border-radius:5px;">Clear</button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="left-panel">
+            <div class="section-box">
+                <div style="font-weight:bold;">इमेल लिस्ट (Total: <span id="totalCount">0</span>)</div>
+                <input type="text" id="searchBox" placeholder="इमेल फिल्टर गर्नुहोस्..." oninput="renderList()" style="width:100%; padding:8px; margin:10px 0; border:1px solid #ccc; border-radius:4px;">
+                <div class="list-container" id="emailList"></div>
+            </div>
+
+            <div class="section-box" style="flex:1;">
+                <div style="font-weight:bold; color:var(--primary); margin-bottom:5px;">Preeti to Unicode Auto</div>
+                <iframe src="https://designers2077.github.io/PreetiToUnicodeAuto/" width="100%" height="90%" frameborder="0" style="border-radius:8px; border:1px solid #ddd;"></iframe>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="subject-preview" id="subjectDisplay">विषय यहाँ देखिनेछ...</div>
+            <textarea id="newsText" placeholder="समाचार यहाँ टाइप वा पेस्ट गर्नुहोस्..." oninput="updatePreview()"></textarea>
+            
+            <div class="action-bar">
+                <div style="font-size:12px; max-width: 80%; overflow: hidden;">
+                    <strong>चयन गरिएका:</strong> <span id="selectedText" style="color:#d93025;">None</span>
+                </div>
+                <div id="charCount" style="font-weight:bold;">0 Chars</div>
+            </div>
+
+            <button class="btn-compose" onclick="sendNews()">🚀 COMPOSE & SEND GMAIL</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // तपाईंले भर्खरै दिनुभएका ३ वटा इमेलहरूलाई सबैभन्दा माथि राखिएको छ
+    const defaultEmails = [
+        "ghantaghartv.thedesigners2078@gmail.com",
+        "rastriyafanda.thedesigners2078@gmail.com",
+        "emailupdate@abhitakmedia.com",
+        "janasamarpitdaily.updates@blogger.com", 
+        "newskhojtalash2079.update1@blogger.com",
+        "shodhkhabar.updatesshodh@blogger.com", 
+        "brahmastradaily2079.updates@blogger.com",
+        "bpkhabar.emailupdate@blogger.com", 
+        "ekrantikhabar.emailupdate@blogger.com",
+        "janatamukhidainik.update@blogger.com", 
+        "pariwartansamachar.update@blogger.com",
+        "trilokkhabar.update@blogger.com", 
+        "anusandhantv2082.update@blogger.com",
+        "cloudworknepal1.updatesbirgunj@blogger.com", 
+        "janawajnepal.update@bloggr.com",
+        "cloudworknepal3.madheshtodayupdate@blogger.com", 
+        "jagatsamachar1.update@blogger.com",
+        "janawaazkhabar.update@blogger.com", 
+        "shreegadhimaidaily.update@blogger.com",
+        "emailupdate@chandrasuryawani.com"
+    ];
+
+    let repository = JSON.parse(localStorage.getItem('newsEmails')) || defaultEmails;
+    let selectedEmails = [];
+
+    function renderList() {
+        const list = document.getElementById('emailList');
+        const search = document.getElementById('searchBox').value.toLowerCase();
+        list.innerHTML = '';
+        
+        const filtered = repository.filter(e => e.toLowerCase().includes(search));
+        document.getElementById('totalCount').innerText = repository.length;
+
+        filtered.forEach(email => {
+            const isSelected = selectedEmails.includes(email);
+            list.innerHTML += `
+                <div class="email-item">
+                    <span title="${email}">${email.substring(0,30)}${email.length > 30 ? '...' : ''}</span>
+                    <button onclick="toggleEmail('${email}')" style="background:${isSelected ? '#dc3545' : '#28a745'}; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:10px;">
+                        ${isSelected ? 'Remove' : 'Add'}
+                    </button>
+                </div>`;
+        });
+        document.getElementById('selectedText').innerText = selectedEmails.length > 0 ? selectedEmails.length + " चयन गरियो" : "None";
+    }
+
+    function toggleEmail(email) {
+        const index = selectedEmails.indexOf(email);
+        if (index === -1) selectedEmails.push(email);
+        else selectedEmails.splice(index, 1);
+        renderList();
+    }
+
+    function selectAll() { selectedEmails = [...repository]; renderList(); }
+    function resetSelection() { selectedEmails = []; renderList(); }
+
+    function updatePreview() {
+        const text = document.getElementById('newsText').value;
+        const lines = text.split('\n');
+        document.getElementById('subjectDisplay').innerText = lines[0] ? "विषय: " + lines[0] : "विषय यहाँ देखिनेछ...";
+        document.getElementById('charCount').innerText = text.length + " Chars";
+    }
+
+    async function sendNews() {
+        const text = document.getElementById('newsText').value.trim();
+        if (selectedEmails.length === 0 || !text) return alert("इमेल चयन गर्नुहोस् र समाचार लेख्नुहोस्!");
+
+        const lines = text.split('\n');
+        const subject = encodeURIComponent(lines[0]);
+        const body = encodeURIComponent(lines.slice(1).join('\n').trim());
+        const to = encodeURIComponent(selectedEmails.join(","));
+
+        if (text.length > 1500) {
+            await navigator.clipboard.writeText(lines.slice(1).join('\n'));
+            alert("समाचार लामो छ, त्यसैले मुख्य समाचार कपी गरिएको छ। जिमेलमा पेस्ट गर्नुहोला।");
+        }
+
+        window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${to}&su=${subject}&body=${text.length > 1500 ? '' : body}`, '_blank');
+    }
+
+    renderList();
+</script>
+
+</body>
+</html>

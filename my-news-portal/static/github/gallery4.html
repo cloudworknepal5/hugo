@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <title>Advanced Multi-Text Editor</title>
+    <style>
+        @font-face { font-family: 'Deepmani'; src: url('Deepmani.ttf'); }
+        @font-face { font-family: 'Ganesh'; src: url('Ganesh.ttf'); }
+        @font-face { font-family: 'Aakar'; src: url('Aakar.ttf'); }
+        @font-face { font-family: 'HimalB'; src: url('Himal B.ttf'); }
+
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 10px; display: flex; flex-direction: column; align-items: center; }
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); max-width: 1050px; width: 100%; text-align: center; }
+        
+        .upload-section { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .box { border: 2px dashed #0984e3; padding: 10px; border-radius: 8px; background: #f0f7ff; }
+        
+        .controls { 
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; 
+            background: #f8f9fa; padding: 20px; border-radius: 12px; text-align: left;
+        }
+        .full { grid-column: span 4; }
+        
+        input[type="text"], select { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 6px; box-sizing: border-box; transition: 0.3s; }
+        input[type="text"]:focus { border-color: #0984e3; outline: none; }
+        label { font-size: 11px; font-weight: bold; color: #636e72; margin-bottom: 4px; display: block; text-transform: uppercase; }
+
+        #canvas-wrapper { position: relative; margin-top: 20px; width: 100%; max-width: 800px; margin-left: auto; margin-right: auto; }
+        canvas { display: block; width: 100%; height: auto; border: 1px solid #ccc; background: #fff; cursor: crosshair; }
+
+        .btn-group { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; grid-column: span 4; margin-top: 15px; }
+        .btn { padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: white; transition: 0.2s; }
+        .btn-add { background: #0984e3; }
+        .btn-copy { background: #6c5ce7; }
+        .btn-del { background: #e17055; }
+        .btn-save { background: #00b894; }
+        .btn-reset { background: #d63031; grid-column: span 4; }
+        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2 style="margin: 0 0 20px 0; color: #2d3436;">अल्टिमेट फोटो इडिटर (मल्टी-टेक्स्ट कपी/पेष्ट सहित)</h2>
+    
+    <div class="upload-section">
+        <div class="box">
+            <label>मुख्य फोटोहरू (१-४ सम्म):</label>
+            <input type="file" id="photoPicker" accept="image/*" multiple onchange="loadImages()">
+        </div>
+        <div class="box">
+            <label>लोगो (PNG):</label>
+            <input type="file" id="logoPicker" accept="image/*" onchange="loadLogo()">
+        </div>
+    </div>
+
+    <div class="controls">
+        <div class="full">
+            <label>छानिएको टेक्स्ट सम्पादन गर्नुहोस्:</label>
+            <input type="text" id="captionInput" placeholder="यहाँ टाइप गर्नुहोस्..." oninput="updateActiveText()">
+        </div>
+        
+        <div>
+            <label>फन्ट:</label>
+            <select id="fontSelect" onchange="updateActiveText()">
+                <option value="Deepmani">Deepmani</option>
+                <option value="Ganesh">Ganesh</option>
+                <option value="Aakar">Aakar</option>
+                <option value="HimalB">Himal B</option>
+                <option value="Arial">Arial</option>
+            </select>
+        </div>
+        <div>
+            <label>अक्षर साइज: <span id="fSizeVal">60</span>px</label>
+            <input type="range" id="fontSizeRange" min="10" max="350" value="60" oninput="updateActiveText()">
+        </div>
+        <div>
+            <label>अक्षर रङ:</label>
+            <input type="color" id="textColor" value="#000000" oninput="updateActiveText()">
+        </div>
+        <div>
+            <label>Bg Opacity: <span id="bgOpacityVal">0</span>%</label>
+            <input type="range" id="bgOpacity" min="0" max="100" value="0" oninput="updateActiveText()">
+        </div>
+
+        <div>
+            <label>फोटो जुम: <span id="imgScaleVal">1.0</span>x</label>
+            <input type="range" id="imgScaleRange" min="0.1" max="5.0" step="0.1" value="1.0" oninput="drawAll()">
+        </div>
+        <div>
+            <label>लोगो साइज: <span id="lSizeVal">150</span>px</label>
+            <input type="range" id="logoSizeRange" min="30" max="600" value="150" oninput="drawAll()">
+        </div>
+        <div>
+            <label>ब्राइटनेस: <span id="bVal">100</span>%</label>
+            <input type="range" id="brightRange" min="50" max="200" value="100" oninput="drawAll()">
+        </div>
+        <div>
+            <label>फ्रेम:</label>
+            <select id="frameSelect" onchange="loadFrame()">
+                <option value="none">फ्रेम छैन</option>
+                <option value="png/frame1.png">Frame 1</option>
+                <option value="png/frame2.png">Frame 2</option>
+            </select>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn btn-add" onclick="addNewText()">+ नयाँ टेक्स्ट</button>
+            <button class="btn btn-copy" onclick="duplicateText()">❐ कपी (Duplicate)</button>
+            <button class="btn btn-del" onclick="deleteActiveText()">🗑 हटाउनुहोस्</button>
+            <button class="btn btn-save" onclick="downloadJPG()">📥 डाउनलोड JPG</button>
+            <button class="btn btn-reset" onclick="resetAll()">🔄 सबै रिसेट गर्नुहोस्</button>
+        </div>
+    </div>
+
+    <div id="canvas-wrapper">
+        <canvas id="mainCanvas"></canvas>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('mainCanvas');
+    const ctx = canvas.getContext('2d');
+    const CW = 1200, CH = 1389; 
+    canvas.width = CW; canvas.height = CH;
+
+    let imgObjects = [];
+    let textLayers = [];
+    let activeTextIdx = -1;
+    let logoObj = { img: null, x: 100, y: 100, w: 150, h: 150, isDragging: false };
+    let frameImg = null;
+    let isDraggingImg = false, selectedImgIdx = -1, startX, startY;
+
+    // पहिलो टेक्स्ट थप्ने
+    addNewText("यहाँ लेख्नुहोस्");
+
+    async function loadImages() {
+        const files = document.getElementById('photoPicker').files;
+        if (!files.length) return;
+        imgObjects = [];
+        for (let i = 0; i < Math.min(files.length, 4); i++) {
+            const img = await new Promise(res => {
+                const im = new Image(); im.onload = () => res(im);
+                im.src = URL.createObjectURL(files[i]);
+            });
+            let cellW = CW, cellH = CH;
+            if (files.length === 2) cellW = CW / 2;
+            else if (files.length >= 3) { cellW = CW / 2; cellH = CH / 2; }
+            const baseScale = Math.max(cellW / img.width, cellH / img.height);
+            imgObjects.push({ img, x: 0, y: 0, baseScale, cellW, cellH });
+        }
+        drawAll();
+    }
+
+    function addNewText(val = "नयाँ टेक्स्ट") {
+        const newLayer = {
+            text: val,
+            x: CW / 2,
+            y: CH / 2,
+            fontSize: 60,
+            color: "#000000",
+            font: "Deepmani",
+            opacity: 0,
+            isDragging: false
+        };
+        textLayers.push(newLayer);
+        activeTextIdx = textLayers.length - 1;
+        syncControlsToActiveText();
+        drawAll();
+    }
+
+    function duplicateText() {
+        if (activeTextIdx === -1) return;
+        const source = textLayers[activeTextIdx];
+        const copy = { ...source, x: source.x + 30, y: source.y + 30, isDragging: false };
+        textLayers.push(copy);
+        activeTextIdx = textLayers.length - 1;
+        syncControlsToActiveText();
+        drawAll();
+    }
+
+    function syncControlsToActiveText() {
+        if (activeTextIdx === -1) return;
+        const t = textLayers[activeTextIdx];
+        document.getElementById('captionInput').value = t.text;
+        document.getElementById('fontSizeRange').value = t.fontSize;
+        document.getElementById('textColor').value = t.color;
+        document.getElementById('fontSelect').value = t.font;
+        document.getElementById('bgOpacity').value = t.opacity;
+    }
+
+    function updateActiveText() {
+        if (activeTextIdx === -1) return;
+        const t = textLayers[activeTextIdx];
+        t.text = document.getElementById('captionInput').value;
+        t.fontSize = parseInt(document.getElementById('fontSizeRange').value);
+        t.color = document.getElementById('textColor').value;
+        t.font = document.getElementById('fontSelect').value;
+        t.opacity = parseInt(document.getElementById('bgOpacity').value);
+        drawAll();
+    }
+
+    function deleteActiveText() {
+        if (activeTextIdx !== -1) {
+            textLayers.splice(activeTextIdx, 1);
+            activeTextIdx = textLayers.length > 0 ? textLayers.length - 1 : -1;
+            syncControlsToActiveText();
+            drawAll();
+        }
+    }
+
+    function loadLogo() {
+        const file = document.getElementById('logoPicker').files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => { logoObj.img = img; drawAll(); };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function loadFrame() {
+        const framePath = document.getElementById('frameSelect').value;
+        if (framePath === "none") { frameImg = null; drawAll(); return; }
+        const img = new Image();
+        img.onload = () => { frameImg = img; drawAll(); };
+        img.src = framePath;
+    }
+
+    function drawAll() {
+        document.getElementById('imgScaleVal').innerText = document.getElementById('imgScaleRange').value;
+        document.getElementById('fSizeVal').innerText = document.getElementById('fontSizeRange').value;
+        document.getElementById('lSizeVal').innerText = document.getElementById('logoSizeRange').value;
+        document.getElementById('bVal').innerText = document.getElementById('brightRange').value;
+        document.getElementById('bgOpacityVal').innerText = document.getElementById('bgOpacity').value;
+
+        ctx.clearRect(0, 0, CW, CH);
+        
+        // १. फोटो लेयर
+        const userImgScale = parseFloat(document.getElementById('imgScaleRange').value);
+        ctx.save();
+        ctx.filter = `brightness(${document.getElementById('brightRange').value}%)`;
+        imgObjects.forEach((obj, i) => {
+            let dx = (imgObjects.length >= 2 && i % 2 !== 0) ? obj.cellW : 0;
+            let dy = (imgObjects.length >= 3 && i >= 2) ? obj.cellH : 0;
+            if(imgObjects.length === 2) { dx = i * obj.cellW; dy = 0; }
+            
+            ctx.save();
+            ctx.beginPath(); ctx.rect(dx, dy, obj.cellW, obj.cellH); ctx.clip();
+            const finalScale = obj.baseScale * userImgScale;
+            ctx.drawImage(obj.img, dx + obj.x, dy + obj.y, obj.img.width * finalScale, obj.img.height * finalScale);
+            ctx.restore();
+        });
+        ctx.restore();
+
+        // २. फ्रेम
+        if (frameImg) ctx.drawImage(frameImg, 0, 0, CW, CH);
+
+        // ३. लोगो
+        if (logoObj.img) {
+            const lSize = parseInt(document.getElementById('logoSizeRange').value);
+            logoObj.w = lSize; logoObj.h = lSize * (logoObj.img.height / logoObj.img.width);
+            ctx.drawImage(logoObj.img, logoObj.x, logoObj.y, logoObj.w, logoObj.h);
+        }
+
+        // ४. सबै टेक्स्ट लेयरहरू
+        textLayers.forEach((t, index) => {
+            ctx.font = `${t.fontSize}px '${t.font}'`;
+            ctx.textAlign = "center";
+            const tWidth = ctx.measureText(t.text).width;
+
+            if (t.opacity > 0) {
+                ctx.fillStyle = `rgba(0,0,0,${t.opacity/100})`;
+                ctx.fillRect(t.x - tWidth/2 - 15, t.y - t.fontSize, tWidth + 30, t.fontSize + 20);
+            }
+
+            ctx.fillStyle = t.color;
+            ctx.fillText(t.text, t.x, t.y);
+
+            // छानिएको टेक्स्टमा इन्डिकेटर
+            if (index === activeTextIdx) {
+                ctx.strokeStyle = "#0984e3";
+                ctx.setLineDash([5, 5]);
+                ctx.lineWidth = 2;
+                ctx.strokeRect(t.x - tWidth/2 - 10, t.y - t.fontSize - 5, tWidth + 20, t.fontSize + 20);
+                ctx.setLineDash([]);
+            }
+        });
+    }
+
+    canvas.onmousedown = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mx = (e.clientX - rect.left) * (CW / rect.width);
+        const my = (e.clientY - rect.top) * (CH / rect.height);
+
+        let hitAnyText = false;
+        for (let i = textLayers.length - 1; i >= 0; i--) {
+            const t = textLayers[i];
+            ctx.font = `${t.fontSize}px '${t.font}'`;
+            const tw = ctx.measureText(t.text).width;
+            if (mx > t.x - tw/2 - 20 && mx < t.x + tw/2 + 20 && my > t.y - t.fontSize && my < t.y + 20) {
+                activeTextIdx = i;
+                t.isDragging = true;
+                hitAnyText = true;
+                syncControlsToActiveText();
+                break;
+            }
+        }
+
+        if (!hitAnyText) {
+            if (logoObj.img && mx > logoObj.x && mx < logoObj.x + logoObj.w && my > logoObj.y && my < logoObj.y + logoObj.h) {
+                logoObj.isDragging = true;
+            } else {
+                imgObjects.forEach((obj, i) => {
+                    let dx = (imgObjects.length >= 2 && i % 2 !== 0) ? obj.cellW : 0;
+                    let dy = (imgObjects.length >= 3 && i >= 2) ? obj.cellH : 0;
+                    if (mx >= dx && mx <= dx + obj.cellW && my >= dy && my <= dy + obj.cellH) selectedImgIdx = i;
+                });
+                isDraggingImg = true;
+            }
+        }
+        startX = mx; startY = my;
+        drawAll();
+    };
+
+    window.onmousemove = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mx = (e.clientX - rect.left) * (CW / rect.width);
+        const my = (e.clientY - rect.top) * (CH / rect.height);
+        const dx = mx - startX, dy = my - startY;
+
+        if (activeTextIdx !== -1 && textLayers[activeTextIdx].isDragging) {
+            textLayers[activeTextIdx].x += dx; textLayers[activeTextIdx].y += dy;
+        } else if (logoObj.isDragging) {
+            logoObj.x += dx; logoObj.y += dy;
+        } else if (isDraggingImg && selectedImgIdx !== -1) {
+            imgObjects[selectedImgIdx].x += dx; imgObjects[selectedImgIdx].y += dy;
+        }
+        
+        startX = mx; startY = my; drawAll();
+    };
+
+    window.onmouseup = () => {
+        textLayers.forEach(t => t.isDragging = false);
+        logoObj.isDragging = false;
+        isDraggingImg = false;
+    };
+
+    function resetAll() { if(confirm("सबै सफा गर्ने?")) location.reload(); }
+    function downloadJPG() {
+        const link = document.createElement('a');
+        link.download = `PhotoEditor_Master.jpg`;
+        link.href = canvas.toDataURL('image/jpeg', 0.95);
+        link.click();
+    }
+</script>
+
+</body>
+</html>

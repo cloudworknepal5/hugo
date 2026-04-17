@@ -1,0 +1,295 @@
+body {
+    font-family: "Bebas Neue", sans-serif;
+}
+
+header {
+    background-image: linear-gradient(rgba(0, 0, 0, .6), rgba(0, 0, 0, .6)), url('netflix wallpaper movie.jpg');
+    background-size: cover;
+    background-position: 50%;
+    height: 90vh;
+}
+
+/* Navbar */
+nav img {
+    width: 13%;
+}
+
+.red-btn {
+    background: rgb(229, 9, 20);
+    color: #fff;
+    border: 0;
+    border-radius: 0.2rem;
+    padding: 5px 17px;
+}
+
+.red-btn:hover {
+    background: rgb(193, 17, 25);
+}
+
+/* Hero Section */
+.hero-title {
+    font-size: 3rem;
+    font-weight: 900;
+}
+
+.hero-first-p,
+.hero-second-p {
+    font-size: 1.5rem;
+    font-weight: 400;
+    line-height: 1.875rem;
+}
+
+form {
+    width: 60%;
+}
+
+form #floatinginput {
+    color: #fff;
+    background: transparent; /* Combine duplicate selectors */
+}
+
+form .form-control:focus {
+    border-color: #fff;
+    box-shadow: none;
+    border-width: medium;
+}
+
+form .form-floating > .focus-control:focus ~ label {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+form .form-floating > .form-control:focus ~ label::after {
+    background-color: transparent;
+}
+
+form .form-floating {
+    width: 50%;
+}
+
+form label {
+    color: #fff;
+    margin-left: 10px;
+}
+
+.get-started-btn {
+    height: 60px;
+    font-size: 1.5rem;
+    padding-right: 25px;
+    padding-left: 25px;
+}
+
+.get-started-btn::after {
+    content: "\276f";
+    margin-left: 5px;
+}
+
+/* Purple Section */
+.purple-section {
+    transform: translateY(-50%);
+    width: 100%;
+}
+
+.purple-section .container-md {
+    background: radial-gradient(51.39% 511.66% at 47.68% -217.91%, #ff9900 0%, #e50914 17.27%, #0e1b4f 79.44%, #000413 100%);
+    box-shadow: 0px -8px 25px rgba(0, 0, 0, 0.5);
+    border-radius: 4px;
+    margin: 0 74px;
+    color: #fff;
+    padding: 22px;
+}
+
+.purple-section img {
+    width: 25%;
+    height: fit-content;
+}
+
+.purple-section p:first-of-type {
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 30px;
+    margin: 0;
+}
+
+.purple-section p:last-of-type {
+    font-size: 16px;
+    line-height: 24px;
+    margin-top: 4px;
+    margin-bottom: 8px;
+}
+
+.purple-section-a {
+    color: #040d1a;
+    font-weight: 500;
+}
+
+.purple-section-a::after {
+    content: "\276F"; /* Adds the arrow symbol */
+    margin-left: 10px;
+}
+
+/* Enjoy Section */
+.section-title {
+    font-size: 3rem;
+    font-weight: 900;
+}
+
+.section-paragraph {
+    font-size: 1.5rem;
+    font-weight: 400;
+}
+
+.watch-section,
+.download-section {
+    border-top: 5px solid #232323;
+    border-bottom: 5px solid #232323;
+}
+
+/* FAQ Section */
+.faq-section h3 {
+    font-size: 1.25rem;
+    font-weight: 400;
+    line-height: 1.875rem;
+}
+
+.faq-section button {
+    color: #fff;
+    font-size: 24px;
+    font-weight: 400;
+}
+
+.faq-section .accordion {
+    --bs-accordion-color: rgb(225, 225, 225);
+    --bs-accordion-bg: rgb(45, 45, 45);
+    --bs-accordion-border-color: none;
+    --bs-accordion-border-radius: none;
+}
+
+.faq-section .accordion-item:first-of-type .accordion-button {
+    border-top-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.faq-section .accordion-button:focus {
+    border: none;
+    box-shadow: none;
+}
+
+.faq-section .accordion-button:hover {
+    background-color: rgb(65, 65, 65);
+}
+
+.faq-section .accordion-button:not(.collapsed) {
+    background-color: rgb(65, 65, 65);
+    color: rgb(225, 225, 225);
+}
+
+.faq-section .accordion-button::after {
+    content: "+";
+    background-image: none;
+    position: absolute;
+    height: 30px;
+    font-size: 50px;
+    top: 5px;
+    right: 45px;
+}
+
+.faq-section .accordion-button:not(.collapsed)::after {
+    background-image: none;
+    transform: none;
+    content: "\000d7";
+}
+
+/* Footer Section */
+footer {
+    border-top: 5px solid #232323; /* Corrected the typo here */
+}
+
+footer p,
+footer a {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.875rem;
+    font-weight: 400;
+}
+
+footer ul {
+    padding-left: 1; /* Consider specifying a unit here (e.g., `px` or `rem`) */
+}
+
+footer li {
+    list-style: none;
+}
+
+footer select {
+    background: transparent;
+    color: #fff;
+    padding-left: 40px;
+    padding-right: 40px;
+    appearance: none;
+    border-radius: 5px;
+}
+
+footer img {
+    filter: invert();
+    top: 8px;
+    left: 12px;
+}
+
+footer .arrow-down {
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid #fff;
+    top: 15px;
+    right: -115px;
+}
+
+/* Mobile */
+@media only screen and (max-width: 992px) {
+    nav img {
+        width: 17%;
+    }
+
+    .hero-title,
+    .section-title {
+        font-size: 2rem;
+        font-weight: 700;
+    }
+
+    .hero-first-p,
+    .hero-second-p.section-paragraph,
+    .faq-section h3 {
+        font-size: 1.125rem;
+    }
+
+    .purple-section img { /* Corrected the name */
+        width: 50%;
+    }
+
+    .enjoy-section .container {
+        padding-top: 5rem;
+    }
+}
+
+@media only screen and (max-width: 768px) {
+    nav {
+        width: 25%;
+    }
+
+    header {
+        height: 100vh;
+    }
+
+    .purple-section .container-md { /* Corrected the name */
+        background: radial-gradient(120.35% 220% at 49.86% -6.29%) #e50914 0% #0e1b4f 46.15% #0d1121 100%;
+        padding-top: 4rem;
+        margin: 0 24px;
+    }
+
+    .purple-section img { /* Corrected the name */
+        position: fixed;
+        width: 15%;
+        top: -50px;
+        left: 45px;
+    }
+}

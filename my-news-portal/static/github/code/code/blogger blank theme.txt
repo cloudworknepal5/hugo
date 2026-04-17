@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html>
+<html b:css='false' b:defaultwidgetversion='2' b:layoutsversion='3' xmlns='http://www.w3.org/1999/xhtml' xmlns:b='http://www.google.com/schemas/google/b/2013' xmlns:data='http://www.google.com/schemas/blogger/data/2008' xmlns:expr='http://www.google.com/schemas/blogger/widgets/expression'>
+  <head>
+    <title><data:view.title.escaped/></title>
+    <b:skin><![CDATA[
+      /* यहाँ तपाईंको कस्टम CSS राख्नुहोस् */
+    ]]></b:skin>
+  </head>
+  <body>
+    <b:section id='main' showaddelement='yes'>
+      <b:widget id='Blog1' locked='true' title='Blog Posts' type='Blog' visible='yes'>
+      </b:widget>
+    </b:section>
+  </body>
+</html>

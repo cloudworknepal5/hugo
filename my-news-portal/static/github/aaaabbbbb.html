@@ -1,0 +1,226 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700;800&display=swap');
+    
+    .sidebar-wrapper {
+        font-family: 'Mukta', sans-serif;
+        max-width: 100%;
+        background: #ffffff;
+        padding: 12px;
+        border: 1px solid #e1e1e1;
+        border-radius: 12px;
+        box-sizing: border-box;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        margin: 5px auto;
+        transition: all 0.3s ease;
+    }
+
+    /* Controls (Hidden during download) */
+    .sb-download-box { text-align: right; margin-bottom: 8px; }
+    #sb-download-btn { background: #27ae60; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 12px; }
+    .sb-search-container { margin-bottom: 8px; }
+    #sb-search-input { width: 100%; padding: 7px 15px; border-radius: 20px; border: 2px solid #cc0000; font-size: 15px; outline: none; box-sizing: border-box; }
+    
+    /* NEW: Horizontal Header (Logo Left, Title Right) */
+    .sb-header-row { 
+        display: flex; 
+        align-items: center; 
+        justify-content: space-between; 
+        margin-bottom: 10px; 
+        gap: 15px;
+        width: 100%;
+    }
+    .sb-logo-area { flex: 0 0 auto; }
+    .sb-main-logo { width: 150px; height: auto; object-fit: contain; display: block; }
+    
+    .sb-header-box { 
+        background: #cc0000; 
+        padding: 8px 20px; 
+        border-radius: 6px; 
+        text-align: right;
+        box-shadow: -3px 0 8px rgba(204,0,0,0.15);
+    }
+    .sb-title-text { color: #fff; font-size: 20px; font-weight: 800; margin: 0; white-space: nowrap;}
+
+    /* Area Header */
+    .sb-area-header { display: flex; align-items: center; text-align: center; margin: 8px 0; width: 100%; }
+    .sb-area-header::before, .sb-area-header::after { content: ""; flex: 1; border-bottom: 2px solid #e74c3c; }
+    .sb-area-name { background: #e74c3c; color: #fff; padding: 3px 15px; font-size: 15px; font-weight: 700; border-radius: 50px; margin: 0 10px; white-space: nowrap;}
+
+    /* Candidate Grid - Tight Gap */
+    .sb-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; }
+    .sb-card { background: #fff; border: 1.5px solid #cc0000; border-radius: 6px; overflow: hidden; display: flex; flex-direction: column; position: relative; }
+    
+    /* Strictly Calculated Image Height for 630px Frame */
+    .sb-img-box { position: relative; width: 100%; height: 340px; overflow: hidden; background: #f9f9f9; }
+    .sb-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    
+    .sb-badge {
+        position: absolute; right: 4px; bottom: 4px; width: 40px; height: 40px; background: #ffffff;
+        border: 2px solid #cc0000; border-radius: 50%; padding: 2px; display: flex;
+        align-items: center; justify-content: center; z-index: 5;
+    }
+    .sb-badge img { width: 85%; height: 85%; object-fit: contain; }
+    
+    .sb-info { padding: 8px 4px; text-align: center; background: #fff; }
+    .sb-name { font-size: 16px; font-weight: 800; color: #1a1a1a; margin-bottom: 2px; line-height: 1.1; height: 35px; display: flex; align-items: center; justify-content: center; overflow: hidden;}
+    .sb-snippet-votes { font-size: 14px; color: #cc0000; margin-top: 3px; border-top: 1px solid #eee; padding-top: 3px; }
+    .sb-snippet-votes b { font-weight: 900; font-size: 18px; }
+
+    /* Footer Branding - Compact */
+    .sb-block-footer { text-align: center; margin-top: 10px; padding-top: 8px; border-top: 1px solid #eee; width: 100%; }
+    .sb-web-container { display: flex; align-items: center; margin-bottom: 5px; }
+    .sb-web-container::before, .sb-web-container::after { content: ""; flex: 1; border-bottom: 2px solid #2c3e50; }
+    .sb-web-link { font-size: 16px; font-weight: 800; color: #2c3e50; text-decoration: none; margin: 0 10px; }
+    
+    .sb-social-row { display: flex; justify-content: center; align-items: center; gap: 15px; }
+    .sb-social-item { display: flex; align-items: center; gap: 5px; text-decoration: none; color: #333; font-weight: 700; font-size: 12px; }
+    .sb-social-item img { width: 16px; height: 16px; }
+
+    /* Navigation */
+    .sb-btn-group { display: flex; gap: 8px; margin-top: 10px; }
+    #sb-load-btn, #sb-prev-btn { flex: 1; border: none; padding: 10px; font-size: 14px; font-weight: 800; border-radius: 6px; cursor: pointer; color: #fff; }
+    #sb-load-btn { background: #2c3e50; }
+    #sb-prev-btn { background: #7f8c8d; }
+
+    /* Mobile View Fix */
+    @media (max-width: 768px) {
+        .sb-header-row { flex-direction: column; gap: 8px; }
+        .sb-header-box { border-radius: 4px; text-align: center; width: 100%; }
+        .sb-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+        .sb-img-box { height: 250px; }
+    }
+</style>
+
+<div class="sidebar-wrapper" id="capture-area">
+    <div class="sb-download-box">
+        <button id="sb-download-btn" onclick="sbMultiHandler('download')">रिपोर्ट डाउनलोड (PNG)</button>
+    </div>
+    <div class="sb-search-container">
+        <input type="text" id="sb-search-input" placeholder="उम्मेदवार वा क्षेत्र खोज्नुहोस्..." oninput="sbMultiHandler('filter')">
+    </div>
+    
+    <div class="sb-header-row">
+        <div class="sb-logo-area" id="logo-container"></div>
+        <div class="sb-header-box">
+            <div class="sb-title-text">निर्वाचन अपडेट: पछिल्लो मत परिणाम</div>
+        </div>
+    </div>
+    
+    <div id="sb-portal">डाटा लोड हुँदैछ...</div>
+
+    <div class="sb-block-footer">
+        <div class="sb-web-container"><a href="#" class="sb-web-link">Abhitakmedia.COM</a></div>
+        <div class="sb-social-row">
+            <a href="#" class="sb-social-item"><img src="https://cdn-icons-png.flaticon.com/512/124/124010.png"> अभितक</a>
+            <a href="#" class="sb-social-item"><img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png"> अभितक</a>
+            <a href="#" class="sb-social-item"><img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png"> अभितक</a>
+        </div>
+    </div>
+
+    <div class="sb-btn-group">
+        <button id="sb-prev-btn" style="display:none;" onclick="sbMultiHandler('prev')">← अघिल्लो</button>
+        <button id="sb-load-btn" onclick="sbMultiHandler('next')">अर्को क्षेत्र →</button>
+    </div>
+</div>
+
+<script>
+let sbRaw = []; let sbActive = []; let sbCurrentIndex = 0;
+
+function getProxyUrl(url) { 
+    return url ? "https://images.weserv.nl/?url=" + encodeURIComponent(url.replace(/https?:\/\//, "")) : ""; 
+}
+
+const logoUrl = getProxyUrl("https://abhitakmedia.com/wp-content/uploads/2023/11/abhitak-logo400-300x206.png");
+document.getElementById('logo-container').innerHTML = `<img src="${logoUrl}" class="sb-main-logo" crossorigin="anonymous">`;
+
+function sbSync() {
+    const s = document.createElement('script');
+    s.src = "https://flyer-maker.blogspot.com/feeds/posts/default?alt=json-in-script&callback=sbBuild&max-results=100&t=" + new Date().getTime();
+    document.body.appendChild(s);
+}
+
+function sbBuild(json) {
+    const entries = json.feed.entry || [];
+    const processed = entries.map(e => {
+        const labels = e.category ? e.category.map(cat => cat.term) : [];
+        let area =labels.length > 0 ? labels[0] : "अन्य क्षेत्र";
+        const photo = e.media$thumbnail ? e.media$thumbnail.url.replace('s72-c', 's1600') : '';
+        const snippet = e.summary ? e.summary.$t : (e.content ? e.content.$t.replace(/<[^>]*>?/gm, '').substring(0, 50) : '0');
+        const voteVal = parseInt(snippet.replace(/\D/g, '')) || 0;
+        let sign = '';
+        if (e.content && e.content.$t) {
+            const div = document.createElement('div'); div.innerHTML = e.content.$t;
+            const imgs = div.getElementsByTagName('img'); if (imgs.length > 1) sign = imgs[1].src;
+        }
+        return { name: e.title.$t, area: area, photo: getProxyUrl(photo), sign: getProxyUrl(sign), votes: snippet, vScore: voteVal };
+    });
+    const grouped = {};
+    processed.forEach(item => { if (!grouped[item.area]) grouped[item.area] = []; grouped[item.area].push(item); });
+    sbRaw = Object.keys(grouped).map(area => ({ area: area, candidates: grouped[area].sort((a,b)=>b.vScore-a.vScore).slice(0, 4) }));
+    sbActive = [...sbRaw]; sbRender();
+}
+
+function sbRender() {
+    const container = document.getElementById('sb-portal');
+    const nextBtn = document.getElementById('sb-load-btn');
+    const prevBtn = document.getElementById('sb-prev-btn');
+    let html = '';
+    if (sbActive.length > 0) {
+        const group = sbActive[sbCurrentIndex];
+        html += `<div class="sb-area-header"><div class="sb-area-name">${group.area}</div></div><div class="sb-grid">`;
+        group.candidates.forEach(c => {
+            html += `<div class="sb-card"><div class="sb-img-box"><img src="${c.photo}" class="sb-img" crossorigin="anonymous"><div class="sb-badge"><img src="${c.sign}" crossorigin="anonymous"></div></div><div class="sb-info"><div class="sb-name">${c.name}</div><div class="sb-snippet-votes">मत: <b>${c.votes}</b></div></div></div>`;
+        });
+        html += `</div>`;
+    }
+    container.innerHTML = html || "<p>डाटा छैन</p>";
+    if(prevBtn) prevBtn.style.display = sbCurrentIndex > 0 ? 'block' : 'none';
+    if(nextBtn) nextBtn.style.display = sbCurrentIndex < sbActive.length - 1 ? 'block' : 'none';
+}
+
+function sbMultiHandler(action) {
+    const wrapper = document.getElementById('capture-area');
+    const btn = document.getElementById('sb-download-btn');
+    const search = document.querySelector('.sb-search-container');
+    const btnGroup = document.querySelector('.sb-btn-group');
+
+    if(action === 'filter') {
+        const term = document.getElementById('sb-search-input').value.toLowerCase();
+        sbActive = sbRaw.filter(g => g.area.toLowerCase().includes(term) || g.candidates.some(c => c.name.toLowerCase().includes(term)));
+        sbCurrentIndex = 0; sbRender();
+    } else if(action === 'next' || action === 'prev') {
+        if(action === 'next' && sbCurrentIndex < sbActive.length - 1) sbCurrentIndex++;
+        if(action === 'prev' && sbCurrentIndex > 0) sbCurrentIndex--;
+        sbRender();
+    } else if(action === 'download') {
+        const originalStyle = wrapper.style.cssText;
+        btn.style.display = "none"; search.style.display = "none"; btnGroup.style.display = "none";
+        
+        // Strict Facebook Dimensions Settings
+        wrapper.style.width = "1200px";
+        wrapper.style.height = "630px";
+        wrapper.style.overflow = "hidden"; // STRICT HEIGHT
+        wrapper.style.padding = "20px";
+        wrapper.style.display = "flex";
+        wrapper.style.flexDirection = "column";
+        wrapper.style.justifyContent = "space-between"; // Distribute space Header-Grid-Footer
+
+        html2canvas(wrapper, { 
+            scale: 3, // Very High quality
+            useCORS: true, 
+            width: 1200, 
+            height: 630 
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `Election_Update_${sbActive[sbCurrentIndex].area}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+            wrapper.style.cssText = originalStyle;
+            btn.style.display = "inline-block"; search.style.display = "block"; btnGroup.style.display = "flex";
+        });
+    }
+}
+sbSync();
+</script>

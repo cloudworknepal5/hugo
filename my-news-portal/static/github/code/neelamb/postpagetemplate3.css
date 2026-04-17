@@ -1,0 +1,146 @@
+/**
+ * Name: postpagetemplate3.css
+ * Version: 3.3 (Final Stable)
+ * Feature: Responsive Author Box, Font Resizer UI, Red-Light Theme
+ */
+
+/* Google Font Import */
+@import url('https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700;800&display=swap');
+
+/* Main Wrapper */
+.post-page-wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+    font-family: 'Mukta', sans-serif;
+    padding: 10px;
+}
+
+/* Multi-function Meta Box */
+.post-meta-v3 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 3px solid #ce1212; /* मुख्य रातो रङ */
+    border-bottom: 1px solid #eee;
+    padding: 15px 0;
+    margin: 20px 0;
+    gap: 15px;
+    background: #fff;
+}
+
+/* --- १. Author Section (Left) --- */
+.author-block {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.author-thumb-v3 {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #fdf2f2;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.author-info-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.author-name-v3 {
+    font-weight: 800;
+    font-size: 19px;
+    color: #1a1a1a;
+    line-height: 1.1;
+    margin-bottom: 2px;
+}
+
+.location-date {
+    font-weight: 600;
+    color: #ce1212;
+    font-size: 14px;
+    line-height: 1;
+}
+
+.reading-time-v3 {
+    font-size: 12px;
+    background: #fdf2f2;
+    color: #ce1212;
+    padding: 2px 8px;
+    border-radius: 4px;
+    width: fit-content;
+    font-weight: 700;
+    margin-top: 4px;
+    border: 1px solid #ffebeb;
+}
+
+/* --- २. Controls Section (Right) --- */
+.meta-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* Font Resizer Buttons */
+.font-resizer {
+    display: flex;
+    gap: 6px;
+    border-right: 1px solid #eee;
+    padding-right: 15px;
+}
+
+.resizer-btn {
+    background: #f8f8f8;
+    border: 1px solid #ddd;
+    width: 34px;
+    height: 34px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 800;
+    font-size: 14px;
+    color: #444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.resizer-btn:hover {
+    background: #ce1212;
+    color: #ffffff;
+    border-color: #ce1212;
+}
+
+/* ShareThis Adjustment */
+.sharethis-inline-share-buttons {
+    min-height: 32px;
+}
+
+/* --- ३. Content Area (Blogger Body) --- */
+.rp-body-style, .post-body {
+    font-size: 20px;
+    line-height: 1.9;
+    color: #333;
+    letter-spacing: 0.1px;
+    margin-top: 20px;
+    transition: font-size 0.3s ease; /* फन्ट साइज परिवर्तन हुँदा एनिमेसन */
+}
+
+/* --- ४. Responsive Design --- */
+@media screen and (max-width: 680px) {
+    .post-meta-v3 {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+        padding: 12px 0;
+    }
+    
+    .meta-controls {
+        width: 100%;
+        justify-content: space-between;
+        border-top: 1px dashed #eee;
+        padding-top: 12px;
+    }

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .embed-container {
+            max-width: 100%;
+            margin: 20px auto;
+            background: #1e1e1e;
+            border-radius: 8px;
+            overflow: hidden;
+            font-family: sans-serif;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .embed-header {
+            background: #2d2d2d;
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .embed-header span { color: #dcdcdc; font-size: 14px; }
+
+        .copy-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .embed-content {
+            padding: 15px;
+            overflow-x: auto;
+            white-space: pre;
+            color: #9cdcfe;
+            font-family: 'Consolas', monospace;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        /* Mobile Responsive adjustment */
+        @media (max-width: 600px) {
+            .embed-content { font-size: 13px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="embed-container">
+    <div class="embed-header">
+        <span>Responsive ad size</span>
+        <button class="copy-btn" onclick="copyThis(this)">Copy</button>
+    </div>
+   <pre class="embed-content">
+&lt;div class="custom-ad-provider"&gt;&lt;/div&gt;
+&lt;script src="https://ad.neelamb.com/ad/ad-script.js" async&gt;&lt;/script&gt;</pre>
+
+</div>
+
+<div class="embed-container">
+    <div class="embed-header">
+        <span>popup ad</span>
+        <button class="copy-btn" onclick="copyThis(this)">Copy</button>
+    </div>
+    <pre class="embed-content">
+&lt;div class="custom-ad-provider"&gt;&lt;/div&gt;
+&lt;script src="https://ad.neelamb.com/popup.js" async&gt;&lt;/script&gt;</pre>
+</div>
+
+<script>
+    function copyThis(btn) {
+        // Finds the <pre> tag located in the same container as the button
+        const container = btn.closest('.embed-container');
+        const textToCopy = container.querySelector('.embed-content').innerText;
+
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            // Update button text temporarily
+            const originalText = btn.innerText;
+            btn.innerText = 'Copied!';
+            btn.style.background = '#28a745';
+
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.style.background = '#007bff';
+            }, 2000);
+        });
+    }
+</script>
+
+</body>
+</html>
+
+

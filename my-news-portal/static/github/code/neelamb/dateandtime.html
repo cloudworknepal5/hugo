@@ -1,0 +1,55 @@
+<div id="main-status-bar" style="display: grid; grid-template-columns: auto auto; align-items: center; gap: 5px; background: #fff; padding: 2px 10px; border-radius: 8px; border: 1px solid #e0e0e0; width: fit-content; overflow: hidden;">
+
+  <div id="weather-module" style="display: flex; align-items: center; gap: 5px; min-width: 100px;">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/designers2077/code/weather.css" />
+    <div id="icon" style="width: 35px; height: 35px; display: flex !important; align-items: center; justify-content: center;"></div>
+    <div style="display: flex; flex-direction: column; justify-content: center;">
+      <span id="temp" style="font-weight: bold; font-size: 14px; line-height: 1;">--°C</span>
+      <span style="font-size: 9px; color: #888;">Birgunj</span>
+    </div>
+  </div>
+
+  <div id="patro-module" style="overflow: hidden; display: flex; align-items: center;">
+    <div id="np_widget_wiz1" widget="day-sm" style="width: 280px !important; transform: scale(0.9); transform-origin: left center;"></div>
+  </div>
+
+</div>
+
+<script async src="https://nepalipatro.com.np/np-widgets/nepalipatro.js" id="wiz1"></script>
+<script src="https://cdn.jsdelivr.net/gh/designers2077/code/weather.js"></script>
+
+<script>
+/**
+ * Multi-function logic to prevent overlapping and fix icon visibility
+ */
+const WidgetIntegrator = {
+    // Function 1: Ensure layout doesn't overlap
+    fixOverlapping: function() {
+        const weather = document.getElementById('weather-module');
+        const patro = document.getElementById('patro-module');
+        if(weather && patro) {
+            weather.style.marginRight = "10px"; // Force gap between elements
+            console.log("Layout: Overlap check completed.");
+        }
+    },
+
+    // Function 2: Fix Weather Icon if script fails to load it
+    checkIcon: function() {
+        const iconDiv = document.getElementById('icon');
+        // If icon is still empty after 2 seconds, show fallback
+        if (iconDiv && iconDiv.innerHTML.trim() === "") {
+            iconDiv.innerHTML = "⛅"; 
+            iconDiv.style.fontSize = "22px";
+        }
+    },
+
+    // Function 3: Main execution
+    init: function() {
+        this.fixOverlapping();
+        setTimeout(() => this.checkIcon(), 2000); 
+    }
+};
+
+// Run integration
+window.addEventListener('load', () => WidgetIntegrator.init());
+</script>

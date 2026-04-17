@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeelamB Ad-Engine | Final Analytics Pro</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { --blue: #1a73e8; --pink: #e91e63; --green: #2ecc71; --bg: #f4f7f6; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; padding: 20px; font-size: 13px; color: #333; }
+        .container { max-width: 1400px; margin: auto; }
+        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .card { background: #fff; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-top: 5px solid #ccc; }
+        .card p { font-size: 26px; font-weight: 800; margin: 8px 0 0 0; }
+        .charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 25px; }
+        .chart-container { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); height: 350px; }
+        .controls { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        #searchInput { flex-grow: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px; outline: none; }
+        .btn-export { background: var(--green); color: white; border: none; padding: 0 25px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-export:hover { background: #27ae60; }
+        .table-box { background: #fff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden; }
+        .scroll-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 1100px; }
+        th { background: #fcfcfc; padding: 15px; text-align: left; border-bottom: 2px solid #eee; font-weight: 600; }
+        td { padding: 12px 15px; border-bottom: 1px solid #f9f9f9; vertical-align: middle; }
+        .badge { padding: 4px 10px; border-radius: 4px; color: #fff; font-size: 10px; font-weight: bold; }
+        .VIEW { background: var(--blue); }
+        .CLICK { background: var(--pink); }
+        .ad-img { width: 45px; height: 28px; object-fit: cover; border-radius: 4px; border: 1px solid #eee; }
+        .load-more { display: block; width: 220px; margin: 25px auto; padding: 12px; background: #333; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        @media (max-width: 900px) { .charts-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="stats-row">
+        <div class="card" style="border-color: var(--blue);"><h3>Impressions</h3><p id="vCount" style="color:var(--blue)">0</p></div>
+        <div class="card" style="border-color: var(--pink);"><h3>Total Clicks</h3><p id="cCount" style="color:var(--pink)">0</p></div>
+        <div class="card" style="border-color: var(--green);"><h3>CTR</h3><p id="ctr" style="color:var(--green)">0%</p></div>
+    </div>
+
+    <div class="charts-grid">
+        <div class="chart-container"><canvas id="lineChart"></canvas></div>
+        <div class="chart-container"><canvas id="pieChart"></canvas></div>
+    </div>
+
+    <div class="controls">
+        <input type="text" id="searchInput" placeholder="Search by Ad ID, IP, वा देश..." onkeyup="handleSearch()">
+        <button class="btn-export" onclick="downloadCSV()">Download Full CSV Report</button>
+    </div>
+
+    <div class="table-box">
+        <div class="scroll-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Event</th>
+                        <th>Ad ID</th>
+                        <th>Media</th>
+                        <th>Target Link</th>
+                        <th>IP Address</th>
+                        <th>Location</th>
+                        <th>Device</th>
+                    </tr>
+                </thead>
+                <tbody id="logRows"></tbody>
+            </table>
+        </div>
+        <button id="loadBtn" class="load-more" onclick="renderNext()">थप डेटा हेर्नुहोस्</button>
+    </div>
+</div>
+
+<script>
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwIEUX7nS_iBTJfwG4G6RVnalfNLracsAQZlZl9m78M3_Fkmwug63h8QnfrgA2xQ-8azA/exec';
+    let allLogs = [], filteredLogs = [], currentIdx = 0;
+    let summaryData = { views: 0, clicks: 0, ctr: "0%" };
+    let lChart, pChart;
+
+    // फङ्सन १: डिभाइस पहिचान
+    function parseDevice(ua) {
+        if (!ua) return "Unknown";
+        const p = ua.toLowerCase();
+        if (p.includes('armv8') || p.includes('android') || p.includes('iphone') || p.includes('mobile')) return "Mobile";
+        if (p.includes('ipad') || p.includes('tablet')) return "Tablet";
+        return "Desktop";
+    }
+
+    // फङ्सन २: मिति र समय फर्म्याट
+    function getFullDate(str) {
+        const d = new Date(str);
+        return isNaN(d.getTime()) ? "N/A" : d.toLocaleString('ne-NP', { 
+            year: 'numeric', month: 'short', day: 'numeric', 
+            hour: '2-digit', minute: '2-digit', second: '2-digit' 
+        });
+    }
+
+    // फङ्सन ३: देश अनुसारको तथ्याङ्क तयार पार्ने
+    function getCountryStats(logs) {
+        const stats = {};
+        logs.forEach(log => {
+            const c = log.country || 'Global';
+            stats[c] = (stats[c] || 0) + 1;
+        });
+        return Object.entries(stats).sort((a, b) => b[1] - a[1]);
+    }
+
+    // फङ्सन ४: चार्ट अपडेट गर्ने
+    function updateDashboardCharts(logs) {
+        const timeline = {};
+        logs.forEach(log => {
+            const d = new Date(log.date).toLocaleDateString();
+            if(!timeline[d]) timeline[d] = { v: 0, c: 0 };
+            log.type === 'VIEW' ? timeline[d].v++ : timeline[d].c++;
+        });
+
+        const dates = Object.keys(timeline).reverse().slice(0, 7);
+        if(lChart) lChart.destroy();
+        lChart = new Chart(document.getElementById('lineChart'), {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [
+                    { label: 'Impressions', data: dates.map(d => timeline[d].v), borderColor: '#1a73e8', tension: 0.3 },
+                    { label: 'Clicks', data: dates.map(d => timeline[d].c), borderColor: '#e91e63', tension: 0.3 }
+                ]
+            }
+        });
+
+        const topC = getCountryStats(logs).slice(0, 5);
+        if(pChart) pChart.destroy();
+        pChart = new Chart(document.getElementById('pieChart'), {
+            type: 'doughnut',
+            data: {
+                labels: topC.map(c => c[0]),
+                datasets: [{ data: topC.map(c => c[1]), backgroundColor: ['#1a73e8', '#e91e63', '#2ecc71', '#f1c40f', '#9b59b6'] }]
+            }
+        });
+    }
+
+    // फङ्सन ५: CSV डाउनलोड (लिङ्क सहित सबै विवरण)
+    function downloadCSV() {
+        let csv = "\uFEFF"; // UTF-8 BOM
+        csv += "--- NEELAMB AD PERFORMANCE SUMMARY ---\n";
+        csv += `Total Impressions, ${summaryData.views}\nTotal Clicks, ${summaryData.clicks}\nAverage CTR, ${summaryData.ctr}\n\n`;
+
+        csv += "--- TOP COUNTRIES BY VIEWS ---\n";
+        csv += "Country, Total Views\n";
+        getCountryStats(filteredLogs).forEach(item => {
+            csv += `"${item[0]}", ${item[1]}\n`;
+        });
+        csv += "\n";
+
+        // यहाँ लिङ्क (Target Link) कोलम थपिएको छ
+        csv += "--- DETAILED DATA LOGS ---\n";
+        csv += "Date,Event,AdID,IP Address,Country,City,Device Type,Target Link\n";
+
+        filteredLogs.forEach(r => {
+            const rowDate = getFullDate(r.date).replace(/,/g, '');
+            const device = parseDevice(r.platform);
+            csv += `"${rowDate}","${r.type}","${r.adId}","${r.ip}","${r.country}","${r.city}","${device}","${r.link}"\n`;
+        });
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `Ad_Engine_Full_Report_${Date.now()}.csv`;
+        a.click();
+    }
+
+    // फङ्सन ६: ड्यासबोर्ड रो बनाउने
+    function createRow(r) {
+        return `<tr>
+            <td><small>${getFullDate(r.date)}</small></td>
+            <td><span class="badge ${r.type}">${r.type}</span></td>
+            <td><code>${r.adId}</code></td>
+            <td><img src="${r.img}" class="ad-img" onerror="this.src='https://via.placeholder.com/45x28'"></td>
+            <td><a href="${r.link}" target="_blank" style="color:var(--blue); font-weight:bold; text-decoration:none;">View Link</a></td>
+            <td><small>${r.ip || '0.0.0.0'}</small></td>
+            <td>${r.city || 'Unknown'}, <b>${r.country || 'Global'}</b></td>
+            <td>${parseDevice(r.platform) === 'Mobile' ? '📱 Mobile' : '💻 Desktop'}</td>
+        </tr>`;
+    }
+
+    function handleSearch() {
+        const q = document.getElementById('searchInput').value.toLowerCase();
+        filteredLogs = allLogs.filter(l => 
+            l.adId.toLowerCase().includes(q) || 
+            (l.ip && l.ip.includes(q)) ||
+            (l.country && l.country.toLowerCase().includes(q))
+        );
+        currentIdx = 0;
+        document.getElementById('logRows').innerHTML = '';
+        renderNext();
+    }
+
+    async function loadData() {
+        try {
+            const res = await fetch(API_URL);
+            const data = await res.json();
+            summaryData = data.summary;
+            document.getElementById('vCount').innerText = summaryData.views.toLocaleString();
+            document.getElementById('cCount').innerText = summaryData.clicks.toLocaleString();
+            document.getElementById('ctr').innerText = summaryData.ctr;
+            
+            allLogs = data.logs.reverse();
+            filteredLogs = [...allLogs];
+            updateDashboardCharts(allLogs);
+            renderNext();
+        } catch (e) { alert("Data fetch error!"); }
+    }
+
+    function renderNext() {
+        const tbody = document.getElementById('logRows');
+        const batch = filteredLogs.slice(currentIdx, currentIdx + 15);
+        batch.forEach(log => tbody.insertAdjacentHTML('beforeend', createRow(log)));
+        currentIdx += 15;
+        document.getElementById('loadBtn').style.display = currentIdx >= filteredLogs.length ? 'none' : 'block';
+    }
+
+    window.onload = loadData;
+</script>
+</body>
+</html>

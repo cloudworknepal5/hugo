@@ -1,0 +1,157 @@
+<div class="election-header-main">
+    <div class="total-stats-box" id="totalSummary">
+        <div class="live-dot"></div>
+        <div class="stat-text">
+            <span class="stat-label">घोषित</span>
+            <span class="stat-value" id="totalVal">०/२७५</span>
+        </div>
+    </div>
+
+    <div class="election-header-widget" id="electionWidget">
+        <div style="padding:10px; color:#999; font-size: 12px;">नतिजा लोड हुँदैछ...</div>
+    </div>
+</div>
+
+<style>
+    .election-header-main {
+        width: 100%;
+        background: #ffffff;
+        display: flex; /* छेउमा राख्नको लागि */
+        align-items: center;
+        border-bottom: 2px solid #d32f2f;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        font-family: 'Segoe UI', Arial, sans-serif;
+    }
+
+    /* Total Stats Section */
+    .total-stats-box {
+        background: #fdf2f2;
+        padding: 10px 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-right: 2px solid #eee;
+        flex-shrink: 0; /* यसलाई सानो हुन नदिने */
+    }
+
+    .live-dot {
+        width: 8px;
+        height: 8px;
+        background: #d32f2f;
+        border-radius: 50%;
+        animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+        0% { opacity: 1; }
+        50% { opacity: 0.4; }
+        100% { opacity: 1; }
+    }
+
+    .stat-text { display: flex; flex-direction: column; line-height: 1.1; }
+    .stat-label { font-size: 10px; color: #666; font-weight: bold; text-transform: uppercase; }
+    .stat-value { font-size: 14px; font-weight: 800; color: #d32f2f; white-space: nowrap; }
+
+    /* Party List Section */
+    .election-header-widget {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 5px 15px;
+        overflow-x: auto; /* मोबाइलको लागि स्क्रोल */
+        white-space: nowrap;
+        flex-grow: 1;
+        scrollbar-width: none;
+    }
+    .election-header-widget::-webkit-scrollbar { display: none; }
+
+    .party-unit {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding-right: 15px;
+        border-right: 1px solid #f0f0f0;
+    }
+
+    .img-container {
+        display: flex;
+        position: relative;
+        width: 42px;
+        height: 30px;
+        flex-shrink: 0;
+    }
+    .symbol-icon, .candidate-photo {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        border: 1px solid #eee;
+        object-fit: cover;
+        background: #fff;
+    }
+    .candidate-photo {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        z-index: 2;
+        border: 1.5px solid #fff;
+    }
+
+    .party-info-text { display: flex; flex-direction: column; line-height: 1.2; }
+    .p-name { font-weight: bold; font-size: 13px; color: #222; }
+    .p-seats { font-size: 11px; color: #d32f2f; font-weight: bold; }
+
+    /* मोबाइल रेस्पोन्सिबिलिटी */
+    @media (max-width: 600px) {
+        .total-stats-box { padding: 8px 10px; }
+        .stat-value { font-size: 12px; }
+        .p-name { font-size: 12px; }
+        .election-header-widget { gap: 12px; }
+    }
+</style>
+
+<script>
+    async function updateElectionWidget() {
+        const dataUrl = 'https://educationnepal.eu.org/election/data.json';
+        try {
+            const response = await fetch(dataUrl);
+            const data = await response.json();
+            
+            const container = document.getElementById('electionWidget');
+            const totalVal = document.getElementById('totalVal');
+            
+            container.innerHTML = '';
+            let totalDeclared = 0;
+
+            // डाटा क्रमबद्ध (सिटको आधारमा)
+            data.sort((a, b) => (b.fptp + b.pr) - (a.fptp + a.pr));
+
+            data.forEach(party => {
+                const total = (party.fptp || 0) + (party.pr || 0);
+                totalDeclared += total;
+
+                container.innerHTML += `
+                    <div class="party-unit">
+                        <div class="img-container">
+                            <img src="${party.symbol}" class="symbol-icon" alt="S">
+                            <img src="${party.photo}" class="candidate-photo" alt="C">
+                        </div>
+                        <div class="party-info-text">
+                            <span class="p-name">${party.name}</span>
+                            <span class="p-seats">${total} सिट</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // कुल संख्या अपडेट
+            totalVal.innerText = `${totalDeclared}/२७५`;
+
+        } catch (e) {
+            console.error("Error fetching data:", e);
+        }
+    }
+
+    // १ मिनेटमा स्वतः अपडेट
+    setInterval(updateElectionWidget, 60000);
+    updateElectionWidget();
+</script>

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>मेरो फोटोशप - Neelamb.com</title>
+    <style>
+        @font-face {
+            font-family: 'Deepmani';
+            src: url('Deepmani.ttf') format('truetype');
+            font-weight: normal; font-style: normal;
+        }
+        body { font-family: 'Segoe UI', sans-serif; background: #ffffff; padding: 10px; display: flex; flex-direction: column; align-items: center; margin: 0; }
+        .card { background: transparent; padding: 10px; max-width: 1400px; width: 100%; box-sizing: border-box; }
+        
+        /* Multi-section Layout */
+        .upload-section { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 20px; }
+        .box { border: 2px dashed #0984e3; padding: 12px; border-radius: 8px; background: #f8fbff; text-align: center; }
+        
+        .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; background: #f9f9f9; padding: 20px; border-radius: 10px; border: 1px solid #eee; }
+        .full { grid-column: 1 / -1; }
+        
+        #captionInput { width: 100%; padding: 12px; border-radius: 6px; border: 2px solid #0984e3; font-family: 'Deepmani', sans-serif; font-size: 26px; box-sizing: border-box; }
+        
+        label { font-size: 11px; font-weight: 700; color: #444; display: block; margin-bottom: 5px; text-transform: uppercase; }
+        input[type="range"], select, input[type="color"] { width: 100%; cursor: pointer; height: 35px; border: 1px solid #ccc; border-radius: 4px; }
+        
+        .nav-section { background: #dfe6e9; padding: 10px; border-radius: 8px; text-align: center; }
+        .arrow-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; width: 120px; margin: 0 auto; }
+        .arrow-btn { background: #2d3436; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-size: 16px; }
+        
+        #canvas-wrapper { display: flex; justify-content: center; margin: 20px auto; background: #f0f0f0; line-height: 0; max-width: 100%; overflow: auto; border-radius: 8px; }
+        canvas { background: #fff; box-shadow: 0 5px 15px rgba(0,0,0,0.1); max-width: 100%; height: auto !important; }
+        
+        .btn-group { display: flex; gap: 10px; grid-column: 1 / -1; }
+        .btn { flex: 1; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; color: white; }
+        .btn-save { background: #27ae60; }
+        .btn-reset { background: #c0392b; }
+        
+        .status-bar { font-size: 13px; background: #ffeaa7; padding: 10px; border-radius: 5px; margin-bottom: 10px; font-weight: bold; text-align: center; color: #2d3436; }
+        footer { margin-top: 30px; padding: 20px; font-weight: bold; color: #636e72; text-align: center; }
+        footer a { text-decoration: none; color: #0984e3; }
+
+        /* Mobile Adjustments */
+        @media (max-width: 600px) {
+            .controls { grid-template-columns: 1fr; padding: 10px; }
+            .btn-group { flex-direction: column; }
+            /* मोबाइलमा इनपुट बक्सको फन्ट सानो पारिएको */
+            #captionInput { font-size: 18px; padding: 8px; }
+            .card { padding: 5px; }
+            h2 { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2 style="text-align:center; margin: 0 0 15px 0;">मेरो फोटोशप</h2>
+    <div class="status-bar" id="statusBar">फोटो र लोगो छान्नुहोस्।</div>
+
+    <div class="upload-section">
+        <div class="box"><label>फोटोहरू (१-४ सम्म):</label><input type="file" id="photoPicker" accept="image/*" multiple onchange="imageHandler.load()"></div>
+        <div class="box"><label>लोगो/वाटरमार्क:</label><input type="file" id="logoPicker" accept="image/*" onchange="logoHandler.load()"></div>
+    </div>
+
+    <div class="controls">
+        <div class="full">
+            <label>अक्षर लेख्नुहोस् (दिपमनी फन्ट):</label>
+            <input type="text" id="captionInput" placeholder="यहाँ केही लेख्नुहोस्..." oninput="renderEngine.drawAll()">
+        </div>
+
+        <div>
+            <label>प्लेटफर्म र साइजहरू:</label>
+            <select id="canvasSize" onchange="canvasManager.changeSize()">
+                <optgroup label="Facebook">
+                    <option value="1200x630">FB Shared Link (1200x630)</option>
+                    <option value="1080x1350">FB Portrait (1080x1350)</option>
+                    <option value="1200x1200">FB Square (1200x1200)</option>
+                    <option value="820x312">FB Cover (820x312)</option>
+                </optgroup>
+                <optgroup label="YouTube">
+                    <option value="1280x720">YT Thumbnail (1280x720)</option>
+                    <option value="2560x1440">YT Channel Art (2560x1440)</option>
+                </optgroup>
+                <optgroup label="Instagram">
+                    <option value="1080x1080">Insta Square (1080x1080)</option>
+                    <option value="1080x1350">Insta Portrait (1080x1350)</option>
+                    <option value="1080x1920">Insta Story / Reels (1080x1920)</option>
+                </optgroup>
+                <optgroup label="TikTok/WhatsApp">
+                    <option value="1080x1920">TikTok Video (1080x1920)</option>
+                    <option value="800x800">WA Status Square (800x800)</option>
+                    <option value="750x1334">WA Status Full (750x1334)</option>
+                </optgroup>
+                <optgroup label="Custom">
+                    <option value="1920x1080">Full HD (1920x1080)</option>
+                    <option value="1000x1000">1:1 Standard (1000x1000)</option>
+                </optgroup>
+            </select>
+        </div>
+
+        <div>
+            <label>लोगो साइज: <span id="lSizeVal">150</span>px</label>
+            <input type="range" id="logoSizeRange" min="20" max="800" value="150" oninput="renderEngine.drawAll()">
+            <label style="margin-top:8px;">लोगो धमिलोपन: <span id="lOpacityVal">100</span>%</label>
+            <input type="range" id="logoOpacityRange" min="0" max="100" value="100" oninput="renderEngine.drawAll()">
+        </div>
+
+        <div>
+            <label>अक्षर साइज: <span id="fSizeVal">60</span>px</label>
+            <input type="range" id="fontSizeRange" min="10" max="600" value="60" oninput="renderEngine.drawAll()">
+            <div style="display:flex; gap:5px; margin-top:5px;">
+                <input type="color" id="textColor" value="#ffffff" title="अक्षरको रङ" oninput="renderEngine.drawAll()">
+                <input type="color" id="strokeColor" value="#000000" title="बोर्डरको रङ" oninput="renderEngine.drawAll()">
+            </div>
+        </div>
+
+        <div>
+            <label>छानिएको फोटो Zoom: <span id="imgScaleVal">100</span>%</label>
+            <input type="range" id="imgScaleRange" min="10" max="500" value="100" oninput="imageHandler.updateScale()">
+            <label style="margin-top:8px;">डाउनलोड क्वालिटी: <span id="qVal">95</span>%</label>
+            <input type="range" id="qualityRange" min="10" max="100" value="95" oninput="renderEngine.drawAll()">
+        </div>
+
+        <div>
+            <label>बोर्डर सेटिङ:</label>
+            <label style="margin-bottom:5px; display:flex; align-items:center;"><input type="checkbox" id="showBorder" onchange="renderEngine.drawAll()" style="width:20px; height:20px;"> &nbsp; बोर्डर/ग्रिड अन</label>
+            <input type="color" id="borderColor" value="#000000" oninput="renderEngine.drawAll()">
+            <input type="range" id="borderSizeRange" min="1" max="100" value="10" oninput="renderEngine.drawAll()">
+        </div>
+
+        <div class="nav-section">
+            <label>फोटो स्थान परिवर्तन</label>
+            <div class="arrow-pad">
+                <div></div><button class="arrow-btn" onclick="uiManager.shift('up')">▲</button><div></div>
+                <button class="arrow-btn" onclick="uiManager.shift('left')">◀</button>
+                <button class="arrow-btn" onclick="uiManager.shift('down')">▼</button>
+                <button class="arrow-btn" onclick="uiManager.shift('right')">▶</button>
+            </div>
+        </div>
+
+        <div>
+            <label>ब्राइटनेस: <span id="bVal">100</span>%</label>
+            <input type="range" id="brightRange" min="20" max="200" value="100" oninput="renderEngine.drawAll()">
+        </div>
+
+        <div class="btn-group">
+            <button class="btn btn-save" onclick="downloadEngine.save()">फोटो डाउनलोड</button>
+            <button class="btn btn-reset" onclick="uiManager.reset()">सबै रिसेट</button>
+        </div>
+    </div>
+
+    <div id="canvas-wrapper"><canvas id="mainCanvas"></canvas></div>
+
+    <footer>DevelopBy: <a href="https://neelamb.com" target="_blank">Neelamb.com</a></footer>
+</div>
+
+<script>
+    const canvas = document.getElementById('mainCanvas');
+    const ctx = canvas.getContext('2d');
+    const status = document.getElementById('statusBar');
+    
+    let CW = 1200, CH = 630;
+    let imgObjects = [];
+    let textObj = { text: "", x: 600, y: 560, isDragging: false };
+    let logoObj = { img: null, x: 40, y: 40, w: 150, h: 150, isDragging: false };
+    let dragInfo = { isDraggingImg: false, selectedIdx: -1, startX: 0, startY: 0 };
+    let activeElement = "none";
+
+    const canvasManager = {
+        changeSize() {
+            const size = document.getElementById('canvasSize').value.split('x');
+            CW = parseInt(size[0]); CH = parseInt(size[1]);
+            canvas.width = CW; canvas.height = CH;
+            textObj.x = CW / 2; textObj.y = CH - 80;
+            imageHandler.refreshScaling();
+            renderEngine.drawAll();
+        }
+    };
+
+    const imageHandler = {
+        async load() {
+            const files = document.getElementById('photoPicker').files;
+            if (!files.length) return;
+            imgObjects = [];
+            for (let i = 0; i < Math.min(files.length, 4); i++) {
+                const img = await new Promise(res => {
+                    const im = new Image();
+                    im.onload = () => res(im);
+                    im.src = URL.createObjectURL(files[i]);
+                });
+                imgObjects.push({ img, x: 0, y: 0, cellW: 0, cellH: 0, baseScale: 1, userScale: 1 });
+            }
+            this.refreshScaling();
+            dragInfo.selectedIdx = 0; activeElement = 'photo';
+            renderEngine.drawAll();
+        },
+        refreshScaling() {
+            imgObjects.forEach(obj => {
+                let cellW = CW, cellH = CH;
+                if (imgObjects.length === 2) cellW = CW / 2;
+                else if (imgObjects.length >= 3) { cellW = CW / 2; cellH = CH / 2; }
+                obj.cellW = cellW; obj.cellH = cellH;
+                obj.baseScale = Math.max(cellW / obj.img.width, cellH / obj.img.height);
+            });
+        },
+        updateScale() {
+            if (dragInfo.selectedIdx === -1 || !imgObjects[dragInfo.selectedIdx]) return;
+            const val = document.getElementById('imgScaleRange').value;
+            imgObjects[dragInfo.selectedIdx].userScale = val / 100;
+            document.getElementById('imgScaleVal').innerText = val;
+            renderEngine.drawAll();
+        }
+    };
+
+    const logoHandler = {
+        load() {
+            const file = document.getElementById('logoPicker').files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => { logoObj.img = img; activeElement = 'logo'; renderEngine.drawAll(); };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const renderEngine = {
+        drawAll(isPrinting = false) {
+            const bSize = parseInt(document.getElementById('borderSizeRange').value);
+            const bColor = document.getElementById('borderColor').value;
+            const isBorderOn = document.getElementById('showBorder').checked;
+            const fSize = parseInt(document.getElementById('fontSizeRange').value);
+            const lSize = parseInt(document.getElementById('logoSizeRange').value);
+            const lOpacity = parseInt(document.getElementById('logoOpacityRange').value);
+            const bright = document.getElementById('brightRange').value;
+            const quality = document.getElementById('qualityRange').value;
+
+            if(!isPrinting){
+                document.getElementById('lSizeVal').innerText = lSize;
+                document.getElementById('lOpacityVal').innerText = lOpacity;
+                document.getElementById('fSizeVal').innerText = fSize;
+                document.getElementById('bVal').innerText = bright;
+                document.getElementById('qVal').innerText = quality;
+            }
+
+            ctx.clearRect(0, 0, CW, CH);
+
+            imgObjects.forEach((obj, i) => {
+                let dx = 0, dy = 0;
+                if (imgObjects.length === 2) dx = i * obj.cellW;
+                else if (imgObjects.length >= 3) { dx = (i % 2) * obj.cellW; dy = Math.floor(i / 2) * obj.cellH; }
+                ctx.save();
+                ctx.filter = `brightness(${bright}%)`;
+                ctx.beginPath(); ctx.rect(dx, dy, obj.cellW, obj.cellH); ctx.clip();
+                
+                const finalScale = obj.baseScale * obj.userScale;
+                ctx.drawImage(obj.img, dx + obj.x, dy + obj.y, obj.img.width * finalScale, obj.img.height * finalScale);
+                
+                if(!isPrinting && activeElement === 'photo' && dragInfo.selectedIdx === i) {
+                    ctx.strokeStyle = "rgba(9, 132, 227, 0.8)"; ctx.lineWidth = 8; ctx.strokeRect(dx, dy, obj.cellW, obj.cellH);
+                }
+                ctx.restore();
+            });
+
+            if (logoObj.img) {
+                const ratio = logoObj.img.width / logoObj.img.height;
+                logoObj.w = lSize; logoObj.h = lSize / ratio;
+                ctx.save(); ctx.globalAlpha = lOpacity / 100;
+                ctx.drawImage(logoObj.img, logoObj.x, logoObj.y, logoObj.w, logoObj.h);
+                ctx.restore();
+            }
+
+            textObj.text = document.getElementById('captionInput').value;
+            if (textObj.text) {
+                ctx.save(); ctx.font = `${fSize}px 'Deepmani'`; ctx.textAlign = "center";
+                ctx.lineWidth = fSize/4.5; ctx.strokeStyle = document.getElementById('strokeColor').value;
+                ctx.strokeText(textObj.text, textObj.x, textObj.y);
+                ctx.fillStyle = document.getElementById('textColor').value;
+                ctx.fillText(textObj.text, textObj.x, textObj.y); ctx.restore();
+            }
+
+            if (isBorderOn) {
+                ctx.save();
+                ctx.strokeStyle = bColor; ctx.lineWidth = bSize;
+                ctx.strokeRect(bSize/2, bSize/2, CW - bSize, CH - bSize);
+                if (imgObjects.length === 2) { ctx.beginPath(); ctx.moveTo(CW/2, 0); ctx.lineTo(CW/2, CH); ctx.stroke(); }
+                else if (imgObjects.length >= 3) {
+                    ctx.beginPath(); ctx.moveTo(CW/2, 0); ctx.lineTo(CW/2, CH); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(0, CH/2); ctx.lineTo(CW, CH/2); ctx.stroke();
+                }
+                ctx.restore();
+            }
+        }
+    };
+
+    const downloadEngine = {
+        save() {
+            renderEngine.drawAll(true);
+            const quality = parseInt(document.getElementById('qualityRange').value) / 100;
+            const link = document.createElement('a');
+            link.download = `Neelamb_Photo_${Date.now()}.jpg`;
+            link.href = canvas.toDataURL('image/jpeg', quality);
+            link.click();
+            status.innerText = "फोटो डाउनलोड भयो!";
+            renderEngine.drawAll(false);
+        }
+    };
+
+    const uiManager = {
+        shift(dir) {
+            if (imgObjects.length < 2 || dragInfo.selectedIdx === -1) return;
+            let current = dragInfo.selectedIdx, target = -1;
+            if (imgObjects.length === 2) target = (current === 0) ? 1 : 0;
+            else if (imgObjects.length >= 3) {
+                if(dir === 'right' && current % 2 === 0) target = current + 1;
+                if(dir === 'left' && current % 2 === 1) target = current - 1;
+                if(dir === 'down' && current < 2) target = current + 2;
+                if(dir === 'up' && current >= 2) target = current - 2;
+            }
+            if (target !== -1 && imgObjects[target]) {
+                let temp = imgObjects[current]; imgObjects[current] = imgObjects[target]; imgObjects[target] = temp;
+                dragInfo.selectedIdx = target; imageHandler.refreshScaling(); renderEngine.drawAll();
+            }
+        },
+        reset() { if(confirm("के सबै सफा गर्ने हो?")) location.reload(); }
+    };
+
+    function getPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const cx = e.touches ? e.touches[0].clientX : e.clientX;
+        const cy = e.touches ? e.touches[0].clientY : e.clientY;
+        return { x: (cx - rect.left) * (CW / rect.width), y: (cy - rect.top) * (CH / rect.height) };
+    }
+
+    function onDown(e) {
+        const { x, y } = getPos(e);
+        if (logoObj.img && x > logoObj.x && x < logoObj.x + logoObj.w && y > logoObj.y && y < logoObj.y + logoObj.h) {
+            logoObj.isDragging = true; activeElement = 'logo';
+        } else if (textObj.text && y > textObj.y - 100 && y < textObj.y + 40) {
+            textObj.isDragging = true; activeElement = 'text';
+        } else {
+            imgObjects.forEach((obj, i) => {
+                let dx = 0, dy = 0;
+                if (imgObjects.length === 2) dx = i * obj.cellW;
+                else if (imgObjects.length >= 3) { dx = (i % 2) * obj.cellW; dy = Math.floor(i / 2) * obj.cellH; }
+                if (x >= dx && x <= dx + obj.cellW && y >= dy && y <= dy + obj.cellH) {
+                    dragInfo.selectedIdx = i; dragInfo.isDraggingImg = true; activeElement = 'photo';
+                    document.getElementById('imgScaleRange').value = obj.userScale * 100;
+                    document.getElementById('imgScaleVal').innerText = Math.round(obj.userScale * 100);
+                }
+            });
+        }
+        dragInfo.startX = x; dragInfo.startY = y; renderEngine.drawAll();
+    }
+
+    function onMove(e) {
+        if (!logoObj.isDragging && !textObj.isDragging && !dragInfo.isDraggingImg) return;
+        const { x, y } = getPos(e);
+        const dx = x - dragInfo.startX, dy = y - dragInfo.startY;
+        if (logoObj.isDragging) { logoObj.x += dx; logoObj.y += dy; }
+        else if (textObj.isDragging) { textObj.x += dx; textObj.y += dy; }
+        else if (dragInfo.isDraggingImg) { imgObjects[dragInfo.selectedIdx].x += dx; imgObjects[dragInfo.selectedIdx].y += dy; }
+        dragInfo.startX = x; dragInfo.startY = y; renderEngine.drawAll();
+        if (e.cancelable) e.preventDefault();
+    }
+
+    function onUp() { logoObj.isDragging = false; textObj.isDragging = false; dragInfo.isDraggingImg = false; }
+
+    canvas.addEventListener('mousedown', onDown); window.addEventListener('mousemove', onMove); window.addEventListener('mouseup', onUp);
+    canvas.addEventListener('touchstart', onDown, { passive: false }); window.addEventListener('touchmove', onMove, { passive: false }); window.addEventListener('touchend', onUp);
+    
+    canvas.width = CW; canvas.height = CH;
+    document.fonts.load("24px 'Deepmani'").then(() => renderEngine.drawAll());
+</script>
+</body>
+</html>
