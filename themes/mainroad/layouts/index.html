@@ -2,27 +2,32 @@
 <div class="max-w-7xl mx-auto px-4 py-8 font-['Mukta']">
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-12">
-        {{ range first 1 (where .Site.RegularPages "Type" "posts") }}
-        <div class="lg:col-span-8 group relative overflow-hidden rounded-3xl shadow-2xl h-[500px]">
+        {{ range first 1 (where .Site.RegularPages "Section" "posts") }}
+        <div class="lg:col-span-8 group relative overflow-hidden rounded-3xl shadow-2xl h-[300px] md:h-[500px]">
+            {{ if .Params.thumbnail }}
             <img src="{{ .Params.thumbnail | absURL }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
-            <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
-            <div class="absolute bottom-0 p-8">
-                <span class="bg-red-600 text-white px-4 py-1 rounded-full text-sm font-bold">मुख्य समाचार</span>
-                <h2 class="text-white text-4xl font-extrabold mt-4 leading-tight hover:underline">
-                    <a href="{{ .Permalink }}">{{ .Title }}</a>
+            {{ else }}
+            <div class="w-full h-full bg-gradient-to-br from-blue-600 to-indigo-900 flex items-center justify-center text-white text-3xl font-bold">NEELAM NEWS</div>
+            {{ end }}
+            <div class="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent"></div>
+            <div class="absolute bottom-0 p-6 md:p-10">
+                <span class="bg-red-600 text-white px-4 py-1 rounded-full text-xs md:text-sm font-bold shadow-lg">मुख्य समाचार</span>
+                <h2 class="text-white text-2xl md:text-5xl font-extrabold mt-4 leading-tight">
+                    <a href="{{ .Permalink }}" class="hover:text-red-400 transition-colors">{{ .Title }}</a>
                 </h2>
-                <p class="text-gray-300 mt-4 line-clamp-2 text-lg">{{ .Summary | truncate 150 }}</p>
             </div>
         </div>
         {{ end }}
 
         <div class="lg:col-span-4 flex flex-col gap-4">
-            {{ range first 3 (after 1 (where .Site.RegularPages "Type" "posts")) }}
-            <a href="{{ .Permalink }}" class="flex bg-white rounded-2xl p-4 shadow-sm hover:shadow-lg transition-all gap-4">
-                <img src="{{ .Params.thumbnail | absURL }}" class="w-24 h-24 rounded-xl object-cover">
+            {{ range first 3 (after 1 (where .Site.RegularPages "Section" "posts")) }}
+            <a href="{{ .Permalink }}" class="flex bg-white rounded-2xl p-4 shadow-sm hover:shadow-md border border-gray-100 transition-all gap-4">
+                <div class="flex-shrink-0 w-24 h-24 overflow-hidden rounded-xl">
+                    <img src="{{ .Params.thumbnail | default "img/default.jpg" | absURL }}" class="w-full h-full object-cover">
+                </div>
                 <div>
-                    <h3 class="font-bold text-gray-900 leading-tight line-clamp-2">{{ .Title }}</h3>
-                    <span class="text-xs text-red-500 font-bold mt-2 block">{{ .Date.Format "Jan 2, 2006" }}</span>
+                    <h3 class="font-bold text-gray-900 leading-tight line-clamp-2 hover:text-red-600">{{ .Title }}</h3>
+                    <span class="text-xs text-gray-400 mt-2 block italic">{{ .Date.Format "Jan 2, 2006" }}</span>
                 </div>
             </a>
             {{ end }}
@@ -33,19 +38,21 @@
         
         <div class="lg:col-span-8">
             <div class="flex items-center justify-between mb-8 border-b-2 border-red-600 pb-2">
-                <h3 class="text-2xl font-black text-gray-900">ताजा अपडेट</h3>
-                <a href="/posts/" class="text-red-600 font-bold text-sm hover:underline">सबै हेर्नुहोस् →</a>
+                <h3 class="text-2xl font-black text-gray-900 uppercase">ताजा अपडेट</h3>
+                <a href="/posts/" class="bg-red-50 text-red-600 px-4 py-1 rounded-lg font-bold text-xs hover:bg-red-600 hover:text-white transition-all">सबै हेर्नुहोस्</a>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {{ range first 6 (after 4 (where .Site.RegularPages "Type" "posts")) }}
-                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all border border-gray-100">
-                    <img src="{{ .Params.thumbnail | absURL }}" class="w-full h-48 object-cover">
+                {{ range first 6 (after 4 (where .Site.RegularPages "Section" "posts")) }}
+                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all border border-gray-100 group">
+                    <div class="relative overflow-hidden h-48">
+                        <img src="{{ .Params.thumbnail | default "img/default.jpg" | absURL }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                    </div>
                     <div class="p-5">
                         <h4 class="text-xl font-bold text-gray-900 hover:text-red-600 leading-tight">
                             <a href="{{ .Permalink }}">{{ .Title }}</a>
                         </h4>
-                        <p class="text-gray-600 text-sm mt-3 line-clamp-2">{{ .Summary | truncate 100 }}</p>
+                        <p class="text-gray-500 text-sm mt-3 line-clamp-2">{{ .Summary | truncate 100 }}</p>
                     </div>
                 </div>
                 {{ end }}
@@ -53,29 +60,29 @@
         </div>
 
         <div class="lg:col-span-4">
-            <div class="sticky top-24">
-                <div class="bg-gray-900 text-white p-6 rounded-3xl shadow-xl">
-                    <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
-                        <i class="fa-solid fa-fire text-orange-500"></i> ट्रेन्डिङ
+            <div class="sticky top-24 space-y-8">
+                <div class="bg-white p-6 rounded-3xl shadow-lg border-t-4 border-red-600">
+                    <h3 class="text-xl font-black mb-6 flex items-center gap-2">
+                        <span class="p-2 bg-red-100 text-red-600 rounded-lg"><i class="fa-solid fa-fire"></i></span>
+                        ट्रेन्डिङ
                     </h3>
-                    <ul class="space-y-6">
-                        {{ range first 5 (where .Site.RegularPages "Type" "posts") }}
-                        <li class="border-b border-gray-800 pb-4 last:border-0">
-                            <a href="{{ .Permalink }}" class="hover:text-red-400 transition-colors flex gap-3">
-                                <span class="text-2xl font-black text-gray-700">#</span>
-                                <span class="font-bold leading-tight">{{ .Title }}</span>
-                            </a>
-                        </li>
+                    <div class="space-y-5">
+                        {{ range first 5 (where .Site.RegularPages "Section" "posts") }}
+                        <div class="flex gap-4 items-center group">
+                            <span class="text-3xl font-black text-gray-100 group-hover:text-red-100 transition-colors">0{{ (add 1 1) }}</span> <a href="{{ .Permalink }}" class="font-bold text-gray-800 hover:text-red-600 leading-tight text-sm">{{ .Title }}</a>
+                        </div>
                         {{ end }}
-                    </ul>
+                    </div>
                 </div>
 
-                <div class="mt-8 bg-red-50 p-6 rounded-3xl border-2 border-dashed border-red-200 text-center">
-                    <p class="text-red-600 font-bold italic">विज्ञापनको लागि सम्पर्क: <br> info@neelamb.com.np</p>
+                <div class="bg-gradient-to-br from-blue-600 to-indigo-800 p-8 rounded-3xl text-white text-center shadow-xl">
+                    <i class="fa-solid fa-bullhorn text-4xl mb-4 opacity-50"></i>
+                    <h4 class="text-xl font-bold">विज्ञापन दिनुहोस्</h4>
+                    <p class="text-blue-100 text-sm mt-2">तपाईंको व्यवसायलाई लाखौंसम्म पुर्‍याउनुहोस्।</p>
+                    <button class="mt-6 bg-white text-blue-600 px-6 py-2 rounded-full font-black text-sm hover:scale-105 transition-transform">सम्पर्क गर्नुहोस</button>
                 </div>
             </div>
         </div>
     </div>
-
 </div>
 {{ end }}
