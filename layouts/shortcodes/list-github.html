@@ -2,14 +2,18 @@
   {{ $path := "static/github" }}
   {{ if (fileExists $path) }}
     {{ range (readDir $path) }}
-      {{ if not .IsDir }}
-        <li>
-          <a href="/github/{{ .Name }}" target="_blank">
-            <i class="fa fa-file"></i> {{ .Name }} 
-            <small>({{ (div .Size 1024) }} KB)</small>
-          </a>
-        </li>
-      {{ end }}
+      <li>
+        <a href="{{ if .IsDir }}#{{ else }}/github/{{ .Name }}{{ end }}" {{ if not .IsDir }}target="_blank"{{ end }}>
+          {{ if .IsDir }}
+            <i class="fa fa-folder" style="color: #f1c40f;"></i> 
+            <span style="color: #2c3e50;">{{ .Name }}/</span>
+          {{ else }}
+            <i class="fa fa-file" style="color: #3498db;"></i> 
+            {{ .Name }} 
+            <small style="color: #999; font-weight: normal;">({{ (div .Size 1024) }} KB)</small>
+          {{ end }}
+        </a>
+      </li>
     {{ end }}
   {{ else }}
     <p>फोल्डर फेला परेन।</p>
@@ -17,8 +21,9 @@
 </ul>
 
 <style>
-  .github-file-list { list-style: none; padding: 0; }
-  .github-file-list li { margin-bottom: 8px; padding: 5px; border-bottom: 1px solid #eee; }
-  .github-file-list a { text-decoration: none; color: #007bff; font-weight: bold; }
+  .github-file-list { list-style: none; padding: 0; font-family: sans-serif; }
+  .github-file-list li { margin-bottom: 8px; padding: 8px; border-bottom: 1px solid #eee; transition: 0.3s; }
+  .github-file-list li:hover { background: #f9f9f9; }
+  .github-file-list a { text-decoration: none; color: #007bff; font-weight: bold; display: flex; align-items: center; gap: 10px; }
   .github-file-list a:hover { color: #0056b3; }
 </style>
