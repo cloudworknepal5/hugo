@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neelamb - Smart AI News Studio (WP & Blogger)</title>
+    <title>Neelamb - Universal AI News Studio</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Mukta:wght@400;700&display=swap');
         
         body { font-family: 'Mukta', sans-serif; line-height: 1.6; padding: 20px; background: #f4f7f6; color: #333; margin: 0; }
         
-        /* Navbar Style */
+        /* Multi-function Navbar */
         .navbar { background: #002e5b; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: flex; gap: 10px; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .navbar input { flex-grow: 1; padding: 10px; border-radius: 6px; border: none; font-family: 'Mukta', sans-serif; outline: none; }
-        .btn-fetch { background: #ed1c24; color: white; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; border: none; transition: 0.3s; }
+        .navbar input { flex-grow: 1; padding: 10px; border-radius: 6px; border: none; font-family: 'Mukta', sans-serif; outline: none; font-size: 14px; }
+        .btn-fetch { background: #ed1c24; color: white; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; border: none; transition: 0.3s; white-space: nowrap; }
         .btn-fetch:hover { background: #c1121b; }
 
         .container { max-width: 950px; margin: auto; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.08); }
@@ -54,13 +54,13 @@
 
 <div class="container">
     <div class="navbar">
-        <input type="text" id="site-url" placeholder="वर्डप्रेस वा ब्लगरको URL राख्नुहोस् (उदा. example.com वा blogspot.com)">
+        <input type="text" id="site-url" placeholder="WP JSON, Blogger URL वा RSS Feed Link राख्नुहोस्">
         <button class="btn-fetch" onclick="fetchData()">डाटा फेच गर्नुहोस्</button>
     </div>
 
     <div id="content-body">
         <span class="label">समाचार शीर्षक:</span>
-        <h1 id="news-title">वेबसाइट राखेर सुरु गर्नुहोस्</h1>
+        <h1 id="news-title">वेबसाइटको लिङ्क हालेर सुरु गर्नुहोस्...</h1>
         <div id="image-area" class="image-container"></div>
         <span class="label">समाचार सामग्री:</span>
         <div class="content-area" id="news-text"></div>
@@ -98,65 +98,65 @@
 </div>
 
 <script>
+    // API Keys
     const OPENAI_API_KEY = "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"; 
     const GEMINI_API_KEY = "AIzaSyBNWjPUmKWnHcdlQrvAq7qRSKOdIt1APcM"; 
 
     let posts = [];
     let currentIndex = 0;
 
+    // Multi-function Fetching Engine (WP, Blogger, Feed)
     async function fetchData() {
-        let siteUrl = document.getElementById('site-url').value.trim();
-        if (!siteUrl) siteUrl = "https://dev-webdesignnepal.pantheonsite.io";
+        let inputUrl = document.getElementById('site-url').value.trim();
+        if (!inputUrl) inputUrl = "https://dev-webdesignnepal.pantheonsite.io";
         
-        siteUrl = siteUrl.replace(/\/$/, "");
-        showLoader("वेबसाइटको प्रकार पहिचान गरी समाचार लोड गर्दैछ...");
+        showLoader("स्रोत पहिचान गरी डाटा फेच गर्दैछ...");
 
         try {
             let apiUrl = "";
-            let isBlogger = siteUrl.includes(".com");
+            let fetchType = "wp"; // default
 
-            if (isBlogger) {
-                apiUrl = `${siteUrl}/feeds/posts/default?alt=json&max-results=50`;
+            if (inputUrl.includes("blogspot.com")) fetchType = "blogger";
+            else if (inputUrl.includes("/feed") || inputUrl.includes(".xml") || inputUrl.includes("rss")) fetchType = "rss";
+
+            if (fetchType === "blogger") {
+                apiUrl = `${inputUrl.replace(/\/$/, "")}/feeds/posts/default?alt=json&max-results=50`;
+            } else if (fetchType === "rss") {
+                apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(inputUrl)}`;
             } else {
-                apiUrl = `${siteUrl}/wp-json/wp/v2/posts?_embed&per_page=50`;
+                apiUrl = `${inputUrl.replace(/\/$/, "")}/wp-json/wp/v2/posts?_embed&per_page=50`;
             }
 
             const response = await fetch(apiUrl);
             if (!response.ok) throw new Error("डेटा प्राप्त गर्न सकिएन।");
-            const rawData = await response.json();
+            const data = await response.json();
 
-            // Data Normalization (Multi-function Engine)
-            if (isBlogger) {
-                if (!rawData.feed.entry) {
-                    alert("यो ब्लगमा कुनै समाचार भेटिएन।");
-                    hideLoader();
-                    return;
-                }
-                posts = rawData.feed.entry.map(entry => {
-                    // ब्लगरको थम्बनेल निकाल्ने र ठुलो साइज बनाउने
-                    let thumb = entry.media$thumbnail ? entry.media$thumbnail.url : 'https://via.placeholder.com/1200x700?text=Neelamb';
-                    thumb = thumb.replace('/s72-c/', '/s1600/'); // साना थम्बनेललाई ठुलो साइजमा बदल्ने
-                    
-                    return {
-                        title: { rendered: entry.title.$t },
-                        content: { rendered: entry.content ? entry.content.$t : entry.summary.$t },
-                        featured_image_url: thumb
-                    };
-                });
+            // Normalizing Data for UI
+            if (fetchType === "blogger") {
+                posts = data.feed.entry.map(e => ({
+                    title: e.title.$t,
+                    content: e.content ? e.content.$t : e.summary.$t,
+                    image: e.media$thumbnail ? e.media$thumbnail.url.replace('/s72-c/', '/s1600/') : 'https://via.placeholder.com/1200x700?text=Neelamb'
+                }));
+            } else if (fetchType === "rss") {
+                posts = data.items.map(i => ({
+                    title: i.title,
+                    content: i.content || i.description,
+                    image: i.enclosure.link || i.thumbnail || 'https://via.placeholder.com/1200x700?text=Neelamb'
+                }));
             } else {
-                // वर्डप्रेसको लागि डेटा मिलाउने
-                posts = rawData.map(post => ({
-                    title: post.title,
-                    content: post.content,
-                    featured_image_url: post._embedded?.['wp:featuredmedia']?.[0]?.source_url || 'https://via.placeholder.com/1200x700?text=Neelamb'
+                posts = data.map(p => ({
+                    title: p.title.rendered,
+                    content: p.content.rendered,
+                    image: p._embedded?.['wp:featuredmedia']?.[0]?.source_url || 'https://via.placeholder.com/1200x700?text=Neelamb'
                 }));
             }
 
             currentIndex = 0;
             renderPost();
-        } catch (error) { 
+        } catch (error) {
+            alert("त्रुटि: वेबसाइटले डाटा तान्न अनुमति दिएन वा लिङ्क गलत छ।");
             console.error(error);
-            alert("त्रुटि: वेबसाइटले अनुमति दिएन (CORS) वा URL गलत छ।");
         }
         hideLoader();
     }
@@ -164,9 +164,9 @@
     function renderPost() {
         if (!posts.length) return;
         const post = posts[currentIndex];
-        document.getElementById('news-title').innerHTML = post.title.rendered;
-        document.getElementById('news-text').innerText = cleanHTML(post.content.rendered);
-        document.getElementById('image-area').innerHTML = `<div class="comic-frame"><img src="${post.featured_image_url}"></div>`;
+        document.getElementById('news-title').innerHTML = post.title;
+        document.getElementById('news-text').innerText = cleanHTML(post.content);
+        document.getElementById('image-area').innerHTML = `<div class="comic-frame"><img src="${post.image}"></div>`;
         resetImageButton();
     }
 
@@ -201,13 +201,11 @@
         const content = document.getElementById('news-text').innerText.substring(0, 400);
 
         let masterStyle = "";
-        if (styleChoice === 'comic') masterStyle = "Raj Comics style, bold inking, dramatic composition, vibrant action colors, detailed comic background,";
-        else if (styleChoice === 'uploaded_style') masterStyle = "High-quality comic book illustration, thin clear outlines, soft artistic coloring, masterpiece, aesthetic digital art,";
-        else if (styleChoice === 'photo') masterStyle = "Hyper-realistic professional photo, 8k, cinematic lighting, real world news photography, sharp focus,";
-        else if (styleChoice === 'cartoon') masterStyle = "Vibrant 3D cartoon style, bright cheerful colors, Pixar inspired rendering, clean bold lines, colorful atmosphere,";
+        if (styleChoice === 'comic') masterStyle = "Raj Comics style, bold inking, dramatic, vibrant action colors,";
+        else if (styleChoice === 'uploaded_style') masterStyle = "High-quality comic illustration, thin clear outlines, soft coloring, aesthetic,";
+        else if (styleChoice === 'photo') masterStyle = "Hyper-realistic photo, 8k, cinematic news photography, sharp focus,";
+        else if (styleChoice === 'cartoon') masterStyle = "Vibrant 3D cartoon style, Pixar inspired, clean lines, colorful,";
 
-        const width = 1200;
-        const height = 700;
         showLoader(`एआईले समाचार बुझ्दैछ...`);
         document.getElementById('i-btn').disabled = true;
 
@@ -215,7 +213,7 @@
             const gRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ contents: [{ parts: [{ text: `Analyze this news and create a highly descriptive visual scene prompt in English for image generation. Style: ${styleChoice}. Title: "${title}". Summary: "${content}". Return ONLY the prompt.` }] }] })
+                body: JSON.stringify({ contents: [{ parts: [{ text: `Create a descriptive visual scene prompt in English for image generation. Title: "${title}". Summary: "${content}". Return only the prompt.` }] }] })
             });
             const gData = await gRes.json();
             let aiPrompt = gData.candidates ? gData.candidates[0].content.parts[0].text : title;
@@ -229,11 +227,11 @@
                     headers: { "Content-Type": "application/json", "Authorization": `Bearer ${OPENAI_API_KEY}` },
                     body: JSON.stringify({ model: "dall-e-3", prompt: finalPrompt, n: 1, size: "1024x1024" })
                 });
-                const data = await response.json();
-                imageUrl = data.data[0].url;
+                const d = await response.json();
+                imageUrl = d.data[0].url;
             } else {
                 const modelType = (model === 'flux') ? 'flux' : 'turbo';
-                imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(finalPrompt)}?width=${width}&height=${height}&nologo=true&seed=${Math.random()}&model=${modelType}`;
+                imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(finalPrompt)}?width=1200&height=700&nologo=true&seed=${Math.random()}&model=${modelType}`;
             }
 
             displayImage(imageUrl);
@@ -253,7 +251,7 @@
             hideLoader();
             resetImageButton("✅ चित्र तयार!");
         };
-        img.onerror = () => { hideLoader(); resetImageButton(); alert("Image load failed."); };
+        img.onerror = () => { hideLoader(); resetImageButton(); alert("Image failed."); };
     }
 
     function showLoader(m) { document.getElementById('status-text').innerText = m; document.getElementById('loader').style.display = 'block'; }
@@ -262,7 +260,8 @@
     function changePost(s) { if(posts.length > 0) { currentIndex = (currentIndex + s + posts.length) % posts.length; renderPost(); window.scrollTo(0,0); } }
     function copyText() { navigator.clipboard.writeText(document.getElementById('news-text').innerText); alert("समाचार कपि भयो!"); }
 
-    fetchData(); // Default Load
+    // First load
+    fetchData();
 </script>
 
 </body>
