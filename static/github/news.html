@@ -98,14 +98,23 @@
 </div>
 
 <script>
-    // API Keys
     const OPENAI_API_KEY = "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"; 
     const GEMINI_API_KEY = "AIzaSyBNWjPUmKWnHcdlQrvAq7qRSKOdIt1APcM"; 
 
     let posts = [];
     let currentIndex = 0;
 
-    // Multi-function Fetching Engine (WP, Blogger, Feed)
+    // अङ्कहरूलाई नेपाली/देवनागरीमा बदल्ने फङ्सन
+    function convertNumbersToNepali(text) {
+        const numbers = {
+            '0': '०', '1': '१', '2': '२', '3': '३', '4': '४',
+            '5': '५', '6': '६', '7': '७', '8': '८', '9': '९'
+        };
+        return text.replace(/[0-9]/g, function(w) {
+            return numbers[w];
+        });
+    }
+
     async function fetchData() {
         let inputUrl = document.getElementById('site-url').value.trim();
         if (!inputUrl) inputUrl = "https://dev-webdesignnepal.pantheonsite.io";
@@ -114,7 +123,7 @@
 
         try {
             let apiUrl = "";
-            let fetchType = "wp"; // default
+            let fetchType = "wp";
 
             if (inputUrl.includes("blogspot.com")) fetchType = "blogger";
             else if (inputUrl.includes("/feed") || inputUrl.includes(".xml") || inputUrl.includes("rss")) fetchType = "rss";
@@ -131,7 +140,6 @@
             if (!response.ok) throw new Error("डेटा प्राप्त गर्न सकिएन।");
             const data = await response.json();
 
-            // Normalizing Data for UI
             if (fetchType === "blogger") {
                 posts = data.feed.entry.map(e => ({
                     title: e.title.$t,
@@ -155,8 +163,7 @@
             currentIndex = 0;
             renderPost();
         } catch (error) {
-            alert("त्रुटि: वेबसाइटले डाटा तान्न अनुमति दिएन वा लिङ्क गलत छ।");
-            console.error(error);
+            alert("त्रुटि: डाटा तान्न सकिएन।");
         }
         hideLoader();
     }
@@ -179,9 +186,13 @@
         showLoader("अनुवाद हुँदैछ...");
         try {
             const getUrl = (q) => `https://translate.googleapis.com/translate_a/single?client=gtx&sl=ne&tl=${lang}&dt=t&q=${encodeURIComponent(q)}`;
+            
+            // शीर्षक अनुवाद र अङ्क परिवर्तन
             const resT = await fetch(getUrl(titleEl.innerText));
             const dataT = await resT.json();
-            titleEl.innerText = dataT[0][0][0];
+            titleEl.innerText = convertNumbersToNepali(dataT[0][0][0]);
+
+            // सामग्री अनुवाद र अङ्क परिवर्तन
             const chunks = textEl.innerText.match(/[\s\S]{1,500}/g) || [];
             let fullText = "";
             for (let c of chunks) {
@@ -189,7 +200,8 @@
                 const d = await res.json();
                 if (d[0]) d[0].forEach(p => { if (p[0]) fullText += p[0]; });
             }
-            textEl.innerText = fullText;
+            textEl.innerText = convertNumbersToNepali(fullText);
+            
         } catch (e) { alert("Translation Failed"); }
         hideLoader();
     }
@@ -260,7 +272,6 @@
     function changePost(s) { if(posts.length > 0) { currentIndex = (currentIndex + s + posts.length) % posts.length; renderPost(); window.scrollTo(0,0); } }
     function copyText() { navigator.clipboard.writeText(document.getElementById('news-text').innerText); alert("समाचार कपि भयो!"); }
 
-    // First load
     fetchData();
 </script>
 
