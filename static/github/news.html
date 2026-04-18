@@ -113,7 +113,7 @@
 
         try {
             let apiUrl = "";
-            let isBlogger = siteUrl.includes("blogspot.com");
+            let isBlogger = siteUrl.includes(".com");
 
             if (isBlogger) {
                 apiUrl = `${siteUrl}/feeds/posts/default?alt=json&max-results=50`;
