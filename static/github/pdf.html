@@ -3,143 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>NeelamB Flipbook Engine - ई-पेपर</title>
+    <title>E-Paper | NeelamB Digital</title>
     
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src="https://raw.gitack.com/blasten/turn.js/master/lib/turn.min.js"></script>
 
     <style>
-        :root { --primary-bg: #34495e; --toolbar-bg: #1a1a1a; --accent: #e74c3c; }
-        body { background: var(--primary-bg); margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
-        
-        /* Toolbar */
-        #toolbar { 
-            background: var(--toolbar-bg); padding: 10px; 
-            display: flex; justify-content: center; align-items: center; gap: 15px;
-            position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        :root { --bg: #333; --toolbar: #222; --accent: #d32f2f; }
+        body { background: var(--bg); margin: 0; padding: 0; overflow: hidden; font-family: sans-serif; }
+
+        /* Navigation Toolbar */
+        #toolbar {
+            background: var(--toolbar); height: 50px; display: flex; 
+            justify-content: space-between; align-items: center; padding: 0 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5); z-index: 100; position: relative;
         }
-        
-        .btn { padding: 10px 18px; cursor: pointer; background: #444; color: white; border: none; border-radius: 5px; font-weight: bold; transition: 0.3s; }
+        .controls { display: flex; gap: 10px; align-items: center; }
+        .btn { background: #444; color: white; border: none; padding: 8px 15px; cursor: pointer; border-radius: 4px; font-size: 14px; }
         .btn:hover { background: var(--accent); }
+        #page-label { color: white; font-size: 14px; }
 
-        /* Flipbook Viewport */
-        #viewport { 
-            width: 100%; height: calc(100vh - 70px); 
-            display: flex; justify-content: center; align-items: center; 
-            overflow: hidden; perspective: 2000px;
+        /* Flipbook Container */
+        #container {
+            width: 100%; height: calc(100vh - 50px); display: flex; 
+            justify-content: center; align-items: center; overflow: hidden;
         }
 
-        #flipbook { display: none; margin: auto; }
-        
-        /* Page Styling */
-        .page { background: white; box-shadow: 0 0 20px rgba(0,0,0,0.4); }
-        .page-wrapper { -webkit-transition: -webkit-transform 0.5s; }
+        #flipbook { transition: transform 0.3s ease; cursor: grab; }
+        #flipbook:active { cursor: grabbing; }
+
+        .page { background: white; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
         canvas { width: 100%; height: 100%; display: block; }
 
-        #loader { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center; }
-        #page-info { color: #ecf0f1; font-size: 14px; min-width: 100px; text-align: center; }
+        #loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center; }
     </style>
 </head>
 <body>
 
-    <div id="toolbar">
+<div id="toolbar">
+    <div class="controls">
         <button class="btn" onclick="$('#flipbook').turn('previous')">अघिल्लो</button>
-        <span id="page-info">तयारी हुँदै...</span>
+        <span id="page-label">पेज: ०/०</span>
         <button class="btn" onclick="$('#flipbook').turn('next')">पछिल्लो</button>
-        <button class="btn" onclick="zoomIn()">Zoom (+)</button>
-        <button class="btn" onclick="zoomOut()">Zoom (-)</button>
-        <a id="download-link" class="btn" href="#" download style="text-decoration: none; background: #27ae60;">Download</a>
     </div>
-
-    <div id="loader">
-        <div style="font-size: 2rem; margin-bottom: 10px;">⏳</div>
-        <div>पत्रिका लोड हुँदैछ, कृपया पर्खनुहोस्...</div>
+    <div class="controls">
+        <button class="btn" onclick="zoomIn()">Zoom +</button>
+        <button class="btn" onclick="zoomOut()">Zoom -</button>
+        <button class="btn" onclick="resetZoom()">Reset</button>
     </div>
+</div>
 
-    <div id="viewport">
-        <div id="flipbook"></div>
-    </div>
+<div id="loading">पत्रिका लोड हुँदैछ...</div>
 
-    <script>
-        const pdfUrl = 'https://news.neelamb.com.np/github/book.pdf'; 
-        document.getElementById('download-link').href = pdfUrl;
+<div id="container">
+    <div id="flipbook"></div>
+</div>
 
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+<script>
+    // १. तपाइको PDF फाइलको लिङ्क
+    const pdfUrl = 'https://news.neelamb.com.np/github/book.pdf'; 
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
-        let currentZoom = 1;
+    let zoomLevel = 1;
 
-        async function initFlipbook() {
-            try {
-                const loadingTask = pdfjsLib.getDocument(pdfUrl);
-                const pdf = await loadingTask.promise;
-                const flipbook = $('#flipbook');
-
-                // Render all pages
-                for (let i = 1; i <= pdf.numPages; i++) {
-                    const page = await pdf.getPage(i);
-                    const scale = 2; // High resolution for clear text
-                    const viewport = page.getViewport({ scale });
-                    
-                    const pageDiv = $('<div class="page"></div>');
-                    const canvas = document.createElement('canvas');
-                    const context = canvas.getContext('2d');
-                    canvas.height = viewport.height;
-                    canvas.width = viewport.width;
-
-                    await page.render({ canvasContext: context, viewport: viewport }).promise;
-                    pageDiv.append(canvas);
-                    flipbook.append(pageDiv);
-                }
-
-                $('#loader').hide();
-                flipbook.show();
-
-                // Turn.js Magic - "सर्लक्क पल्टाउने" configuration
-                const isMobile = $(window).width() < 768;
+    async function startEngine() {
+        try {
+            const loadingTask = pdfjsLib.getDocument(pdfUrl);
+            const pdf = await loadingTask.promise;
+            const flipbook = $('#flipbook');
+            
+            // २. सबै पेजहरू रेन्डर गर्ने
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const viewport = page.getViewport({ scale: 2 }); // २ स्केलमा क्लियर देखिन्छ
                 
-                flipbook.turn({
-                    width: isMobile ? $(window).width() : 1100,
-                    height: isMobile ? $(window).height() * 0.7 : 750,
-                    autoCenter: true,
-                    duration: 1000, // पल्टाउने गतिको समय (ms)
-                    display: isMobile ? 'single' : 'double',
-                    acceleration: true,
-                    gradients: true, // पल्टाउँदा छाया देखिने
-                    elevation: 50,  // कुना उचालिने इफेक्ट
-                    when: {
-                        turned: function(e, page) {
-                            $('#page-info').text(`पेज: ${page} / ${pdf.numPages}`);
-                        }
+                const pageDiv = $('<div class="page"></div>');
+                const canvas = document.createElement('canvas');
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                
+                await page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport }).promise;
+                pageDiv.append(canvas);
+                flipbook.append(pageDiv);
+            }
+
+            $('#loading').hide();
+
+            // ३. Turn.js कन्फिगरेसन (सर्लक्क पल्टाउने सेटिङ)
+            const isMobile = $(window).width() < 768;
+            flipbook.turn({
+                width: isMobile ? $(window).width() * 0.95 : 1000,
+                height: isMobile ? 500 : 700,
+                autoCenter: true,
+                duration: 800, // पल्टाउने स्पिड
+                display: isMobile ? 'single' : 'double',
+                gradients: true, // वास्तविक छाया
+                acceleration: true,
+                when: {
+                    turned: function(e, page) {
+                        $('#page-label').text(`पेज: ${page} / ${pdf.numPages}`);
                     }
-                });
-
-            } catch (err) {
-                $('#loader').html("<span style='color:red;'>CORS Error वा फाइल फेला परेन।</span>");
-                console.error(err);
-            }
-        }
-
-        // Zoom Logic
-        function zoomIn() { currentZoom += 0.2; applyZoom(); }
-        function zoomOut() { if (currentZoom > 0.6) currentZoom -= 0.2; applyZoom(); }
-        function applyZoom() {
-            $('#flipbook').css({
-                'transform': `scale(${currentZoom})`,
-                'transform-origin': 'center top'
+                }
             });
+
+            // ४. किबोर्ड सपोर्ट
+            $(window).keydown(function(e) {
+                if (e.keyCode == 37) flipbook.turn('previous');
+                else if (e.keyCode == 39) flipbook.turn('next');
+            });
+
+        } catch (e) {
+            $('#loading').text("फाइल लोड हुन सकेन। कृपया CORS सेटिङ चेक गर्नुहोस्।");
         }
+    }
 
-        // Resize support
-        $(window).resize(function() {
-            if ($('#flipbook').turn('is')) {
-                const isMobile = $(window).width() < 768;
-                $('#flipbook').turn('size', isMobile ? $(window).width() : 1100, isMobile ? 500 : 750);
-                $('#flipbook').turn('display', isMobile ? 'single' : 'double');
-            }
-        });
+    // ५. जुम फंक्सनहरू
+    function zoomIn() { zoomLevel += 0.2; applyTransform(); }
+    function zoomOut() { if(zoomLevel > 0.6) zoomLevel -= 0.2; applyTransform(); }
+    function resetZoom() { zoomLevel = 1; applyTransform(); }
+    function applyTransform() { $('#flipbook').css('transform', `scale(${zoomLevel})`); }
 
-        $(document).ready(initFlipbook);
-    </script>
+    // ६. डबल क्लिक जुम
+    $('#container').dblclick(function() {
+        if(zoomLevel === 1) zoomIn(); else resetZoom();
+    });
+
+    $(document).ready(startEngine);
+</script>
+
 </body>
 </html>
