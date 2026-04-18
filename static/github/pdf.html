@@ -2,57 +2,66 @@
 <html lang="ne">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeelamB Flipbook Engine</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>NeelamB Flipbook Engine - ई-पेपर</title>
     
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src="https://raw.gitack.com/blasten/turn.js/master/lib/turn.min.js"></script>
 
     <style>
-        :root { --primary-bg: #2c3e50; --toolbar-bg: #1a1a1a; }
-        body { background: var(--primary-bg); margin: 0; font-family: sans-serif; }
+        :root { --primary-bg: #34495e; --toolbar-bg: #1a1a1a; --accent: #e74c3c; }
+        body { background: var(--primary-bg); margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
         
-        /* Toolbar Styling */
+        /* Toolbar */
         #toolbar { 
             background: var(--toolbar-bg); padding: 10px; 
-            display: flex; justify-content: center; gap: 10px;
-            position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            display: flex; justify-content: center; align-items: center; gap: 15px;
+            position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
         
-        .btn { padding: 8px 15px; cursor: pointer; background: #444; color: white; border: none; border-radius: 4px; transition: 0.3s; }
-        .btn:hover { background: #666; }
+        .btn { padding: 10px 18px; cursor: pointer; background: #444; color: white; border: none; border-radius: 5px; font-weight: bold; transition: 0.3s; }
+        .btn:hover { background: var(--accent); }
 
-        /* Flipbook Layout */
-        #viewport { width: 100%; height: calc(100vh - 60px); display: flex; justify-content: center; align-items: center; overflow: auto; }
-        #flipbook { transition: transform 0.3s ease; }
+        /* Flipbook Viewport */
+        #viewport { 
+            width: 100%; height: calc(100vh - 70px); 
+            display: flex; justify-content: center; align-items: center; 
+            overflow: hidden; perspective: 2000px;
+        }
+
+        #flipbook { display: none; margin: auto; }
         
+        /* Page Styling */
         .page { background: white; box-shadow: 0 0 20px rgba(0,0,0,0.4); }
+        .page-wrapper { -webkit-transition: -webkit-transform 0.5s; }
         canvas { width: 100%; height: 100%; display: block; }
 
-        /* Loading Indicator */
-        #loader { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 1.2rem; }
+        #loader { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center; }
+        #page-info { color: #ecf0f1; font-size: 14px; min-width: 100px; text-align: center; }
     </style>
 </head>
 <body>
 
     <div id="toolbar">
         <button class="btn" onclick="$('#flipbook').turn('previous')">अघिल्लो</button>
+        <span id="page-info">तयारी हुँदै...</span>
         <button class="btn" onclick="$('#flipbook').turn('next')">पछिल्लो</button>
-        <button class="btn" onclick="zoomIn()">Zoom In (+)</button>
-        <button class="btn" onclick="zoomOut()">Zoom Out (-)</button>
-        <a id="download-link" class="btn" href="#" download style="text-decoration: none;">Download PDF</a>
-        <span id="page-info" style="color: white; padding-top: 8px;">पेज लोड हुँदैछ...</span>
+        <button class="btn" onclick="zoomIn()">Zoom (+)</button>
+        <button class="btn" onclick="zoomOut()">Zoom (-)</button>
+        <a id="download-link" class="btn" href="#" download style="text-decoration: none; background: #27ae60;">Download</a>
     </div>
 
-    <div id="loader">PDF तयारी गर्दै...</div>
+    <div id="loader">
+        <div style="font-size: 2rem; margin-bottom: 10px;">⏳</div>
+        <div>पत्रिका लोड हुँदैछ, कृपया पर्खनुहोस्...</div>
+    </div>
 
     <div id="viewport">
         <div id="flipbook"></div>
     </div>
 
     <script>
-        // १. सहि PDF URL यहाँ राख्नुहोस्
         const pdfUrl = 'https://news.neelamb.com.np/github/book.pdf'; 
         document.getElementById('download-link').href = pdfUrl;
 
@@ -65,11 +74,11 @@
                 const loadingTask = pdfjsLib.getDocument(pdfUrl);
                 const pdf = await loadingTask.promise;
                 const flipbook = $('#flipbook');
-                $('#loader').hide();
 
+                // Render all pages
                 for (let i = 1; i <= pdf.numPages; i++) {
                     const page = await pdf.getPage(i);
-                    const scale = 1.5; // High resolution rendering
+                    const scale = 2; // High resolution for clear text
                     const viewport = page.getViewport({ scale });
                     
                     const pageDiv = $('<div class="page"></div>');
@@ -83,14 +92,21 @@
                     flipbook.append(pageDiv);
                 }
 
-                // Turn.js Configuration
+                $('#loader').hide();
+                flipbook.show();
+
+                // Turn.js Magic - "सर्लक्क पल्टाउने" configuration
                 const isMobile = $(window).width() < 768;
+                
                 flipbook.turn({
-                    width: isMobile ? $(window).width() * 0.9 : 1000,
-                    height: isMobile ? 500 : 650,
+                    width: isMobile ? $(window).width() : 1100,
+                    height: isMobile ? $(window).height() * 0.7 : 750,
                     autoCenter: true,
+                    duration: 1000, // पल्टाउने गतिको समय (ms)
                     display: isMobile ? 'single' : 'double',
                     acceleration: true,
+                    gradients: true, // पल्टाउँदा छाया देखिने
+                    elevation: 50,  // कुना उचालिने इफेक्ट
                     when: {
                         turned: function(e, page) {
                             $('#page-info').text(`पेज: ${page} / ${pdf.numPages}`);
@@ -99,27 +115,29 @@
                 });
 
             } catch (err) {
-                $('#loader').text("फाइल फेला परेन वा CORS समस्या देखियो।");
+                $('#loader').html("<span style='color:red;'>CORS Error वा फाइल फेला परेन।</span>");
                 console.error(err);
             }
         }
 
-        // Zoom Functions
-        function zoomIn() {
-            currentZoom += 0.1;
-            updateZoom();
+        // Zoom Logic
+        function zoomIn() { currentZoom += 0.2; applyZoom(); }
+        function zoomOut() { if (currentZoom > 0.6) currentZoom -= 0.2; applyZoom(); }
+        function applyZoom() {
+            $('#flipbook').css({
+                'transform': `scale(${currentZoom})`,
+                'transform-origin': 'center top'
+            });
         }
 
-        function zoomOut() {
-            if (currentZoom > 0.5) {
-                currentZoom -= 0.1;
-                updateZoom();
+        // Resize support
+        $(window).resize(function() {
+            if ($('#flipbook').turn('is')) {
+                const isMobile = $(window).width() < 768;
+                $('#flipbook').turn('size', isMobile ? $(window).width() : 1100, isMobile ? 500 : 750);
+                $('#flipbook').turn('display', isMobile ? 'single' : 'double');
             }
-        }
-
-        function updateZoom() {
-            $('#flipbook').css('transform', `scale(${currentZoom})`);
-        }
+        });
 
         $(document).ready(initFlipbook);
     </script>
