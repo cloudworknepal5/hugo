@@ -8,8 +8,13 @@
         @import url('https://fonts.googleapis.com/css2?family=Mukta:wght@400;700&display=swap');
         
         body { font-family: 'Mukta', sans-serif; line-height: 1.6; padding: 20px; background: #f4f7f6; color: #333; margin: 0; }
-        .container { max-width: 950px; margin: auto; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.08); }
         
+        /* Navbar Style */
+        .navbar { background: #002e5b; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: flex; gap: 10px; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .navbar input { flex-grow: 1; padding: 10px; border-radius: 6px; border: none; font-family: 'Mukta', sans-serif; }
+        .btn-fetch { background: #ed1c24; color: white; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; border: none; }
+
+        .container { max-width: 950px; margin: auto; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.08); }
         h1 { color: #ed1c24; font-size: 26px; font-weight: 700; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
         
         .image-container { position: relative; margin-bottom: 25px; text-align: center; }
@@ -47,9 +52,14 @@
 </div>
 
 <div class="container">
+    <div class="navbar">
+        <input type="text" id="site-url" placeholder="वेबसाइटको URL राख्नुहोस् (e.g., https://ekantipur.com)">
+        <button class="btn-fetch" onclick="fetchData()">समाचार तान्नुहोस्</button>
+    </div>
+
     <div id="content-body">
         <span class="label">समाचार शीर्षक:</span>
-        <h1 id="news-title">लोड हुँदैछ...</h1>
+        <h1 id="news-title">वेबसाइट URL राखेर "समाचार तान्नुहोस्" मा क्लिक गर्नुहोस्</h1>
         <div id="image-area" class="image-container"></div>
         <span class="label">समाचार सामग्री:</span>
         <div class="content-area" id="news-text"></div>
@@ -87,19 +97,34 @@
 </div>
 
 <script>
-    // API Keys
     const OPENAI_API_KEY = "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"; 
     const GEMINI_API_KEY = "AIzaSyBNWjPUmKWnHcdlQrvAq7qRSKOdIt1APcM"; 
 
     let posts = [];
     let currentIndex = 0;
 
+    // Multi-function fetcher for any WP site
     async function fetchData() {
+        let siteUrl = document.getElementById('site-url').value.trim();
+        if (!siteUrl) {
+            siteUrl = "https://dev-webdesignnepal.pantheonsite.io"; // Default
+        }
+        
+        // Remove trailing slash if exists
+        siteUrl = siteUrl.replace(/\/$/, "");
+        const apiUrl = `${siteUrl}/wp-json/wp/v2/posts?_embed&per_page=50`;
+
+        showLoader("वेबसाइटबाट समाचार तान्दैछ...");
         try {
-            const response = await fetch('https://dev-webdesignnepal.pantheonsite.io/wp-json/wp/v2/posts?_embed&per_page=50');
+            const response = await fetch(apiUrl);
+            if (!response.ok) throw new Error("प्रतिक्रिया मिलेन");
             posts = await response.json();
+            currentIndex = 0;
             renderPost();
-        } catch (error) { document.getElementById('news-title').innerText = "डाटा लोड गर्न सकिएन।"; }
+        } catch (error) { 
+            document.getElementById('news-title').innerText = "डाटा लोड गर्न सकिएन। कृपया URL ठिक छ कि छैन जाँच गर्नुहोस्।"; 
+        }
+        hideLoader();
     }
 
     function renderPost() {
@@ -140,7 +165,7 @@
         const model = document.getElementById('image-model-select').value;
         const styleChoice = document.getElementById('image-style-select').value;
         const title = document.getElementById('news-title').innerText;
-        const content = document.getElementById('news-text').innerText.substring(0, 400); // पहिलो ४०० अक्षर विश्लेषणको लागि
+        const content = document.getElementById('news-text').innerText.substring(0, 400);
 
         let masterStyle = "";
         if (styleChoice === 'comic') {
@@ -159,7 +184,6 @@
         document.getElementById('i-btn').disabled = true;
 
         try {
-            // १. जेमिनी प्रयोग गरेर समाचारको शीर्षक र सामग्रीबाट सान्दर्भिक दृश्य (Scene) को प्रम्प्ट बनाउने
             const gRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -182,7 +206,6 @@
             let finalPrompt = `${masterStyle} ${aiPrompt}`;
             let imageUrl = "";
 
-            // २. छानिएको मोडेल अनुसार चित्र बनाउने
             if (model === 'dalle') {
                 const response = await fetch("https://api.openai.com/v1/images/generations", {
                     method: "POST",
@@ -220,9 +243,10 @@
     function showLoader(m) { document.getElementById('status-text').innerText = m; document.getElementById('loader').style.display = 'block'; }
     function hideLoader() { document.getElementById('loader').style.display = 'none'; }
     function resetImageButton(t = "🎨 सान्दर्भिक चित्र बनाउनुहोस्") { const b = document.getElementById('i-btn'); b.disabled = false; b.innerText = t; }
-    function changePost(s) { currentIndex = (currentIndex + s + posts.length) % posts.length; renderPost(); window.scrollTo(0,0); }
+    function changePost(s) { if(posts.length > 0) { currentIndex = (currentIndex + s + posts.length) % posts.length; renderPost(); window.scrollTo(0,0); } }
     function copyText() { navigator.clipboard.writeText(document.getElementById('news-text').innerText); alert("समाचार कपि भयो!"); }
 
+    // Initial default load
     fetchData();
 </script>
 
