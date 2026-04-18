@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Flipbook - पत्रिका</title>
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="https://raw.gitack.com/blasten/turn.js/master/lib/turn.min.js"></script>
+
+    <style>
+        body { background-color: #333; margin: 0; overflow: hidden; display: flex; flex-direction: column; align-items: center; }
+        
+        #controls { margin: 10px; z-index: 10; }
+        button { padding: 8px 15px; cursor: pointer; background: #eee; border: none; border-radius: 4px; font-weight: bold; }
+
+        #flipbook-container { width: 90vw; height: 80vh; display: flex; justify-content: center; align-items: center; }
+        
+        #flipbook { width: 1000px; height: 600px; }
+        
+        .page { background: white; box-shadow: 0 0 10px rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; }
+        
+        canvas { width: 100%; height: 100%; object-fit: contain; }
+
+        /* Mobile Optimization */
+        @media (max-width: 768px) {
+            #flipbook { width: 300px; height: 450px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="controls">
+        <button onclick="$('#flipbook').turn('previous')">अघिल्लो</button>
+        <button onclick="$('#flipbook').turn('next')">पछिल्लो</button>
+        <span style="color: white; margin: 0 10px;" id="page-info">लोड हुँदैछ...</span>
+    </div>
+
+    <div id="flipbook-container">
+        <div id="flipbook">
+            </div>
+    </div>
+
+    <script>
+        // यहाँ तपाईंको PDF को URL राख्नुहोस्
+        const pdfUrl = 'https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf';
+        
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+        async function renderFlipbook() {
+            const loadingTask = pdfjsLib.getDocument(pdfUrl);
+            const pdf = await loadingTask.promise;
+            const flipbook = $('#flipbook');
+
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const viewport = page.getViewport({ scale: 1.5 });
+                
+                const pageDiv = $('<div class="page"></div>');
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                await page.render({ canvasContext: context, viewport: viewport }).promise;
+                pageDiv.append(canvas);
+                flipbook.append(pageDiv);
+            }
+
+            // Initialize Turn.js
+            flipbook.turn({
+                width: 1000,
+                height: 600,
+                autoCenter: true,
+                display: 'double', // मोबाइलमा 'single' बनाउन सकिन्छ
+                acceleration: true,
+                when: {
+                    turned: function(e, page) {
+                        $('#page-info').text(`पेज: ${page} / ${pdf.numPages}`);
+                    }
+                }
+            });
+        }
+
+        renderFlipbook().catch(console.error);
+
+        // Zoom and Resize logic can be added here
+        $(window).resize(function() {
+            const width = $(window).width() < 768 ? 320 : 1000;
+            const height = $(window).width() < 768 ? 480 : 600;
+            $('#flipbook').turn('size', width, height);
+        });
+    </script>
+
+</body>
+</html>
