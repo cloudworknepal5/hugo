@@ -3,62 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>High-Resolution PDF to JPG Converter</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
     <style>
-        .canvas-preview canvas { width: 100% !important; height: auto !important; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .canvas-preview canvas { 
+            width: 100% !important; 
+            height: auto !important; 
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .step-card { transition: all 0.3s ease; }
+        .step-card:hover { transform: translateY(-5px); }
     </style>
 </head>
-<body class="bg-transparent">
+<body class="bg-gray-50 text-gray-900">
 
-    <div class="max-w-6xl mx-auto py-6">
+    <div class="max-w-6xl mx-auto px-4 py-12">
         
-        <div class="flex flex-wrap items-center justify-center gap-4 mb-8 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            
-            <label class="flex items-center px-6 py-3 bg-blue-600 text-white font-bold rounded-xl cursor-pointer hover:bg-blue-700 transition-all active:scale-95 shadow-md">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                </svg>
-                <span>Select PDF</span>
-                <input type="file" id="pdf-input" accept="application/pdf" class="hidden" />
-            </label>
-
-            <button id="btn-zip-all" class="hidden flex items-center px-6 py-3 bg-emerald-500 text-white font-bold rounded-xl hover:bg-emerald-600 transition-all active:scale-95 shadow-md">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                </svg>
-                <span>Download ZIP</span>
-            </button>
-
-            <span id="status-text" class="text-sm font-medium text-gray-500 italic"></span>
+        <div class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-black mb-4 tracking-tight text-gray-900">
+                PDF to JPG Converter <span class="text-red-600">(High-Res)</span>
+            </h1>
+            <p class="text-gray-500 text-lg max-w-2xl mx-auto">
+                Convert your PDF documents into crystal clear images instantly. Fast, secure, and professional quality.
+            </p>
         </div>
 
-        <div id="image-grid" class="grid grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div class="step-card bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+                <div class="w-10 h-10 bg-blue-100 text-blue-600 flex items-center justify-center rounded-full font-bold mb-4">1</div>
+                <h3 class="font-bold text-gray-800 mb-2">Upload PDF</h3>
+                <p class="text-sm text-gray-500 leading-relaxed">Click the "Select PDF" button to start. Our engine will process each page at 300 DPI high resolution.</p>
             </div>
-        
+            <div class="step-card bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+                <div class="w-10 h-10 bg-red-100 text-red-600 flex items-center justify-center rounded-full font-bold mb-4">2</div>
+                <h3 class="font-bold text-gray-800 mb-2">Download Files</h3>
+                <p class="text-sm text-gray-500 leading-relaxed">Use the <span class="text-red-600 font-bold">Red Buttons</span> to save individual pages or get everything in a single ZIP file.</p>
+            </div>
+            <div class="step-card bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+                <div class="w-10 h-10 bg-green-100 text-green-600 flex items-center justify-center rounded-full font-bold mb-4">3</div>
+                <h3 class="font-bold text-gray-800 mb-2">Extract & Share</h3>
+                <p class="text-sm text-gray-500 leading-relaxed">Open the ZIP file using your phone's file manager, extract the JPGs, and share them anywhere easily.</p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-[2.5rem] shadow-xl border border-gray-100 p-8 text-center mb-12">
+            <div class="flex flex-wrap items-center justify-center gap-6">
+                
+                <label class="flex items-center px-10 py-5 bg-blue-600 text-white font-bold rounded-2xl cursor-pointer hover:bg-blue-700 hover:shadow-2xl transition-all transform hover:-translate-y-1 active:scale-95">
+                    <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    <span class="text-lg">Select PDF File</span>
+                    <input type="file" id="pdf-upload" accept="application/pdf" class="hidden" />
+                </label>
+
+                <button id="zip-download" class="hidden flex items-center px-10 py-5 bg-red-600 text-white font-black rounded-2xl hover:bg-red-700 hover:shadow-2xl transition-all transform hover:-translate-y-1 active:scale-95">
+                    <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    <span class="text-lg">Download All (ZIP)</span>
+                </button>
+            </div>
+            
+            <div id="status-bar" class="mt-6 font-bold text-blue-600 h-6"></div>
+        </div>
+
+        <div id="results-grid" class="grid grid-cols-2 lg:grid-cols-3 gap-8">
+            </div>
     </div>
 
     <script>
-        const pdfInput = document.getElementById('pdf-input');
-        const imageGrid = document.getElementById('image-grid');
-        const btnZipAll = document.getElementById('btn-zip-all');
-        const statusText = document.getElementById('status-text');
+        const fileInput = document.getElementById('pdf-upload');
+        const grid = document.getElementById('results-grid');
+        const zipBtn = document.getElementById('zip-download');
+        const status = document.getElementById('status-bar');
         
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
 
-        let masterImageStore = [];
+        let imagesList = [];
 
-        pdfInput.addEventListener('change', async (e) => {
+        fileInput.addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
 
-            imageGrid.innerHTML = '';
-            masterImageStore = [];
-            btnZipAll.classList.add('hidden');
-            statusText.innerText = "Processing...";
+            grid.innerHTML = '';
+            imagesList = [];
+            zipBtn.classList.add('hidden');
+            status.innerText = "Reading PDF Document...";
 
             const reader = new FileReader();
             reader.onload = async function() {
@@ -66,10 +102,12 @@
                     const typedarray = new Uint8Array(this.result);
                     const pdf = await pdfjsLib.getDocument(typedarray).promise;
                     
-                    statusText.innerText = `Converting ${pdf.numPages} Pages...`;
+                    status.innerText = `Converting ${pdf.numPages} Pages to High-Resolution...`;
 
                     for (let i = 1; i <= pdf.numPages; i++) {
                         const page = await pdf.getPage(i);
+                        
+                        // Ultra High-Res Scale (3.0)
                         const viewport = page.getViewport({ scale: 3.0 }); 
                         const canvas = document.createElement('canvas');
                         const context = canvas.getContext('2d');
@@ -78,50 +116,53 @@
 
                         await page.render({ canvasContext: context, viewport: viewport }).promise;
 
-                        const imgData = canvas.toDataURL('image/png');
-                        masterImageStore.push({ name: `Page_${i}.png`, data: imgData });
+                        const imgUrl = canvas.toDataURL('image/png');
+                        imagesList.push({ name: `Page_No_${i}.png`, data: imgUrl });
 
-                        // Build Card
+                        // Build individual card
                         const card = document.createElement('div');
-                        card.className = "bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex flex-col";
+                        card.className = "flex flex-col p-5 bg-white border border-gray-100 rounded-[2rem] shadow-sm hover:shadow-xl transition-all duration-300";
                         
                         const preview = document.createElement('div');
-                        preview.className = "canvas-preview mb-3 rounded-lg overflow-hidden shadow-inner border border-gray-50";
+                        preview.className = "canvas-preview mb-5 overflow-hidden";
                         preview.appendChild(canvas);
                         
-                        const dlBtn = document.createElement('button');
-                        dlBtn.className = "w-full py-2 bg-gray-100 text-gray-800 font-bold rounded-lg hover:bg-blue-600 hover:text-white transition-all text-xs uppercase tracking-wider";
-                        dlBtn.innerText = `Save Page ${i}`;
+                        // RED INDIVIDUAL DOWNLOAD BUTTON
+                        const dl = document.createElement('button');
+                        dl.className = "mt-auto w-full py-3 bg-red-600 text-white font-black rounded-xl hover:bg-red-700 transition-all text-xs uppercase shadow-md active:scale-95";
+                        dl.innerHTML = `Save Page ${i}`;
                         
-                        dlBtn.onclick = () => {
-                            const link = document.createElement('a');
-                            link.href = imgData;
-                            link.download = `Page_${i}.png`;
-                            link.click();
+                        dl.onclick = () => {
+                            const a = document.createElement('a');
+                            a.href = imgUrl;
+                            a.download = `Page_${i}.png`;
+                            a.click();
                         };
 
                         card.appendChild(preview);
-                        card.appendChild(dlBtn);
-                        imageGrid.appendChild(card);
+                        card.appendChild(dl);
+                        grid.appendChild(card);
                     }
 
-                    statusText.innerText = "Done!";
-                    btnZipAll.classList.remove('hidden');
+                    status.innerText = "Success! All pages are ready.";
+                    zipBtn.classList.remove('hidden');
                 } catch (err) {
-                    statusText.innerText = "Error encountered.";
+                    status.innerText = "Error: Invalid PDF or file corrupted.";
+                    console.error(err);
                 }
             };
             reader.readAsArrayBuffer(file);
         });
 
-        btnZipAll.addEventListener('click', () => {
+        // ZIP Function
+        zipBtn.addEventListener('click', () => {
             const zip = new JSZip();
-            masterImageStore.forEach(item => {
-                const base64Data = item.data.split(',')[1];
-                zip.file(item.name, base64Data, { base64: true });
+            imagesList.forEach(img => {
+                const b64 = img.data.split(',')[1];
+                zip.file(img.name, b64, { base64: true });
             });
             zip.generateAsync({ type: "blob" }).then(content => {
-                saveAs(content, "PDF_Export.zip");
+                saveAs(content, "PDF_Converted_HighRes.zip");
             });
         });
     </script>
