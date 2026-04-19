@@ -1,0 +1,134 @@
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Mukta:wght@400;700&display=swap');
+    
+    .drive-page-container { max-width: 1400px; margin: 0 auto; font-family: 'Mukta', sans-serif; padding: 20px; }
+
+    .custom-title-bar { display: flex; align-items: center; text-align: center; margin: 20px auto 40px auto; width: 100%; }
+    .custom-title-bar::before, .custom-title-bar::after { content: ''; flex: 1; border-bottom: 2px solid #333; }
+    .custom-title-bar span { padding: 0 20px; font-size: 28px; font-weight: bold; color: #1a202c; white-space: nowrap; }
+
+    /* ग्रिड लेआउट */
+    .grid-group { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; grid-auto-rows: minmax(220px, auto); grid-gap: 20px; margin-bottom: 20px; }
+    .grid-group .drive-card:first-child { grid-row: span 2; }
+
+    .drive-card {
+        background: #fff; border: 1px solid #e2e8f0; display: flex; flex-direction: column; 
+        position: relative; overflow: hidden; text-decoration: none; color: inherit; 
+        transition: all 0.3s ease; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    .drive-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.15); border-color: #e60000; }
+
+    .thumb-wrapper { width: 100%; height: 100%; position: relative; min-height: 200px; background: #f1f5f9; }
+    .thumb-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* फाइल नेम ओभरले */
+    .file-name-overlay {
+        position: absolute; bottom: 0; left: 0; right: 0;
+        background: linear-gradient(transparent, rgba(0,0,0,0.9)); color: white; 
+        padding: 40px 10px 10px; font-size: 14px; text-align: center; font-weight: 600;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    /* डाउनलोड बटन - कार्डको माथि दायाँ कुनामा */
+    .download-btn {
+        position: absolute; top: 10px; right: 10px; background: #e60000; color: #fff;
+        width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center;
+        justify-content: center; z-index: 10; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .download-btn:hover { background: #000; transform: scale(1.1); }
+    .download-btn svg { width: 18px; height: 18px; fill: white; }
+
+    .btn-container { text-align: center; margin: 40px 0; }
+    #load-more-btn {
+        padding: 14px 40px; cursor: pointer; background: #e60000; color: #fff;
+        border: none; border-radius: 50px; font-size: 16px; font-weight: bold;
+        display: none; transition: 0.3s; box-shadow: 0 4px 10px rgba(230,0,0,0.3);
+    }
+    #status-msg { text-align: center; padding: 50px; font-weight: bold; color: #64748b; font-size: 18px; }
+
+    @media (max-width: 1000px) {
+        .grid-group { grid-template-columns: 1fr 1fr; }
+        .grid-group .drive-card:first-child { grid-column: span 2; }
+        .custom-title-bar span { font-size: 20px; }
+    }
+</style>
+
+<div class="drive-page-container">
+    <div class="custom-title-bar">
+        <span id="gallery-title">लोड हुँदैछ...</span>
+    </div>
+    <div id="main-gallery-container"></div>
+    <div class="btn-container">
+        <button id="load-more-btn" onclick="handleLoadMore()">थप फाइलहरू हेर्नुहोस्</button>
+    </div>
+    <div id="status-msg">कृपया पर्खनुहोस्, सामग्री लोड हुँदैछ...</div>
+</div>
+
+<script>
+const SCRIPT_BASE_URL = "https://script.google.com/macros/s/AKfycbzB6SCAGH8aOweGG6twgctfcyBg48eU-TCgNolqNOoGGp6DiTuBXJ6MjMiLwIVJ8o0U/exec";
+const MY_FOLDER_ID = "133kF0VZL3_HiXEteCno3WOkqDqNEZaKW"; 
+const PAGE_TITLE = "फेमस नेपाल सन्देश साप्ताहिक पढ्नुहोस्";
+
+document.getElementById('gallery-title').innerText = PAGE_TITLE;
+
+let allFiles = []; 
+let displayedCount = 0; 
+const BATCH_SIZE = 9; 
+
+async function fetchAndInit() {
+    const url = `${SCRIPT_BASE_URL}?id=${MY_FOLDER_ID}&t=${new Date().getTime()}`;
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        if (data.error) { document.getElementById('status-msg').innerHTML = "त्रुटि: " + data.error; return; }
+        allFiles = data.sort((a, b) => new Date(b.date) - new Date(a.date));
+        document.getElementById('status-msg').style.display = 'none';
+        renderBatch(); 
+    } catch (err) {
+        document.getElementById('status-msg').innerHTML = "डाटा लोड गर्न सकिएन।";
+    }
+}
+
+function createCardHTML(file) {
+    const thumb = `https://drive.google.com/thumbnail?id=${file.id}&sz=w1000`;
+    // गुगल ड्राइभ डायरेक्ट डाउनलोड लिंक
+    const downloadLink = `https://drive.google.com/uc?export=download&id=${file.id}`;
+    
+    return `
+        <div class="drive-card-wrapper" style="position:relative">
+            <a href="${downloadLink}" class="download-btn" title="Download ${file.name}" download>
+                <svg viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/></svg>
+            </a>
+            <a href="${file.url}" target="_blank" class="drive-card">
+                <div class="thumb-wrapper">
+                    <img src="${thumb}" alt="${file.name}" loading="lazy">
+                    <div class="file-name-overlay">${file.name}</div>
+                </div>
+            </a>
+        </div>
+    `;
+}
+
+function renderBatch() {
+    const mainContainer = document.getElementById('main-gallery-container');
+    const nextBatch = allFiles.slice(displayedCount, displayedCount + BATCH_SIZE);
+    if (nextBatch.length > 0) {
+        const groupDiv = document.createElement('div');
+        groupDiv.className = 'grid-group';
+        let batchHTML = '';
+        nextBatch.forEach(file => { batchHTML += createCardHTML(file); });
+        groupDiv.innerHTML = batchHTML;
+        mainContainer.appendChild(groupDiv);
+    }
+    displayedCount += nextBatch.length;
+    updateButtonVisibility();
+}
+
+function updateButtonVisibility() {
+    const btn = document.getElementById('load-more-btn');
+    btn.style.display = (displayedCount < allFiles.length) ? 'inline-block' : 'none';
+}
+
+function handleLoadMore() { renderBatch(); }
+fetchAndInit();
+</script>

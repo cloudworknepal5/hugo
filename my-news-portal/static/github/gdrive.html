@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neelamb Multi-Folder Gallery</title>
+    <style>
+        body { background: #f9f9f9; margin: 0; font-family: 'Mukta', sans-serif; }
+        
+        /* नेभिगेसन बार स्टाइल */
+        .navbar {
+            background: #000; color: #fff; padding: 15px 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        .nav-logo { font-size: 22px; font-weight: bold; color: #e60000; }
+        .nav-search { width: 100%; max-width: 400px; position: relative; }
+        .nav-search input {
+            width: 100%; padding: 10px 15px; border-radius: 25px; border: none;
+            outline: none; font-size: 15px;
+        }
+
+        .container { padding: 20px; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="nav-logo">EPAPER</div>
+        <div class="nav-search">
+            <input type="text" id="global-search" placeholder="यहाँ खोज्नुहोस् (सबै फोल्डरमा)..." onkeyup="triggerGlobalSearch(this.value)">
+        </div>
+    </nav>
+
+    <div class="container">
+        <div id="baisakh-section"></div>
+        <div id="jestha-section"></div>
+    </div>
+
+    <script src="file:///C:/Users/DELL/Desktop/hugo/my-news-portal/static/github/googledrive.js"></script>
+
+    <script>
+        // २. ग्यालरीहरू इन्स्टलाइज गर्ने
+        const gallery1 = new NeelambGallery({
+            containerId: "baisakh-section",
+            folderId: "133kF0VZL3_HiXEteCno3WOkqDqNEZaKW",
+            title: "बैशाख अंक"
+        });
+
+        const gallery2 = new NeelambGallery({
+            containerId: "jestha-section",
+            folderId: "1F-YCg0VFjKBs12KNUAPvwuEc6Tyz0gw7",
+            title: "जेठ अंक"
+        });
+
+        const gallery2 = new NeelambGallery({
+            containerId: "jestha-section",
+            folderId: "1F-YCg0VFjKBs12KNUAPvwuEc6Tyz0gw7",
+            title: "जेठ अंक"
+        });
+        
+
+
+
+
+        // ३. ग्लोबल सर्च लजिक
+        function triggerGlobalSearch(val) {
+            if (window.neelambInstances) {
+                window.neelambInstances.forEach(instance => {
+                    instance.applyGlobalSearch(val);
+                });
+            }
+        }
+    </script>
+
+</body>
+</html>

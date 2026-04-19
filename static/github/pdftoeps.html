@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF to InDesign Assets</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #2d1b2d; color: #fdf2fd; }
+        .glass { background: rgba(60, 20, 60, 0.6); backdrop-filter: blur(10px); border: 1px solid rgba(255, 100, 255, 0.1); }
+        .indesign-pink { background-color: #ff3366; }
+        canvas { border-radius: 8px; border: 1px solid #4d2b4d; width: 100% !important; }
+    </style>
+</head>
+<body class="p-4 md:p-10">
+
+    <div class="max-w-4xl mx-auto">
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-black text-pink-500 mb-2 italic">Id <span class="text-white not-italic text-3xl">InDesign Asset Creator</span></h1>
+            <p class="text-pink-200/60 text-sm">Prepare PDF pages for InDesign High-Res Placement</p>
+        </div>
+
+        <div class="glass p-8 rounded-[2rem] text-center mb-10">
+            <div class="flex flex-wrap justify-center gap-4">
+                <label class="px-10 py-4 indesign-pink hover:bg-pink-600 text-white font-bold rounded-xl cursor-pointer transition-all active:scale-95 shadow-lg shadow-pink-900/40">
+                    <span>Import PDF</span>
+                    <input type="file" id="pdf-file" accept="application/pdf" class="hidden" />
+                </label>
+                <button id="zip-all" class="hidden px-10 py-4 bg-white text-pink-600 font-black rounded-xl hover:bg-gray-100 transition-all">
+                    Pack for InDesign (ZIP)
+                </button>
+            </div>
+            <div id="status-msg" class="mt-6 text-pink-400 font-bold text-xs h-4"></div>
+        </div>
+
+        <div id="asset-grid" class="grid grid-cols-2 md:grid-cols-3 gap-6"></div>
+    </div>
+
+    <script>
+        const input = document.getElementById('pdf-file');
+        const grid = document.getElementById('asset-grid');
+        const zipBtn = document.getElementById('zip-all');
+        const status = document.getElementById('status-msg');
+        
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+        let store = [];
+
+        input.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            grid.innerHTML = ''; store = []; zipBtn.classList.add('hidden');
+            status.innerText = "Optimizing for InDesign Links...";
+
+            const reader = new FileReader();
+            reader.onload = async function() {
+                try {
+                    const pdf = await pdfjsLib.getDocument(new Uint8Array(this.result)).promise;
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const viewport = page.getViewport({ scale: 4.0 }); // 300 DPI+ quality
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        canvas.height = viewport.height; canvas.width = viewport.width;
+                        await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+                        
+                        const data = canvas.toDataURL('image/png');
+                        store.push({ name: `InDesign_Page_${i}.png`, data: data });
+
+                        const box = document.createElement('div');
+                        box.className = "glass p-4 rounded-2xl flex flex-col items-center shadow-lg";
+                        const dl = document.createElement('button');
+                        dl.className = "mt-4 w-full py-2 indesign-pink text-white font-bold rounded-lg text-[10px] hover:bg-pink-600 transition-all";
+                        dl.innerText = `Export Page ${i}`;
+                        dl.onclick = () => { const a = document.createElement('a'); a.href = data; a.download = `Page_${i}.png`; a.click(); };
+                        box.appendChild(canvas); box.appendChild(dl); grid.appendChild(box);
+                    }
+                    status.innerText = "Ready for InDesign Import!";
+                    zipBtn.classList.remove('hidden');
+                } catch (err) { status.innerText = "Process Failed."; }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        zipBtn.addEventListener('click', () => {
+            const zip = new JSZip();
+            store.forEach(img => zip.file(img.name, img.data.split(',')[1], { base64: true }));
+            zip.generateAsync({ type: "blob" }).then(c => saveAs(c, "InDesign_Assets.zip"));
+        });
+    </script>
+</body>
+</html>
